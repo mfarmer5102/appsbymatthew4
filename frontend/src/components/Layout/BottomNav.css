@@ -81,6 +81,11 @@
   margin-bottom: 0.25rem;
 }
 
+.material-icons.bottom-nav-icon {
+  font-size: 1.25rem;
+  color: inherit;
+}
+
 .bottom-nav-label {
   font-size: 0.75rem;
   font-weight: 500;

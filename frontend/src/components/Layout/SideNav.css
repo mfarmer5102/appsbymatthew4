@@ -10,18 +10,6 @@
   top: 0;
   left: 0;
   z-index: 100;
-  animation: slideInLeft 0.2s ease-out;
-}
-
-@keyframes slideInLeft {
-  from {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
 }
 
 .nav-list {
@@ -84,6 +72,11 @@
   margin-right: 0.75rem;
   width: 24px;
   text-align: center;
+}
+
+.material-icons.nav-icon {
+  font-size: 1.25rem;
+  color: inherit;
 }
 
 .nav-label {
