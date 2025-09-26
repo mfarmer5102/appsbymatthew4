@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { APPLICATION_IMAGE_BASE_URL, getApplicationImageUrl } from '../../config/images';
 import './ApplicationModal.css';
 
 const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClose, onDelete }) => {
@@ -126,8 +127,17 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
               type="text"
               id="image_url_relative"
               {...register('image_url_relative')}
-              placeholder="/images/app-image.jpg"
+              placeholder="app-image.jpg"
             />
+            <small className="form-help">
+              Enter just the filename (e.g., "app-image.jpg"). 
+              The base URL will be automatically prepended: {APPLICATION_IMAGE_BASE_URL}
+            </small>
+            {watch('image_url_relative') && (
+              <div className="image-preview">
+                <strong>Full URL:</strong> {getApplicationImageUrl(watch('image_url_relative'))}
+              </div>
+            )}
           </div>
 
           <div className="form-group">

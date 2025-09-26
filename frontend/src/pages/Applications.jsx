@@ -4,6 +4,7 @@ import ApplicationModal from '../components/Applications/ApplicationModal';
 import DeleteModal from '../components/Common/DeleteModal';
 import SkeletonGrid from '../components/Common/SkeletonGrid';
 import { useAdmin } from '../components/Layout/Layout';
+import { getApplicationImageUrl } from '../config/images';
 import './Applications.css';
 
 const Applications = () => {
@@ -136,7 +137,7 @@ const Applications = () => {
           <div key={app._id} className="application-card">
             <div className="card-image">
               <img 
-                src={app.image_url_relative || 'https://via.placeholder.com/300x200?text=No+Image'}
+                src={getApplicationImageUrl(app.image_url_relative)}
                 alt={app.title || 'Application'}
                 onError={(e) => {
                   e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';

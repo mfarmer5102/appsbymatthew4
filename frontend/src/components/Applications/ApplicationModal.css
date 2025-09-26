@@ -157,6 +157,25 @@
   font-weight: 500;
 }
 
+.form-help {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.image-preview {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #374151;
+  word-break: break-all;
+}
+
 .modal-actions {
   display: flex;
   gap: 0.75rem;
