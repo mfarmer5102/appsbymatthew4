@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { applicationsAPI, supportStatusAPI, skillsAPI } from '../config/api';
 import ApplicationModal from '../components/Applications/ApplicationModal';
 import DeleteModal from '../components/Common/DeleteModal';
+import { useAdmin } from '../components/Layout/Layout';
 import './Applications.css';
 
 const Applications = () => {
+  const { isAdminMode } = useAdmin();
   const [applications, setApplications] = useState([]);
   const [supportStatuses, setSupportStatuses] = useState([]);
   const [skills, setSkills] = useState([]);
@@ -102,9 +104,11 @@ const Applications = () => {
     <div className="applications">
       <div className="page-header">
         <h1>Applications</h1>
-        <button className="btn btn-primary" onClick={handleCreate}>
-          + Add Application
-        </button>
+        {isAdminMode && (
+          <button className="btn btn-primary" onClick={handleCreate}>
+            + Add Application
+          </button>
+        )}
       </div>
 
       {error && (
@@ -158,11 +162,13 @@ const Applications = () => {
               </div>
             </div>
 
-            <div className="card-actions">
-              <button className="btn btn-secondary" onClick={() => handleEdit(app)}>
-                Edit
-              </button>
-            </div>
+            {isAdminMode && (
+              <div className="card-actions">
+                <button className="btn btn-secondary" onClick={() => handleEdit(app)}>
+                  Edit
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>

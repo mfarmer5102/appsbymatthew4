@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { skillsAPI, skillTypesAPI } from '../config/api';
 import SkillModal from '../components/Skills/SkillModal';
 import DeleteModal from '../components/Common/DeleteModal';
+import { useAdmin } from '../components/Layout/Layout';
 import './Skills.css';
 
 const Skills = () => {
+  const { isAdminMode } = useAdmin();
   const [skills, setSkills] = useState([]);
   const [skillTypes, setSkillTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -163,9 +165,11 @@ const Skills = () => {
     <div className="skills">
       <div className="page-header">
         <h1>Skills</h1>
-        <button className="btn btn-primary" onClick={handleCreate}>
-          + Add Skill
-        </button>
+        {isAdminMode && (
+          <button className="btn btn-primary" onClick={handleCreate}>
+            + Add Skill
+          </button>
+        )}
       </div>
 
       {/* Filters and Sort */}
@@ -277,11 +281,13 @@ const Skills = () => {
               </div>
             </div>
 
-            <div className="card-actions">
-              <button className="btn btn-secondary" onClick={() => handleEdit(skill)}>
-                Edit
-              </button>
-            </div>
+            {isAdminMode && (
+              <div className="card-actions">
+                <button className="btn btn-secondary" onClick={() => handleEdit(skill)}>
+                  Edit
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>

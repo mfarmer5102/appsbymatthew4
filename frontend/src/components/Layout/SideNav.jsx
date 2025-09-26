@@ -1,15 +1,17 @@
 import { Link, useLocation } from 'react-router-dom';
 import './SideNav.css';
 
-const SideNav = ({ onItemClick }) => {
+const SideNav = ({ onItemClick, isAdminMode }) => {
   const location = useLocation();
 
-  const navItems = [
+  const allNavItems = [
     { path: '/', label: 'Applications', icon: '📱' },
     { path: '/skills', label: 'Skills', icon: '💻' },
-    { path: '/skill-types', label: 'Skill Types', icon: '🏷️' },
-    { path: '/support-status', label: 'Support Status', icon: '🔧' },
+    { path: '/skill-types', label: 'Skill Types', icon: '🏷️', adminOnly: true },
+    { path: '/support-status', label: 'Support Status', icon: '🔧', adminOnly: true },
   ];
+
+  const navItems = allNavItems.filter(item => !item.adminOnly || isAdminMode);
 
   const handleItemClick = () => {
     if (onItemClick) {

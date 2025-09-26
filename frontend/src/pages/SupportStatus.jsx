@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { supportStatusAPI } from '../config/api';
 import SupportStatusModal from '../components/SupportStatus/SupportStatusModal';
 import DeleteModal from '../components/Common/DeleteModal';
+import { useAdmin } from '../components/Layout/Layout';
 import './SupportStatus.css';
 
 const SupportStatus = () => {
+  const { isAdminMode } = useAdmin();
   const [supportStatuses, setSupportStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -80,9 +82,11 @@ const SupportStatus = () => {
     <div className="support-status">
       <div className="page-header">
         <h1>Support Status</h1>
-        <button className="btn btn-primary" onClick={handleCreate}>
-          + Add Support Status
-        </button>
+        {isAdminMode && (
+          <button className="btn btn-primary" onClick={handleCreate}>
+            + Add Support Status
+          </button>
+        )}
       </div>
 
       {error && (
@@ -110,11 +114,13 @@ const SupportStatus = () => {
               </div>
             </div>
 
-            <div className="card-actions">
-              <button className="btn btn-secondary" onClick={() => handleEdit(status)}>
-                Edit
-              </button>
-            </div>
+            {isAdminMode && (
+              <div className="card-actions">
+                <button className="btn btn-secondary" onClick={() => handleEdit(status)}>
+                  Edit
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>

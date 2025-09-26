@@ -1,15 +1,17 @@
 import { Link, useLocation } from 'react-router-dom';
 import './BottomNav.css';
 
-const BottomNav = () => {
+const BottomNav = ({ isAdminMode }) => {
   const location = useLocation();
 
-  const navItems = [
+  const allNavItems = [
     { path: '/', label: 'Apps', icon: '📱' },
     { path: '/skills', label: 'Skills', icon: '💻' },
-    { path: '/skill-types', label: 'Types', icon: '🏷️' },
-    { path: '/support-status', label: 'Support', icon: '🔧' },
+    { path: '/skill-types', label: 'Types', icon: '🏷️', adminOnly: true },
+    { path: '/support-status', label: 'Support', icon: '🔧', adminOnly: true },
   ];
+
+  const navItems = allNavItems.filter(item => !item.adminOnly || isAdminMode);
 
   return (
     <nav className="bottom-nav">

@@ -1,12 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import Header from './Header';
 import SideNav from './SideNav';
 import BottomNav from './BottomNav';
 import './Layout.css';
 
+// Create Admin Context
+export const AdminContext = createContext();
+
+export const useAdmin = () => {
+  const context = useContext(AdminContext);
+  if (!context) {
+    throw new Error('useAdmin must be used within an AdminProvider');
+  }
+  return context;
+};
+
 const Layout = ({ children }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -25,21 +37,32 @@ const Layout = ({ children }) => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const toggleAdminMode = () => {
+    setIsAdminMode(!isAdminMode);
+  };
+
   return (
-    <div className="layout">
-      <Header isMobile={isMobile} onMenuClick={toggleSidebar} />
-      
-      <div className="layout-content">
-        {!isMobile && <SideNav />}
+    <AdminContext.Provider value={{ isAdminMode, toggleAdminMode }}>
+      <div className="layout">
+        <Header 
+          isMobile={isMobile} 
+          onMenuClick={toggleSidebar}
+          isAdminMode={isAdminMode}
+          onToggleAdminMode={toggleAdminMode}
+        />
         
-        <main className={`main-content ${isMobile ? 'mobile' : ''}`}>
-          {children}
-        </main>
+        <div className="layout-content">
+          {!isMobile && <SideNav isAdminMode={isAdminMode} />}
+          
+          <main className={`main-content ${isMobile ? 'mobile' : ''}`}>
+            {children}
+          </main>
+          
+        </div>
         
+        {isMobile && <BottomNav isAdminMode={isAdminMode} />}
       </div>
-      
-      {isMobile && <BottomNav />}
-    </div>
+    </AdminContext.Provider>
   );
 };
 
