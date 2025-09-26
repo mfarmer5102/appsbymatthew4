@@ -29,6 +29,7 @@ const Skills = () => {
   });
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
+  const [filtersVisible, setFiltersVisible] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -155,6 +156,10 @@ const Skills = () => {
     setCurrentPage(1);
   };
 
+  const toggleFilters = () => {
+    setFiltersVisible(!filtersVisible);
+  };
+
   const totalPages = Math.ceil(pagination.total / pagination.limit);
 
   if (loading) {
@@ -174,7 +179,17 @@ const Skills = () => {
 
       {/* Filters and Sort */}
       <div className="filters-section">
-        <div className="filters-row">
+        <div className="filters-header">
+          <h3>Filters & Sort</h3>
+          <button 
+            className="filters-toggle" 
+            onClick={toggleFilters}
+            aria-label={filtersVisible ? 'Hide filters' : 'Show filters'}
+          >
+            {filtersVisible ? '−' : '+'}
+          </button>
+        </div>
+        <div className={`filters-row ${filtersVisible ? 'visible' : ''}`}>
           <div className="filter-group">
             <label htmlFor="proficient-filter">Proficiency:</label>
             <select 
