@@ -25,7 +25,7 @@ const Applications = () => {
       const [appsRes, supportRes, skillsRes] = await Promise.all([
         applicationsAPI.getAll(),
         supportStatusAPI.getAll(),
-        skillsAPI.getAll()
+        skillsAPI.getAll({ limit: 1000, offset: 0 }) // Fetch all skills for modal
       ]);
       
       setApplications(appsRes.data.data || []);
@@ -162,9 +162,6 @@ const Applications = () => {
               <button className="btn btn-secondary" onClick={() => handleEdit(app)}>
                 Edit
               </button>
-              <button className="btn btn-danger" onClick={() => handleDelete(app)}>
-                Delete
-              </button>
             </div>
           </div>
         ))}
@@ -183,6 +180,7 @@ const Applications = () => {
           skills={skills}
           onSave={handleSave}
           onClose={() => setShowModal(false)}
+          onDelete={handleDelete}
         />
       )}
 

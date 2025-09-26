@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import './SkillModal.css';
 
-const SkillModal = ({ skill, skillTypes, onSave, onClose }) => {
+const SkillModal = ({ skill, skillTypes, onSave, onClose, onDelete }) => {
   const { register, handleSubmit, formState: { errors }, setValue } = useForm();
 
   const isEditing = !!skill;
@@ -86,6 +86,11 @@ const SkillModal = ({ skill, skillTypes, onSave, onClose }) => {
             <button type="button" onClick={onClose} className="btn btn-secondary">
               Cancel
             </button>
+            {isEditing && (
+              <button type="button" onClick={() => onDelete(skill)} className="btn btn-danger">
+                Delete
+              </button>
+            )}
             <button type="submit" className="btn btn-primary">
               {isEditing ? 'Update' : 'Create'}
             </button>

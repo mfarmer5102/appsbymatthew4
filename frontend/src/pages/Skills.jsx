@@ -281,9 +281,6 @@ const Skills = () => {
               <button className="btn btn-secondary" onClick={() => handleEdit(skill)}>
                 Edit
               </button>
-              <button className="btn btn-danger" onClick={() => handleDelete(skill)}>
-                Delete
-              </button>
             </div>
           </div>
         ))}
@@ -326,6 +323,7 @@ const Skills = () => {
           skillTypes={skillTypes}
           onSave={handleSave}
           onClose={() => setShowModal(false)}
+          onDelete={handleDelete}
         />
       )}
 

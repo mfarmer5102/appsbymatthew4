@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import './SupportStatusModal.css';
 
-const SupportStatusModal = ({ supportStatus, onSave, onClose }) => {
+const SupportStatusModal = ({ supportStatus, onSave, onClose, onDelete }) => {
   const { register, handleSubmit, formState: { errors }, setValue } = useForm();
 
   const isEditing = !!supportStatus;
@@ -51,6 +51,11 @@ const SupportStatusModal = ({ supportStatus, onSave, onClose }) => {
             <button type="button" onClick={onClose} className="btn btn-secondary">
               Cancel
             </button>
+            {isEditing && (
+              <button type="button" onClick={() => onDelete(supportStatus)} className="btn btn-danger">
+                Delete
+              </button>
+            )}
             <button type="submit" className="btn btn-primary">
               {isEditing ? 'Update' : 'Create'}
             </button>

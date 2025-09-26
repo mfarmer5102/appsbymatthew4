@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import './ApplicationModal.css';
 
-const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClose }) => {
+const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClose, onDelete }) => {
   const [repositories, setRepositories] = useState([]);
   const [associatedSkills, setAssociatedSkills] = useState([]);
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm();
@@ -180,6 +180,11 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
             <button type="button" onClick={onClose} className="btn btn-secondary">
               Cancel
             </button>
+            {isEditing && (
+              <button type="button" onClick={() => onDelete(application)} className="btn btn-danger">
+                Delete
+              </button>
+            )}
             <button type="submit" className="btn btn-primary">
               {isEditing ? 'Update' : 'Create'}
             </button>

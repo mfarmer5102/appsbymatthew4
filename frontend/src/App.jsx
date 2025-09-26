@@ -4,7 +4,6 @@ import Applications from './pages/Applications';
 import Skills from './pages/Skills';
 import SkillTypes from './pages/SkillTypes';
 import SupportStatus from './pages/SupportStatus';
-import Home from './pages/Home';
 import './App.css';
 
 function App() {
@@ -12,7 +11,7 @@ function App() {
     <Router>
       <Layout>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Applications />} />
           <Route path="/applications" element={<Applications />} />
           <Route path="/skills" element={<Skills />} />
           <Route path="/skill-types" element={<SkillTypes />} />

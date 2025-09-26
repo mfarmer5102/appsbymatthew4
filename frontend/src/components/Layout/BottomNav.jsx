@@ -5,8 +5,7 @@ const BottomNav = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Home', icon: '🏠' },
-    { path: '/applications', label: 'Apps', icon: '📱' },
+    { path: '/', label: 'Apps', icon: '📱' },
     { path: '/skills', label: 'Skills', icon: '💻' },
     { path: '/skill-types', label: 'Types', icon: '🏷️' },
     { path: '/support-status', label: 'Support', icon: '🔧' },

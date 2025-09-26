@@ -114,9 +114,6 @@ const SupportStatus = () => {
               <button className="btn btn-secondary" onClick={() => handleEdit(status)}>
                 Edit
               </button>
-              <button className="btn btn-danger" onClick={() => handleDelete(status)}>
-                Delete
-              </button>
             </div>
           </div>
         ))}
@@ -133,6 +130,7 @@ const SupportStatus = () => {
           supportStatus={editingSupportStatus}
           onSave={handleSave}
           onClose={() => setShowModal(false)}
+          onDelete={handleDelete}
         />
       )}
 

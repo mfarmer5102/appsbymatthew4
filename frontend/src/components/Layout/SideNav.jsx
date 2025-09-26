@@ -5,8 +5,7 @@ const SideNav = ({ onItemClick }) => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Home', icon: '🏠' },
-    { path: '/applications', label: 'Applications', icon: '📱' },
+    { path: '/', label: 'Applications', icon: '📱' },
     { path: '/skills', label: 'Skills', icon: '💻' },
     { path: '/skill-types', label: 'Skill Types', icon: '🏷️' },
     { path: '/support-status', label: 'Support Status', icon: '🔧' },
