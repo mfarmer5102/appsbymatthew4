@@ -22,6 +22,7 @@ const Skills = () => {
     offset: 0,
     hasMore: false
   });
+  const [pageSize, setPageSize] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
     proficient: '',
@@ -34,16 +35,16 @@ const Skills = () => {
 
   useEffect(() => {
     fetchData();
-  }, [currentPage, filters, sortBy, sortOrder]);
+  }, [currentPage, filters, sortBy, sortOrder, pageSize]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const offset = (currentPage - 1) * pagination.limit;
+      const offset = (currentPage - 1) * pageSize;
       
       // Build query parameters
       const queryParams = {
-        limit: pagination.limit,
+        limit: pageSize,
         offset,
         sort: sortBy,
         order: sortOrder
@@ -161,7 +162,16 @@ const Skills = () => {
     setFiltersVisible(!filtersVisible);
   };
 
-  const totalPages = Math.ceil(pagination.total / pagination.limit);
+  const totalPages = Math.ceil(pagination.total / pageSize);
+  
+  const handlePageSizeChange = (newPageSize) => {
+    setPageSize(parseInt(newPageSize));
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
+  
+  // Calculate visible range
+  const startItem = (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, pagination.total);
 
   if (loading) {
     return (
@@ -282,42 +292,68 @@ const Skills = () => {
       )}
 
       <div className="skills-grid">
-        {skills.map((skill) => (
-          <div key={skill._id} className="skill-card">
-            <div className="card-header">
-              <h3>{skill.name || 'Unnamed Skill'}</h3>
-              <div className="skill-badges">
-                {skill.is_proficient && <span className="proficient-badge">Proficient</span>}
-                {skill.is_visible_in_app_details && <span className="visible-badge">Visible</span>}
-              </div>
-            </div>
-            
-            <div className="card-content">
-              <div className="skill-details">
-                <div className="detail-item">
-                  <strong>Code:</strong> {skill.code || 'N/A'}
-                </div>
-                <div className="detail-item">
-                  <strong>Type:</strong> {getSkillTypeLabel(skill.skill_type_code)}
-                </div>
-                <div className="detail-item">
-                  <strong>Proficient:</strong> {skill.is_proficient ? 'Yes' : 'No'}
-                </div>
-                <div className="detail-item">
-                  <strong>Visible in App Details:</strong> {skill.is_visible_in_app_details ? 'Yes' : 'No'}
-                </div>
-              </div>
-            </div>
+        {skills.map((skill) => {
+          const getCategoryColor = (code) => {
+            switch (code?.toLowerCase()) {
+              case 'frontend': return '#3b82f6';
+              case 'backend': return '#10b981';
+              case 'database': return '#f59e0b';
+              case 'mobile': return '#8b5cf6';
+              case 'devops': return '#ef4444';
+              case 'design': return '#ec4899';
+              case 'testing': return '#06b6d4';
+              case 'tools': return '#6b7280';
+              default: return '#8b5cf6';
+            }
+          };
 
-            {isAdminMode && (
-              <div className="card-actions">
-                <button className="btn btn-secondary" onClick={() => handleEdit(skill)}>
-                  Edit
-                </button>
+          return (
+            <div key={skill._id} className="skill-card">
+              <div className="card-header">
+                <div className="category-indicator" style={{ backgroundColor: getCategoryColor(skill.skill_type_code) }}>
+                  <span className="material-icons">code</span>
+                </div>
+                <div className="header-content">
+                  <h3>{skill.name || 'Unnamed Skill'}</h3>
+                </div>
               </div>
-            )}
-          </div>
-        ))}
+              
+              <div className="card-content">
+                <div className="skill-info">
+                  <div className="skill-detail">
+                    <span className="detail-label">Code:</span>
+                    <span className="detail-value">{skill.code || 'N/A'}</span>
+                  </div>
+                  <div className="skill-detail">
+                    <span className="detail-label">Type:</span>
+                    <span className="detail-value">{skill.skill_type_code || 'N/A'}</span>
+                  </div>
+                  <div className="skill-detail">
+                    <span className="detail-label">Proficient:</span>
+                    <span className={`detail-value ${skill.is_proficient ? 'proficient' : 'not-proficient'}`}>
+                      {skill.is_proficient ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                  <div className="skill-detail">
+                    <span className="detail-label">Visible:</span>
+                    <span className={`detail-value ${skill.is_visible_in_app_details ? 'visible' : 'hidden'}`}>
+                      {skill.is_visible_in_app_details ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {isAdminMode && (
+                <div className="card-actions">
+                  <button className="btn btn-secondary" onClick={() => handleEdit(skill)}>
+                    <span className="material-icons">edit</span>
+                    Edit
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {skills.length === 0 && !loading && (
@@ -327,47 +363,64 @@ const Skills = () => {
       )}
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {pagination.total > 0 && (
         <div className="pagination">
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => handlePageChange(1)}
-            disabled={currentPage === 1}
-            title="Go to first page"
-          >
-            First
-          </button>
-          
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            title="Go to previous page"
-          >
-            Previous
-          </button>
-          
-          <div className="pagination-info">
-            Page {currentPage} of {totalPages} ({pagination.total} total skills)
+          <div className="pagination-controls">
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => handlePageChange(1)}
+              disabled={currentPage === 1}
+              title="Go to first page"
+            >
+              First
+            </button>
+            
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              title="Go to previous page"
+            >
+              Previous
+            </button>
+            
+            <div className="pagination-info">
+              Showing {startItem}-{endItem} of {pagination.total} skills
+            </div>
+            
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              title="Go to next page"
+            >
+              Next
+            </button>
+            
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => handlePageChange(totalPages)}
+              disabled={currentPage === totalPages}
+              title="Go to last page"
+            >
+              Last
+            </button>
           </div>
           
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            title="Go to next page"
-          >
-            Next
-          </button>
-          
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => handlePageChange(totalPages)}
-            disabled={currentPage === totalPages}
-            title="Go to last page"
-          >
-            Last
-          </button>
+          <div className="pagination-settings">
+            <label htmlFor="page-size">Items per page:</label>
+            <select 
+              id="page-size"
+              value={pageSize} 
+              onChange={(e) => handlePageSizeChange(e.target.value)}
+              className="page-size-select"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
         </div>
       )}
 
