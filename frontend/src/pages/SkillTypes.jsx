@@ -111,20 +111,6 @@ const SkillTypes = () => {
 
       <div className="skill-types-grid">
         {skillTypes.map((skillType) => {
-          const getCategoryIcon = (code) => {
-            switch (code?.toLowerCase()) {
-              case 'frontend': return 'web';
-              case 'backend': return 'storage';
-              case 'database': return 'database';
-              case 'mobile': return 'phone_android';
-              case 'devops': return 'settings';
-              case 'design': return 'palette';
-              case 'testing': return 'bug_report';
-              case 'tools': return 'build';
-              default: return 'category';
-            }
-          };
-
           const getCategoryColor = (code) => {
             switch (code?.toLowerCase()) {
               case 'frontend': return '#3b82f6';
@@ -143,7 +129,7 @@ const SkillTypes = () => {
             <div key={skillType._id} className="skill-type-card">
               <div className="card-header">
                 <div className="category-indicator" style={{ backgroundColor: getCategoryColor(skillType.code) }}>
-                  <span className="material-icons">{getCategoryIcon(skillType.code)}</span>
+                  <span className="material-icons">category</span>
                 </div>
                 <div className="header-content">
                   <h3>{skillType.label || 'Unnamed Skill Type'}</h3>
@@ -151,7 +137,20 @@ const SkillTypes = () => {
               </div>
               
               <div className="card-content">
-                <div className="category-code">{skillType.code || 'N/A'}</div>
+                <div className="skill-type-info">
+                  <div className="skill-type-detail">
+                    <span className="detail-label">Code:</span>
+                    <span className="detail-value">{skillType.code || 'N/A'}</span>
+                  </div>
+                  <div className="skill-type-detail">
+                    <span className="detail-label">Label:</span>
+                    <span className="detail-value">{skillType.label || 'N/A'}</span>
+                  </div>
+                  <div className="skill-type-detail">
+                    <span className="detail-label">Description:</span>
+                    <span className="detail-value">{skillType.description || 'No description'}</span>
+                  </div>
+                </div>
               </div>
 
               {isAdminMode && (

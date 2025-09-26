@@ -328,18 +328,22 @@ const Skills = () => {
                     <span className="detail-label">Type:</span>
                     <span className="detail-value">{skill.skill_type_code || 'N/A'}</span>
                   </div>
-                  <div className="skill-detail">
-                    <span className="detail-label">Proficient:</span>
-                    <span className={`detail-value ${skill.is_proficient ? 'proficient' : 'not-proficient'}`}>
-                      {skill.is_proficient ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                  <div className="skill-detail">
-                    <span className="detail-label">Visible:</span>
-                    <span className={`detail-value ${skill.is_visible_in_app_details ? 'visible' : 'hidden'}`}>
-                      {skill.is_visible_in_app_details ? 'Yes' : 'No'}
-                    </span>
-                  </div>
+                  {isAdminMode && (
+                    <>
+                      <div className="skill-detail">
+                        <span className="detail-label">Proficient:</span>
+                        <span className={`detail-value ${skill.is_proficient ? 'proficient' : 'not-proficient'}`}>
+                          {skill.is_proficient ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                      <div className="skill-detail">
+                        <span className="detail-label">Visible:</span>
+                        <span className={`detail-value ${skill.is_visible_in_app_details ? 'visible' : 'hidden'}`}>
+                          {skill.is_visible_in_app_details ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 

@@ -18,6 +18,7 @@ const Applications = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [editingApplication, setEditingApplication] = useState(null);
+  const [expandedDescriptions, setExpandedDescriptions] = useState(new Set());
 
   useEffect(() => {
     fetchData();
@@ -98,6 +99,18 @@ const Applications = () => {
     }).join(', ');
   };
 
+  const toggleDescription = (appId) => {
+    setExpandedDescriptions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(appId)) {
+        newSet.delete(appId);
+      } else {
+        newSet.add(appId);
+      }
+      return newSet;
+    });
+  };
+
   if (loading) {
     return (
       <div className="applications">
@@ -147,38 +160,51 @@ const Applications = () => {
             
             <div className="card-header">
               <h3>{app.title || 'Untitled Application'}</h3>
-              {app.is_featured && <span className="featured-badge">Featured</span>}
             </div>
             
             <div className="card-content">
-              <p className="description">
-                {app.description || 'No description provided'}
-              </p>
-              
-              <div className="app-details">
-                <div className="detail-item">
-                  <strong>Published:</strong> {app.publish_date ? new Date(app.publish_date).toLocaleDateString() : 'Not set'}
-                </div>
-                <div className="detail-item">
-                  <strong>Support Status:</strong> {getSupportStatusLabel(app.support_status_code)}
-                </div>
-                <div className="detail-item">
-                  <strong>Skills:</strong> {getSkillLabels(app.associated_skill_codes)}
-                </div>
-                {app.deployed_link && (
-                  <div className="detail-item">
-                    <strong>Deployed:</strong> 
-                    <a href={app.deployed_link} target="_blank" rel="noopener noreferrer">
-                      View Live
-                    </a>
-                  </div>
+              <div className="description-container">
+                <p className={`description ${expandedDescriptions.has(app._id) ? 'expanded' : ''}`}>
+                  {app.description || 'No description provided'}
+                </p>
+                {app.description && app.description.length > 100 && (
+                  <button 
+                    className="expand-button"
+                    onClick={() => toggleDescription(app._id)}
+                  >
+                    {expandedDescriptions.has(app._id) ? 'Show less' : 'Show more'}
+                  </button>
                 )}
+              </div>
+              
+              <div className="app-info">
+                <div className="app-detail">
+                  <span className="detail-label">Published:</span>
+                  <span className="detail-value">{app.publish_date ? new Date(app.publish_date).toLocaleDateString() : 'Not set'}</span>
+                </div>
+                <div className="app-detail">
+                  <span className="detail-label">Status:</span>
+                  <span className="detail-value">{getSupportStatusLabel(app.support_status_code)}</span>
+                </div>
+                <div className="app-detail">
+                  <span className="detail-label">Featured:</span>
+                  <span className={`detail-value ${app.is_featured ? 'featured' : 'not-featured'}`}>
+                    {app.is_featured ? 'Yes' : 'No'}
+                  </span>
+                </div>
+                <div className="app-detail">
+                  <span className="detail-label">Deployed:</span>
+                  <span className={`detail-value ${app.deployed_link ? 'deployed' : 'not-deployed'}`}>
+                    {app.deployed_link ? 'Yes' : 'No'}
+                  </span>
+                </div>
               </div>
             </div>
 
             {isAdminMode && (
               <div className="card-actions">
                 <button className="btn btn-secondary" onClick={() => handleEdit(app)}>
+                  <span className="material-icons">edit</span>
                   Edit
                 </button>
               </div>
