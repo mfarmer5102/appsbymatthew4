@@ -2,6 +2,7 @@ import { useState, useEffect, createContext, useContext } from 'react';
 import Header from './Header';
 import SideNav from './SideNav';
 import BottomNav from './BottomNav';
+import Footer from './Footer';
 import './Layout.css';
 
 // Create Admin Context
@@ -61,6 +62,7 @@ const Layout = ({ children }) => {
         </div>
         
         {isMobile && <BottomNav isAdminMode={isAdminMode} />}
+        <Footer />
       </div>
     </AdminContext.Provider>
   );
