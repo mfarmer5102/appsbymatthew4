@@ -18,4 +18,4 @@ const supportStatusSchema = new mongoose.Schema({
 // Index for better query performance
 supportStatusSchema.index({ code: 1 });
 
-module.exports = mongoose.model('SupportStatus', supportStatusSchema);
+module.exports = mongoose.model('SupportStatus', supportStatusSchema, 'support_statuses');

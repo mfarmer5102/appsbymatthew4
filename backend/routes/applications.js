@@ -35,6 +35,7 @@ router.get('/', async (req, res) => {
     query.deleted_date = null;
     
     const applications = await Application.find(query)
+      .select('-embeddings')
       .limit(parseInt(limit))
       .skip(parseInt(offset))
       .sort({ publish_date: -1 });
@@ -58,7 +59,7 @@ router.get('/', async (req, res) => {
 // GET /api/applications/:id - Get application by ID
 router.get('/:id', async (req, res) => {
   try {
-    const application = await Application.findById(req.params.id);
+    const application = await Application.findById(req.params.id).select('-embeddings');
     
     if (!application) {
       return res.status(404).json({ error: 'Application not found' });
@@ -76,7 +77,11 @@ router.post('/', validateApplication, async (req, res) => {
     const application = new Application(req.body);
     await application.save();
     
-    res.status(201).json({ data: application });
+    // Remove embeddings from response
+    const applicationResponse = application.toObject();
+    delete applicationResponse.embeddings;
+    
+    res.status(201).json({ data: applicationResponse });
   } catch (error) {
     if (error.code === 11000) {
       res.status(400).json({ error: 'Application with this data already exists' });
@@ -93,7 +98,7 @@ router.put('/:id', validateApplication, async (req, res) => {
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    );
+    ).select('-embeddings');
     
     if (!application) {
       return res.status(404).json({ error: 'Application not found' });
@@ -112,7 +117,7 @@ router.patch('/:id', async (req, res) => {
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    );
+    ).select('-embeddings');
     
     if (!application) {
       return res.status(404).json({ error: 'Application not found' });
@@ -131,7 +136,7 @@ router.delete('/:id', async (req, res) => {
       req.params.id,
       { deleted_date: new Date() },
       { new: true }
-    );
+    ).select('-embeddings');
     
     if (!application) {
       return res.status(404).json({ error: 'Application not found' });

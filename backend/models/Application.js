@@ -52,4 +52,4 @@ applicationSchema.index({ support_status_code: 1 });
 applicationSchema.index({ is_featured: 1 });
 applicationSchema.index({ deleted_date: 1 });
 
-module.exports = mongoose.model('Application', applicationSchema);
+module.exports = mongoose.model('Application', applicationSchema, 'applications');

@@ -33,4 +33,4 @@ skillSchema.index({ skill_type_code: 1 });
 skillSchema.index({ is_proficient: 1 });
 skillSchema.index({ is_visible_in_app_details: 1 });
 
-module.exports = mongoose.model('Skill', skillSchema);
+module.exports = mongoose.model('Skill', skillSchema, 'skills');

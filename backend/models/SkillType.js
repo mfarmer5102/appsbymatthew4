@@ -18,4 +18,4 @@ const skillTypeSchema = new mongoose.Schema({
 // Index for better query performance
 skillTypeSchema.index({ code: 1 });
 
-module.exports = mongoose.model('SkillType', skillTypeSchema);
+module.exports = mongoose.model('SkillType', skillTypeSchema, 'skill_types');
