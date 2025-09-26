@@ -46,17 +46,6 @@ const Home = () => {
           </Link>
         </div>
       </div>
-
-      <div className="home-info">
-        <h2>Features</h2>
-        <ul>
-          <li>✅ Full CRUD operations for all data models</li>
-          <li>✅ Responsive design for desktop and mobile</li>
-          <li>✅ Modern UI with smooth animations</li>
-          <li>✅ All fields are nullable for flexible data entry</li>
-          <li>✅ Real-time data synchronization with backend</li>
-        </ul>
-      </div>
     </div>
   );
 };

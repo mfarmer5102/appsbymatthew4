@@ -31,6 +31,9 @@
   border: 1px solid #e2e8f0;
   overflow: hidden;
   transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .skill-type-card:hover {
@@ -53,12 +56,16 @@
 
 .skill-type-card .card-content {
   padding: 0 1.5rem 1.5rem 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .skill-type-details {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  flex: 1;
 }
 
 .detail-item {

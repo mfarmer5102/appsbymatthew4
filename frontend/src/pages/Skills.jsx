@@ -20,17 +20,44 @@ const Skills = () => {
     hasMore: false
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState({
+    proficient: '',
+    skill_type: '',
+    visible: ''
+  });
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
 
   useEffect(() => {
     fetchData();
-  }, [currentPage]);
+  }, [currentPage, filters, sortBy, sortOrder]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       const offset = (currentPage - 1) * pagination.limit;
+      
+      // Build query parameters
+      const queryParams = {
+        limit: pagination.limit,
+        offset,
+        sort: sortBy,
+        order: sortOrder
+      };
+      
+      // Add filters if they have values
+      if (filters.proficient !== '') {
+        queryParams.proficient = filters.proficient;
+      }
+      if (filters.skill_type !== '') {
+        queryParams.skill_type = filters.skill_type;
+      }
+      if (filters.visible !== '') {
+        queryParams.visible = filters.visible;
+      }
+      
       const [skillsRes, typesRes] = await Promise.all([
-        skillsAPI.getAll({ limit: pagination.limit, offset }),
+        skillsAPI.getAll(queryParams),
         skillTypesAPI.getAll()
       ]);
       
@@ -99,6 +126,33 @@ const Skills = () => {
     setCurrentPage(newPage);
   };
 
+  const handleFilterChange = (filterName, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterName]: value
+    }));
+    setCurrentPage(1); // Reset to first page when filtering
+  };
+
+  const handleSortChange = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+    setCurrentPage(1); // Reset to first page when sorting
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      proficient: '',
+      skill_type: '',
+      visible: ''
+    });
+    setCurrentPage(1);
+  };
+
   const totalPages = Math.ceil(pagination.total / pagination.limit);
 
   if (loading) {
@@ -112,6 +166,80 @@ const Skills = () => {
         <button className="btn btn-primary" onClick={handleCreate}>
           + Add Skill
         </button>
+      </div>
+
+      {/* Filters and Sort */}
+      <div className="filters-section">
+        <div className="filters-row">
+          <div className="filter-group">
+            <label htmlFor="proficient-filter">Proficiency:</label>
+            <select 
+              id="proficient-filter"
+              value={filters.proficient}
+              onChange={(e) => handleFilterChange('proficient', e.target.value)}
+              className="filter-select"
+            >
+              <option value="">All</option>
+              <option value="true">Proficient</option>
+              <option value="false">Not Proficient</option>
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label htmlFor="skill-type-filter">Skill Type:</label>
+            <select 
+              id="skill-type-filter"
+              value={filters.skill_type}
+              onChange={(e) => handleFilterChange('skill_type', e.target.value)}
+              className="filter-select"
+            >
+              <option value="">All Types</option>
+              {skillTypes.map(type => (
+                <option key={type._id} value={type.code}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label htmlFor="visible-filter">Visibility:</label>
+            <select 
+              id="visible-filter"
+              value={filters.visible}
+              onChange={(e) => handleFilterChange('visible', e.target.value)}
+              className="filter-select"
+            >
+              <option value="">All</option>
+              <option value="true">Visible in App Details</option>
+              <option value="false">Hidden in App Details</option>
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label htmlFor="sort-select">Sort by:</label>
+            <select 
+              id="sort-select"
+              value={`${sortBy}-${sortOrder}`}
+              onChange={(e) => {
+                const [field, order] = e.target.value.split('-');
+                setSortBy(field);
+                setSortOrder(order);
+                setCurrentPage(1);
+              }}
+              className="filter-select"
+            >
+              <option value="name-asc">Name (A-Z)</option>
+              <option value="name-desc">Name (Z-A)</option>
+              <option value="code-asc">Code (A-Z)</option>
+              <option value="code-desc">Code (Z-A)</option>
+            </select>
+          </div>
+
+          <button className="btn btn-secondary" onClick={clearFilters}>
+            Clear Filters
+          </button>
+        </div>
       </div>
 
       {error && (

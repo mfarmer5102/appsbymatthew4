@@ -24,7 +24,9 @@ router.get('/', async (req, res) => {
       skill_type, 
       visible, 
       limit = 50, 
-      offset = 0 
+      offset = 0,
+      sort = 'name',
+      order = 'asc'
     } = req.query;
     
     let query = {};
@@ -41,10 +43,15 @@ router.get('/', async (req, res) => {
       query.is_visible_in_app_details = visible === 'true';
     }
     
+    // Build sort object
+    const sortObj = {};
+    const sortField = sort === 'code' ? 'code' : 'name';
+    sortObj[sortField] = order === 'desc' ? -1 : 1;
+    
     const skills = await Skill.find(query)
       .limit(parseInt(limit))
       .skip(parseInt(offset))
-      .sort({ name: 1 });
+      .sort(sortObj);
     
     const total = await Skill.countDocuments(query);
     
