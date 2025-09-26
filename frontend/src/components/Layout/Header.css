@@ -3,8 +3,10 @@
   backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
   animation: slideDown 0.2s ease-out;
 }
@@ -25,7 +27,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  max-width: 1200px;
+  width: 100%;
   margin: 0;
 }
 

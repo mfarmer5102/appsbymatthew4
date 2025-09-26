@@ -13,15 +13,21 @@
 .main-content {
   flex: 1;
   padding: 2rem;
+  padding-top: calc(1rem + 80px);
   background-color: #f8fafc;
   min-height: calc(100vh - 80px);
   transition: margin-left 0.3s ease-in-out;
   margin-top: 0;
+  margin-left: 280px;
 }
 
 .main-content.mobile {
   padding: 1rem;
+  padding-top: calc(1rem + 80px);
+  padding-bottom: calc(1rem + 80px);
   min-height: calc(100vh - 140px);
+  margin-left: 0;
+  margin-top: 0;
 }
 
 /* Mobile sidebar overlay */
@@ -46,5 +52,9 @@
 @media (max-width: 768px) {
   .main-content {
     padding: 1rem;
+    padding-top: calc(1rem + 80px);
+    padding-bottom: calc(1rem + 80px);
+    margin-left: 0;
+    margin-top: 0;
   }
 }

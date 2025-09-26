@@ -6,8 +6,10 @@
   box-shadow: 1px 0 3px 0 rgba(0, 0, 0, 0.1);
   height: 100vh;
   overflow-y: auto;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  z-index: 100;
   animation: slideInLeft 0.2s ease-out;
 }
 
@@ -24,7 +26,7 @@
 
 .nav-list {
   list-style: none;
-  padding: 1rem 0;
+  padding: 5rem 0 1rem 0;
 }
 
 .nav-item {
@@ -91,19 +93,6 @@
 
 @media (max-width: 768px) {
   .sidenav {
-    width: 100%;
-    height: auto;
-    position: static;
-    border-right: none;
-    border-bottom: 1px solid #e2e8f0;
-    box-shadow: none;
-  }
-  
-  .nav-list {
-    padding: 0.5rem 0;
-  }
-  
-  .nav-link {
-    padding: 1rem 1.5rem;
+    display: none;
   }
 }
