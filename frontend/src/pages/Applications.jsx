@@ -117,6 +117,16 @@ const Applications = () => {
       <div className="applications-grid">
         {applications.map((app) => (
           <div key={app._id} className="application-card">
+            <div className="card-image">
+              <img 
+                src={app.image_url_relative || 'https://via.placeholder.com/300x200?text=No+Image'}
+                alt={app.title || 'Application'}
+                onError={(e) => {
+                  e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                }}
+              />
+            </div>
+            
             <div className="card-header">
               <h3>{app.title || 'Untitled Application'}</h3>
               {app.is_featured && <span className="featured-badge">Featured</span>}

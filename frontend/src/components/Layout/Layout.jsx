@@ -36,16 +36,6 @@ const Layout = ({ children }) => {
           {children}
         </main>
         
-        {isMobile && (
-          <>
-            {sidebarOpen && (
-              <div className="sidebar-overlay" onClick={toggleSidebar} />
-            )}
-            <div className={`mobile-sidebar ${sidebarOpen ? 'open' : ''}`}>
-              <SideNav onItemClick={toggleSidebar} />
-            </div>
-          </>
-        )}
       </div>
       
       {isMobile && <BottomNav />}

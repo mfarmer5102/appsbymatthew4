@@ -13,21 +13,33 @@ const Skills = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [editingSkill, setEditingSkill] = useState(null);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    limit: 20,
+    offset: 0,
+    hasMore: false
+  });
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentPage]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
+      const offset = (currentPage - 1) * pagination.limit;
       const [skillsRes, typesRes] = await Promise.all([
-        skillsAPI.getAll(),
+        skillsAPI.getAll({ limit: pagination.limit, offset }),
         skillTypesAPI.getAll()
       ]);
       
       setSkills(skillsRes.data.data || []);
       setSkillTypes(typesRes.data.data || []);
+      
+      if (skillsRes.data.pagination) {
+        setPagination(skillsRes.data.pagination);
+      }
     } catch (err) {
       setError('Failed to fetch data');
       console.error('Error fetching data:', err);
@@ -59,7 +71,7 @@ const Skills = () => {
         await skillsAPI.create(skillData);
       }
       setShowModal(false);
-      fetchData();
+      setCurrentPage(1); // Reset to first page after creating/updating
     } catch (err) {
       setError('Failed to save skill');
       console.error('Error saving skill:', err);
@@ -71,7 +83,7 @@ const Skills = () => {
       await skillsAPI.delete(selectedSkill._id);
       setShowDeleteModal(false);
       setSelectedSkill(null);
-      fetchData();
+      setCurrentPage(1); // Reset to first page after deleting
     } catch (err) {
       setError('Failed to delete skill');
       console.error('Error deleting skill:', err);
@@ -82,6 +94,12 @@ const Skills = () => {
     const type = skillTypes.find(t => t.code === code);
     return type ? type.label : code || 'N/A';
   };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  const totalPages = Math.ceil(pagination.total / pagination.limit);
 
   if (loading) {
     return <div className="loading">Loading skills...</div>;
@@ -143,9 +161,34 @@ const Skills = () => {
         ))}
       </div>
 
-      {skills.length === 0 && (
+      {skills.length === 0 && !loading && (
         <div className="empty-state">
           <p>No skills found. Create your first skill!</p>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          
+          <div className="pagination-info">
+            Page {currentPage} of {totalPages} ({pagination.total} total skills)
+          </div>
+          
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
         </div>
       )}
 

@@ -16,6 +16,7 @@
   background-color: #f8fafc;
   min-height: calc(100vh - 80px);
   transition: margin-left 0.3s ease-in-out;
+  margin-top: 0;
 }
 
 .main-content.mobile {
@@ -35,16 +36,7 @@
 }
 
 .mobile-sidebar {
-  position: fixed;
-  top: 80px;
-  left: -280px;
-  width: 280px;
-  height: calc(100vh - 80px);
-  background-color: white;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  z-index: 999;
-  transition: left 0.3s ease-in-out;
-  overflow-y: auto;
+  display: none;
 }
 
 .mobile-sidebar.open {

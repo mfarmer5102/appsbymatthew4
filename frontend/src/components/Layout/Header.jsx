@@ -9,13 +9,6 @@ const Header = ({ isMobile, onMenuClick }) => {
           Portfolio Admin
         </Link>
         
-        {isMobile && (
-          <button className="menu-button" onClick={onMenuClick}>
-            <span className="hamburger"></span>
-            <span className="hamburger"></span>
-            <span className="hamburger"></span>
-          </button>
-        )}
       </div>
     </header>
   );
