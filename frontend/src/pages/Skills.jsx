@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { skillsAPI, skillTypesAPI } from '../config/api';
 import SkillModal from '../components/Skills/SkillModal';
 import DeleteModal from '../components/Common/DeleteModal';
+import SkeletonGrid from '../components/Common/SkeletonGrid';
 import { useAdmin } from '../components/Layout/Layout';
 import './Skills.css';
 
@@ -163,7 +164,19 @@ const Skills = () => {
   const totalPages = Math.ceil(pagination.total / pagination.limit);
 
   if (loading) {
-    return <div className="loading">Loading skills...</div>;
+    return (
+      <div className="skills">
+        <div className="page-header">
+          <h1>Skills</h1>
+          {isAdminMode && (
+            <button className="btn btn-primary" disabled>
+              + Add Skill
+            </button>
+          )}
+        </div>
+        <SkeletonGrid type="skill" count={6} />
+      </div>
+    );
   }
 
   return (

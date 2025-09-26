@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supportStatusAPI } from '../config/api';
 import SupportStatusModal from '../components/SupportStatus/SupportStatusModal';
 import DeleteModal from '../components/Common/DeleteModal';
+import SkeletonGrid from '../components/Common/SkeletonGrid';
 import { useAdmin } from '../components/Layout/Layout';
 import './SupportStatus.css';
 
@@ -75,7 +76,19 @@ const SupportStatus = () => {
   };
 
   if (loading) {
-    return <div className="loading">Loading support statuses...</div>;
+    return (
+      <div className="support-status">
+        <div className="page-header">
+          <h1>Support Status</h1>
+          {isAdminMode && (
+            <button className="btn btn-primary" disabled>
+              + Add Support Status
+            </button>
+          )}
+        </div>
+        <SkeletonGrid type="support-status" count={4} />
+      </div>
+    );
   }
 
   return (

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { skillTypesAPI } from '../config/api';
 import SkillTypeModal from '../components/SkillTypes/SkillTypeModal';
 import DeleteModal from '../components/Common/DeleteModal';
+import SkeletonGrid from '../components/Common/SkeletonGrid';
 import { useAdmin } from '../components/Layout/Layout';
 import './SkillTypes.css';
 
@@ -75,7 +76,19 @@ const SkillTypes = () => {
   };
 
   if (loading) {
-    return <div className="loading">Loading skill types...</div>;
+    return (
+      <div className="skill-types">
+        <div className="page-header">
+          <h1>Skill Types</h1>
+          {isAdminMode && (
+            <button className="btn btn-primary" disabled>
+              + Add Skill Type
+            </button>
+          )}
+        </div>
+        <SkeletonGrid type="skill-type" count={4} />
+      </div>
+    );
   }
 
   return (

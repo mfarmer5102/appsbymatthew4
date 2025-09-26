@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { applicationsAPI, supportStatusAPI, skillsAPI } from '../config/api';
 import ApplicationModal from '../components/Applications/ApplicationModal';
 import DeleteModal from '../components/Common/DeleteModal';
+import SkeletonGrid from '../components/Common/SkeletonGrid';
 import { useAdmin } from '../components/Layout/Layout';
 import './Applications.css';
 
@@ -97,7 +98,19 @@ const Applications = () => {
   };
 
   if (loading) {
-    return <div className="loading">Loading applications...</div>;
+    return (
+      <div className="applications">
+        <div className="page-header">
+          <h1>Applications</h1>
+          {isAdminMode && (
+            <button className="btn btn-primary" disabled>
+              + Add Application
+            </button>
+          )}
+        </div>
+        <SkeletonGrid type="application" count={6} />
+      </div>
+    );
   }
 
   return (
