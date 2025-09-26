@@ -331,8 +331,18 @@ const Skills = () => {
         <div className="pagination">
           <button 
             className="btn btn-secondary" 
+            onClick={() => handlePageChange(1)}
+            disabled={currentPage === 1}
+            title="Go to first page"
+          >
+            First
+          </button>
+          
+          <button 
+            className="btn btn-secondary" 
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
+            title="Go to previous page"
           >
             Previous
           </button>
@@ -345,8 +355,18 @@ const Skills = () => {
             className="btn btn-secondary" 
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
+            title="Go to next page"
           >
             Next
+          </button>
+          
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => handlePageChange(totalPages)}
+            disabled={currentPage === totalPages}
+            title="Go to last page"
+          >
+            Last
           </button>
         </div>
       )}

@@ -25,59 +25,120 @@
 }
 
 .support-status-card {
-  background: white;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
   border-radius: 0.75rem;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(59, 130, 246, 0.1);
   overflow: hidden;
   transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.support-status-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+  opacity: 0.7;
 }
 
 .support-status-card:hover {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transform: translateY(-2px);
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
 .support-status-card .card-header {
-  padding: 1.5rem 1.5rem 0 1.5rem;
+  padding: 1rem 1rem 0 1rem;
   border-bottom: 1px solid #e2e8f0;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.status-indicator {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.status-indicator .material-icons {
+  color: white;
+  font-size: 20px;
+}
+
+.header-content {
+  flex: 1;
+  min-width: 0;
 }
 
 .support-status-card .card-header h3 {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
   color: #1e293b;
-  margin: 0;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.3;
 }
+
 
 .support-status-card .card-content {
-  padding: 0 1.5rem 1.5rem 1.5rem;
-}
-
-.support-status-details {
+  padding: 0 1rem 1rem 1rem;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  align-items: flex-end;
+  text-align: right;
 }
 
-.detail-item {
+.support-status-card .status-code {
   font-size: 0.875rem;
   color: #64748b;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.detail-item strong {
-  color: #374151;
-  font-weight: 500;
+.status-description {
+  font-size: 0.875rem;
+  color: #64748b;
+  padding: 0.75rem;
+  background: rgba(248, 250, 252, 0.5);
+  border-radius: 0.5rem;
+  border-left: 3px solid #3b82f6;
+  line-height: 1.4;
 }
 
 .support-status-card .card-actions {
-  padding: 1rem 1.5rem;
-  background-color: #f8fafc;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.8) 100%);
   border-top: 1px solid #e2e8f0;
   display: flex;
   gap: 0.5rem;
   justify-content: flex-end;
+  margin-top: auto;
+}
+
+.support-status-card .card-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.support-status-card .card-actions .btn .material-icons {
+  font-size: 16px;
 }
 
 @media (max-width: 768px) {

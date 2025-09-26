@@ -110,32 +110,55 @@ const SupportStatus = () => {
       )}
 
       <div className="support-status-grid">
-        {supportStatuses.map((status) => (
-          <div key={status._id} className="support-status-card">
-            <div className="card-header">
-              <h3>{status.label || 'Unnamed Status'}</h3>
-            </div>
-            
-            <div className="card-content">
-              <div className="support-status-details">
-                <div className="detail-item">
-                  <strong>Code:</strong> {status.code || 'N/A'}
-                </div>
-                <div className="detail-item">
-                  <strong>Label:</strong> {status.label || 'N/A'}
-                </div>
-              </div>
-            </div>
+        {supportStatuses.map((status) => {
+          const getStatusIcon = (code) => {
+            switch (code?.toLowerCase()) {
+              case 'active': return 'check_circle';
+              case 'inactive': return 'cancel';
+              case 'deprecated': return 'warning';
+              case 'maintenance': return 'build';
+              case 'discontinued': return 'block';
+              default: return 'help';
+            }
+          };
 
-            {isAdminMode && (
-              <div className="card-actions">
-                <button className="btn btn-secondary" onClick={() => handleEdit(status)}>
-                  Edit
-                </button>
+          const getStatusColor = (code) => {
+            switch (code?.toLowerCase()) {
+              case 'active': return '#10b981';
+              case 'inactive': return '#6b7280';
+              case 'deprecated': return '#f59e0b';
+              case 'maintenance': return '#3b82f6';
+              case 'discontinued': return '#ef4444';
+              default: return '#8b5cf6';
+            }
+          };
+
+          return (
+            <div key={status._id} className="support-status-card">
+              <div className="card-header">
+                <div className="status-indicator" style={{ backgroundColor: getStatusColor(status.code) }}>
+                  <span className="material-icons">{getStatusIcon(status.code)}</span>
+                </div>
+                <div className="header-content">
+                  <h3>{status.label || 'Unnamed Status'}</h3>
+                </div>
               </div>
-            )}
-          </div>
-        ))}
+              
+              <div className="card-content">
+                <div className="status-code">{status.code || 'N/A'}</div>
+              </div>
+
+              {isAdminMode && (
+                <div className="card-actions">
+                  <button className="btn btn-secondary" onClick={() => handleEdit(status)}>
+                    <span className="material-icons">edit</span>
+                    Edit
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {supportStatuses.length === 0 && (

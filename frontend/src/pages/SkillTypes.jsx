@@ -110,32 +110,61 @@ const SkillTypes = () => {
       )}
 
       <div className="skill-types-grid">
-        {skillTypes.map((skillType) => (
-          <div key={skillType._id} className="skill-type-card">
-            <div className="card-header">
-              <h3>{skillType.label || 'Unnamed Skill Type'}</h3>
-            </div>
-            
-            <div className="card-content">
-              <div className="skill-type-details">
-                <div className="detail-item">
-                  <strong>Code:</strong> {skillType.code || 'N/A'}
-                </div>
-                <div className="detail-item">
-                  <strong>Label:</strong> {skillType.label || 'N/A'}
-                </div>
-              </div>
-            </div>
+        {skillTypes.map((skillType) => {
+          const getCategoryIcon = (code) => {
+            switch (code?.toLowerCase()) {
+              case 'frontend': return 'web';
+              case 'backend': return 'storage';
+              case 'database': return 'database';
+              case 'mobile': return 'phone_android';
+              case 'devops': return 'settings';
+              case 'design': return 'palette';
+              case 'testing': return 'bug_report';
+              case 'tools': return 'build';
+              default: return 'category';
+            }
+          };
 
-            {isAdminMode && (
-              <div className="card-actions">
-                <button className="btn btn-secondary" onClick={() => handleEdit(skillType)}>
-                  Edit
-                </button>
+          const getCategoryColor = (code) => {
+            switch (code?.toLowerCase()) {
+              case 'frontend': return '#3b82f6';
+              case 'backend': return '#10b981';
+              case 'database': return '#f59e0b';
+              case 'mobile': return '#8b5cf6';
+              case 'devops': return '#ef4444';
+              case 'design': return '#ec4899';
+              case 'testing': return '#06b6d4';
+              case 'tools': return '#6b7280';
+              default: return '#8b5cf6';
+            }
+          };
+
+          return (
+            <div key={skillType._id} className="skill-type-card">
+              <div className="card-header">
+                <div className="category-indicator" style={{ backgroundColor: getCategoryColor(skillType.code) }}>
+                  <span className="material-icons">{getCategoryIcon(skillType.code)}</span>
+                </div>
+                <div className="header-content">
+                  <h3>{skillType.label || 'Unnamed Skill Type'}</h3>
+                </div>
               </div>
-            )}
-          </div>
-        ))}
+              
+              <div className="card-content">
+                <div className="category-code">{skillType.code || 'N/A'}</div>
+              </div>
+
+              {isAdminMode && (
+                <div className="card-actions">
+                  <button className="btn btn-secondary" onClick={() => handleEdit(skillType)}>
+                    <span className="material-icons">edit</span>
+                    Edit
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {skillTypes.length === 0 && (
