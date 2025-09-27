@@ -1,11 +1,27 @@
-# React + Vite
+# Portfolio Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + Vite application for displaying portfolio applications, skills, and related data.
 
-Currently, two official plugins are available:
+## Environment Configuration
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The application uses environment variables to configure the API endpoint:
+
+### Development
+- Default API URL: `http://localhost:5011/api`
+- No environment file needed for development
+
+### Production
+- Production API URL: `https://r2ccrdqgnu.us-east-1.awsapprunner.com/api`
+- Copy `.env.example` to `.env.production` and uncomment the production URL
+
+### Environment Variables
+- `VITE_API_BASE_URL` - The base URL for the API backend
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
 
 ## React Compiler
 
