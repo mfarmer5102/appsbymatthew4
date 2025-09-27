@@ -166,14 +166,19 @@ const Home = () => {
           </button>
         </div>
         
-        <div className="carousel-indicators">
-          {applications.map((_, index) => (
-            <button
-              key={index}
-              className={`indicator ${index === currentIndex ? 'active' : ''}`}
-              onClick={() => goToSlide(index)}
-            />
-          ))}
+        <div className="carousel-info">
+          <div className="current-app-name">
+            {applications[currentIndex]?.title || 'Untitled Application'}
+          </div>
+          <div className="carousel-indicators">
+            {applications.map((_, index) => (
+              <button
+                key={index}
+                className={`indicator ${index === currentIndex ? 'active' : ''}`}
+                onClick={() => goToSlide(index)}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
