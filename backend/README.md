@@ -52,7 +52,7 @@ cp env.example .env
 
 3. Configure your MongoDB connection in `.env`:
 ```
-MONGODB_URI=mongodb://localhost:27017/portfolio
+MONGO_INSTANCE_URL=mongodb://localhost:27017/portfolio
 ```
 
 4. Start the server:
@@ -147,7 +147,7 @@ POST /api/applications
 
 - `NODE_ENV` - Environment (development/production)
 - `PORT` - Server port (default: 5000)
-- `MONGODB_URI` - MongoDB connection string
+- `MONGO_INSTANCE_URL` - MongoDB connection string
 - `FRONTEND_URL` - Frontend URL for CORS (default: http://localhost:3000)
 
 ## Health Check

@@ -25,3 +25,4 @@ dist-ssr
 .vite/*
 
 ./flutter_portfolio/*
+.DS_Store
