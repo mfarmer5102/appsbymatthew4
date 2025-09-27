@@ -146,10 +146,6 @@ const SkillTypes = () => {
                     <span className="detail-label">Label:</span>
                     <span className="detail-value">{skillType.label || 'N/A'}</span>
                   </div>
-                  <div className="skill-type-detail">
-                    <span className="detail-label">Description:</span>
-                    <span className="detail-value">{skillType.description || 'No description'}</span>
-                  </div>
                 </div>
               </div>
 

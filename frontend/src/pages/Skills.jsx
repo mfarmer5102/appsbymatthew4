@@ -37,6 +37,17 @@ const Skills = () => {
     fetchData();
   }, [currentPage, filters, sortBy, sortOrder, pageSize]);
 
+  // Clear admin-only filters when not in admin mode
+  useEffect(() => {
+    if (!isAdminMode) {
+      setFilters(prev => ({
+        ...prev,
+        proficient: '',
+        visible: ''
+      }));
+    }
+  }, [isAdminMode]);
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -213,19 +224,21 @@ const Skills = () => {
           </button>
         </div>
         <div className={`filters-row ${filtersVisible ? 'visible' : ''}`}>
-          <div className="filter-group">
-            <label htmlFor="proficient-filter">Proficiency:</label>
-            <select 
-              id="proficient-filter"
-              value={filters.proficient}
-              onChange={(e) => handleFilterChange('proficient', e.target.value)}
-              className="filter-select"
-            >
-              <option value="">All</option>
-              <option value="true">Proficient</option>
-              <option value="false">Not Proficient</option>
-            </select>
-          </div>
+          {isAdminMode && (
+            <div className="filter-group">
+              <label htmlFor="proficient-filter">Proficiency:</label>
+              <select 
+                id="proficient-filter"
+                value={filters.proficient}
+                onChange={(e) => handleFilterChange('proficient', e.target.value)}
+                className="filter-select"
+              >
+                <option value="">All</option>
+                <option value="true">Proficient</option>
+                <option value="false">Not Proficient</option>
+              </select>
+            </div>
+          )}
 
           <div className="filter-group">
             <label htmlFor="skill-type-filter">Skill Type:</label>
@@ -244,19 +257,21 @@ const Skills = () => {
             </select>
           </div>
 
-          <div className="filter-group">
-            <label htmlFor="visible-filter">Visibility:</label>
-            <select 
-              id="visible-filter"
-              value={filters.visible}
-              onChange={(e) => handleFilterChange('visible', e.target.value)}
-              className="filter-select"
-            >
-              <option value="">All</option>
-              <option value="true">Visible in App Details</option>
-              <option value="false">Hidden in App Details</option>
-            </select>
-          </div>
+          {isAdminMode && (
+            <div className="filter-group">
+              <label htmlFor="visible-filter">Visibility:</label>
+              <select 
+                id="visible-filter"
+                value={filters.visible}
+                onChange={(e) => handleFilterChange('visible', e.target.value)}
+                className="filter-select"
+              >
+                <option value="">All</option>
+                <option value="true">Visible in App Details</option>
+                <option value="false">Hidden in App Details</option>
+              </select>
+            </div>
+          )}
 
           <div className="filter-group">
             <label htmlFor="sort-select">Sort by:</label>
