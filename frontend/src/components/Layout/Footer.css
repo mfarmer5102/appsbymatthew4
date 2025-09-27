@@ -1,7 +1,7 @@
 .footer {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -1px 3px 0 rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -1px 3px 0 rgba(0, 0, 0, 0.1);
   position: fixed;
   bottom: 0;
   left: 0;
@@ -21,7 +21,7 @@
 
 .copyright {
   font-size: 0.75rem;
-  color: #ffffff;
+  color: #475569;
   font-weight: 400;
   opacity: 0.9;
 }

@@ -1,9 +1,9 @@
 .sidenav {
   width: 280px;
-  background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
+  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
   backdrop-filter: blur(8px);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 1px 0 3px 0 rgba(0, 0, 0, 0.3);
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 1px 0 3px 0 rgba(0, 0, 0, 0.1);
   height: 100vh;
   overflow-y: auto;
   position: fixed;
@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   padding: 0.75rem 1.5rem;
-  color: #cbd5e1;
+  color: #475569;
   text-decoration: none;
   transition: all 0.2s ease;
   border-left: 3px solid transparent;
@@ -47,8 +47,8 @@
 }
 
 .nav-link:hover {
-  background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, rgba(147, 197, 253, 0.1) 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 197, 253, 0.05) 100%);
+  color: #1e293b;
   transform: translateX(3px);
 }
 
@@ -57,8 +57,8 @@
 }
 
 .nav-link.active {
-  background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(147, 197, 253, 0.15) 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 197, 253, 0.1) 100%);
+  color: #1e293b;
   font-weight: 600;
   transform: translateX(3px);
 }
