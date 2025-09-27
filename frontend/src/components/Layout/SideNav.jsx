@@ -5,7 +5,8 @@ const SideNav = ({ onItemClick, isAdminMode }) => {
   const location = useLocation();
 
   const allNavItems = [
-    { path: '/', label: 'Applications', icon: 'apps' },
+    { path: '/', label: 'Home', icon: 'home' },
+    { path: '/applications', label: 'Applications', icon: 'apps' },
     { path: '/skills', label: 'Skills', icon: 'code' },
     { path: '/skill-types', label: 'Skill Types', icon: 'category', adminOnly: true },
     { path: '/support-status', label: 'Support Status', icon: 'support_agent', adminOnly: true },

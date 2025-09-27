@@ -5,7 +5,8 @@ const BottomNav = ({ isAdminMode }) => {
   const location = useLocation();
 
   const allNavItems = [
-    { path: '/', label: 'Apps', icon: 'apps' },
+    { path: '/', label: 'Home', icon: 'home' },
+    { path: '/applications', label: 'Apps', icon: 'apps' },
     { path: '/skills', label: 'Skills', icon: 'code' },
     { path: '/skill-types', label: 'Types', icon: 'category', adminOnly: true },
     { path: '/support-status', label: 'Support', icon: 'support_agent', adminOnly: true },
