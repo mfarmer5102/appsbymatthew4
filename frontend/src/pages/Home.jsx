@@ -15,6 +15,16 @@ const Home = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    // Add home-page class to body to prevent scrolling
+    document.body.classList.add('home-page');
+    
+    // Cleanup: remove the class when component unmounts
+    return () => {
+      document.body.classList.remove('home-page');
+    };
+  }, []);
+
   const fetchData = async () => {
     try {
       setLoading(true);
