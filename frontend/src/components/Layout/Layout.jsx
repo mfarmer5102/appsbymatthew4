@@ -3,6 +3,7 @@ import Header from './Header';
 import SideNav from './SideNav';
 import BottomNav from './BottomNav';
 import Footer from './Footer';
+import spriteImage from '../../assets/sprite.png';
 import './Layout.css';
 
 // Create Admin Context
@@ -63,6 +64,11 @@ const Layout = ({ children }) => {
         
         {isMobile && <BottomNav isAdminMode={isAdminMode} />}
         <Footer />
+        
+        {/* Decorative sprite image */}
+        <div className="sprite-decoration">
+          <img src={spriteImage} alt="Decorative sprite" />
+        </div>
       </div>
     </AdminContext.Provider>
   );

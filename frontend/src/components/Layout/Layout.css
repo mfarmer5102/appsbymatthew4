@@ -59,3 +59,33 @@
     margin-top: 0;
   }
 }
+
+/* Decorative sprite image */
+.sprite-decoration {
+  position: fixed;
+  bottom: 10px;
+  right: 20px;
+  z-index: 500; /* Above main content but below navigation */
+  pointer-events: none; /* Don't interfere with user interactions */
+  opacity: 1; /* Fully opaque */
+  transition: all 0.3s ease;
+}
+
+.sprite-decoration img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.sprite-decoration:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+/* Adjust positioning on mobile to account for bottom nav */
+@media (max-width: 768px) {
+  .sprite-decoration {
+    bottom: 66px; /* Moved down 10px from flush position */
+  }
+}

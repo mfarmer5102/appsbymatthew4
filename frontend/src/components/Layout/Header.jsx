@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import logoImage from '../../assets/logo.png';
 import './Header.css';
 
 const Header = ({ isMobile, onMenuClick, isAdminMode, onToggleAdminMode }) => {
@@ -6,6 +7,7 @@ const Header = ({ isMobile, onMenuClick, isAdminMode, onToggleAdminMode }) => {
     <header className="header">
       <div className="header-content">
         <Link to="/" className="logo">
+          <img src={logoImage} alt="Logo" className="logo-image" />
           Apps by Matthew
         </Link>
         
