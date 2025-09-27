@@ -6,7 +6,7 @@ const Header = ({ isMobile, onMenuClick, isAdminMode, onToggleAdminMode }) => {
     <header className="header">
       <div className="header-content">
         <Link to="/" className="logo">
-          Portfolio Admin
+          Apps by Matthew
         </Link>
         
         <div className="admin-toggle">
