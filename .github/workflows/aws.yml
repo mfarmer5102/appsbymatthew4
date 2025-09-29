@@ -8,6 +8,7 @@ on:
     branches: [ "main" ]
     paths:
       - 'frontend/**'
+      - '.github/**'
 
 env:
   AWS_REGION: us-east-1
@@ -16,9 +17,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # defaults:
-    #   run:
-    #     working-directory: ./frontend
+    defaults:
+      run:
+        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
