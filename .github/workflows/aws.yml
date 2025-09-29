@@ -34,4 +34,4 @@ jobs:
       - name: Run build
         run: npm run build
       - name: Upload to S3
-        run: aws s3 sync ./build/. s3://${{ env.AWS_S3_BUCKET }}
+        run: aws s3 sync ./dist/. s3://${{ env.AWS_S3_BUCKET }}
