@@ -26,7 +26,8 @@ const SupportStatusModal = ({ supportStatus, onSave, onClose, onDelete }) => {
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
+        <div className="modal-body">
+          <form id="support-status-form" onSubmit={handleSubmit(onSubmit)} className="modal-form">
           <div className="form-group">
             <label htmlFor="code">Code</label>
             <input
@@ -47,20 +48,22 @@ const SupportStatusModal = ({ supportStatus, onSave, onClose, onDelete }) => {
             />
           </div>
 
-          <div className="modal-actions">
-            <button type="button" onClick={onClose} className="btn btn-secondary">
-              Cancel
+          </form>
+        </div>
+
+        <div className="modal-footer">
+          <button type="button" onClick={onClose} className="btn btn-secondary">
+            Cancel
+          </button>
+          {isEditing && (
+            <button type="button" onClick={() => onDelete(supportStatus)} className="btn btn-danger">
+              Delete
             </button>
-            {isEditing && (
-              <button type="button" onClick={() => onDelete(supportStatus)} className="btn btn-danger">
-                Delete
-              </button>
-            )}
-            <button type="submit" className="btn btn-primary">
-              {isEditing ? 'Update' : 'Create'}
-            </button>
-          </div>
-        </form>
+          )}
+          <button type="submit" form="support-status-form" className="btn btn-primary">
+            {isEditing ? 'Update' : 'Create'}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -85,6 +85,7 @@
 
 .modal-body {
   padding: var(--space-xl);
+  text-align: left;
 }
 
 .modal-footer {

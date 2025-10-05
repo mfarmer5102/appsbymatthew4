@@ -341,3 +341,39 @@
     gap: var(--space-sm);
   }
 }
+
+/* Checkbox Styling */
+.checkbox-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  order: 2; /* Checkbox comes after label */
+}
+
+.checkbox-item label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium);
+  user-select: none;
+  order: 1; /* Label comes before checkbox */
+}
+
+.checkbox-item label:hover {
+  color: var(--color-primary);
+}

@@ -26,7 +26,8 @@ const SkillTypeModal = ({ skillType, onSave, onClose, onDelete }) => {
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
+        <div className="modal-body">
+          <form id="skill-type-form" onSubmit={handleSubmit(onSubmit)} className="modal-form">
           <div className="form-group">
             <label htmlFor="code">Code</label>
             <input
@@ -47,20 +48,22 @@ const SkillTypeModal = ({ skillType, onSave, onClose, onDelete }) => {
             />
           </div>
 
-          <div className="modal-actions">
-            <button type="button" onClick={onClose} className="btn btn-secondary">
-              Cancel
+          </form>
+        </div>
+
+        <div className="modal-footer">
+          <button type="button" onClick={onClose} className="btn btn-secondary">
+            Cancel
+          </button>
+          {isEditing && (
+            <button type="button" onClick={() => onDelete(skillType)} className="btn btn-danger">
+              Delete
             </button>
-            {isEditing && (
-              <button type="button" onClick={() => onDelete(skillType)} className="btn btn-danger">
-                Delete
-              </button>
-            )}
-            <button type="submit" className="btn btn-primary">
-              {isEditing ? 'Update' : 'Create'}
-            </button>
-          </div>
-        </form>
+          )}
+          <button type="submit" form="skill-type-form" className="btn btn-primary">
+            {isEditing ? 'Update' : 'Create'}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -29,7 +29,8 @@ const SkillModal = ({ skill, skillTypes, onSave, onClose, onDelete }) => {
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
+        <div className="modal-body">
+          <form id="skill-form" onSubmit={handleSubmit(onSubmit)} className="modal-form">
           <div className="form-group">
             <label htmlFor="name">Name</label>
             <input
@@ -63,39 +64,47 @@ const SkillModal = ({ skill, skillTypes, onSave, onClose, onDelete }) => {
           </div>
 
           <div className="form-group">
-            <label>
-              <input
-                type="checkbox"
-                {...register('is_proficient')}
-              />
-              Proficient
-            </label>
+            <label>Skill Options</label>
+            <div className="checkbox-group">
+              <div className="checkbox-item">
+                <label htmlFor="is_proficient">
+                  Proficient
+                </label>
+                <input
+                  id="is_proficient"
+                  type="checkbox"
+                  {...register('is_proficient')}
+                />
+              </div>
+              <div className="checkbox-item">
+                <label htmlFor="is_visible_in_app_details">
+                  Visible in App Details
+                </label>
+                <input
+                  id="is_visible_in_app_details"
+                  type="checkbox"
+                  {...register('is_visible_in_app_details')}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>
-              <input
-                type="checkbox"
-                {...register('is_visible_in_app_details')}
-              />
-              Visible in App Details
-            </label>
-          </div>
+          </form>
+        </div>
 
-          <div className="modal-actions">
-            <button type="button" onClick={onClose} className="btn btn-secondary">
-              Cancel
+        <div className="modal-footer">
+          <button type="button" onClick={onClose} className="btn btn-secondary">
+            Cancel
+          </button>
+          {isEditing && (
+            <button type="button" onClick={() => onDelete(skill)} className="btn btn-danger">
+              Delete
             </button>
-            {isEditing && (
-              <button type="button" onClick={() => onDelete(skill)} className="btn btn-danger">
-                Delete
-              </button>
-            )}
-            <button type="submit" className="btn btn-primary">
-              {isEditing ? 'Update' : 'Create'}
-            </button>
-          </div>
-        </form>
+          )}
+          <button type="submit" form="skill-form" className="btn btn-primary">
+            {isEditing ? 'Update' : 'Create'}
+          </button>
+        </div>
       </div>
     </div>
   );

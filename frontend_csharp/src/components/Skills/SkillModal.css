@@ -21,20 +21,4 @@
   /* Uses .form-input, .form-select, .form-textarea from shared styles */
 }
 
-.modal-form .checkbox-group {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-.modal-form .checkbox-group input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--color-primary);
-}
-
-.modal-form .checkbox-group label {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-primary);
-  cursor: pointer;
-}
+/* Uses .checkbox-group from shared styles */

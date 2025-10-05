@@ -67,7 +67,8 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
+        <div className="modal-body">
+          <form id="application-form" onSubmit={handleSubmit(onSubmit)} className="modal-form">
           <div className="form-group">
             <label htmlFor="title">Title</label>
             <input
@@ -141,13 +142,19 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
           </div>
 
           <div className="form-group">
-            <label>
-              <input
-                type="checkbox"
-                {...register('is_featured')}
-              />
-              Featured Application
-            </label>
+            <label>Application Options</label>
+            <div className="checkbox-group">
+              <div className="checkbox-item">
+                <label htmlFor="is_featured">
+                  Featured Application
+                </label>
+                <input
+                  id="is_featured"
+                  type="checkbox"
+                  {...register('is_featured')}
+                />
+              </div>
+            </div>
           </div>
 
           <div className="form-group">
@@ -172,34 +179,39 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
 
           <div className="form-group">
             <label>Associated Skills</label>
-            <div className="skills-checkboxes">
+            <div className="checkbox-group">
               {skills.map((skill) => (
-                <label key={skill._id} className="skill-checkbox">
+                <div key={skill._id} className="checkbox-item">
+                  <label htmlFor={`skill-${skill.code}`}>
+                    {skill.name}
+                  </label>
                   <input
+                    id={`skill-${skill.code}`}
                     type="checkbox"
                     checked={associatedSkills.includes(skill.code)}
                     onChange={() => toggleSkill(skill.code)}
                   />
-                  {skill.name}
-                </label>
+                </div>
               ))}
             </div>
           </div>
 
-          <div className="modal-actions">
-            <button type="button" onClick={onClose} className="btn btn-secondary">
-              Cancel
+          </form>
+        </div>
+
+        <div className="modal-footer">
+          <button type="button" onClick={onClose} className="btn btn-secondary">
+            Cancel
+          </button>
+          {isEditing && (
+            <button type="button" onClick={() => onDelete(application)} className="btn btn-danger">
+              Delete
             </button>
-            {isEditing && (
-              <button type="button" onClick={() => onDelete(application)} className="btn btn-danger">
-                Delete
-              </button>
-            )}
-            <button type="submit" className="btn btn-primary">
-              {isEditing ? 'Update' : 'Create'}
-            </button>
-          </div>
-        </form>
+          )}
+          <button type="submit" form="application-form" className="btn btn-primary">
+            {isEditing ? 'Update' : 'Create'}
+          </button>
+        </div>
       </div>
     </div>
   );
