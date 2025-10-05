@@ -362,7 +362,8 @@
   accent-color: var(--color-primary);
   cursor: pointer;
   border-radius: var(--radius-sm);
-  order: 2; /* Checkbox comes after label */
+  order: 1; /* Checkbox comes before label */
+  margin-top: 1px; /* Slight adjustment to align with text baseline */
 }
 
 .checkbox-item label {
@@ -371,7 +372,9 @@
   cursor: pointer;
   font-weight: var(--font-weight-medium);
   user-select: none;
-  order: 1; /* Label comes before checkbox */
+  order: 2; /* Label comes after checkbox */
+  line-height: 1.4; /* Ensure consistent line height for alignment */
+  margin-top: 7px; /* Move labels down 7px total (10px - 3px) */
 }
 
 .checkbox-item label:hover {
