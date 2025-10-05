@@ -4,7 +4,7 @@ namespace PortfolioBackend.Services;
 
 public interface ISupportStatusService
 {
-    Task<IEnumerable<SupportStatusDto>> GetAllAsync();
+    Task<IEnumerable<SupportStatusDto>> GetAllAsync(string? sort = null, string? order = null);
     Task<SupportStatusDto?> GetByIdAsync(string id);
     Task<SupportStatusDto?> GetByCodeAsync(string code);
     Task<SupportStatusDto> CreateAsync(CreateSupportStatusDto createDto);

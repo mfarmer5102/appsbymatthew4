@@ -16,11 +16,13 @@ public class SkillTypesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<SkillTypeDto>>> GetSkillTypes()
+    public async Task<ActionResult<IEnumerable<SkillTypeDto>>> GetSkillTypes(
+        [FromQuery] string? sort = null,
+        [FromQuery] string? order = null)
     {
         try
         {
-            var skillTypes = await _skillTypeService.GetAllAsync();
+            var skillTypes = await _skillTypeService.GetAllAsync(sort, order);
             return Ok(new { data = skillTypes });
         }
         catch (Exception ex)

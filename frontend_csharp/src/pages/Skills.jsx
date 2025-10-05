@@ -76,7 +76,7 @@ const Skills = () => {
       
       const [skillsRes, typesRes] = await Promise.all([
         skillsAPI.getAll(queryParams),
-        skillTypesAPI.getAll()
+        skillTypesAPI.getAll({ sort: 'label', order: 'asc' }) // Sort skill types by label asc
       ]);
       
       setSkills(skillsRes.data.data || []);

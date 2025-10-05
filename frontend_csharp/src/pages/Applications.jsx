@@ -24,8 +24,8 @@ const Applications = () => {
     try {
       setLoading(true);
       const [appsRes, supportRes, skillsRes] = await Promise.all([
-        applicationsAPI.getAll(),
-        supportStatusAPI.getAll(),
+        applicationsAPI.getAll({ sort: 'is_featured', order: 'desc' }), // Featured first, then by publish date desc
+        supportStatusAPI.getAll({ sort: 'label', order: 'asc' }), // Sort support statuses by label asc
         skillsAPI.getAll({ limit: 1000, offset: 0 }) // Fetch all skills for modal
       ]);
       

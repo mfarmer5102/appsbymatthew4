@@ -46,15 +46,17 @@ public class ApplicationService : IApplicationService
             var isDescending = order?.ToLower() == "desc";
             sortDefinition = sort.ToLower() switch
             {
-                "title" => isDescending ? Builders<Application>.Sort.Descending(a => a.Title) : Builders<Application>.Sort.Ascending(a => a.Title),
+                "title" => isDescending ? Builders<Application>.Sort.Descending(a => a.Title.ToLower()) : Builders<Application>.Sort.Ascending(a => a.Title.ToLower()),
                 "publish_date" => isDescending ? Builders<Application>.Sort.Descending(a => a.PublishDate) : Builders<Application>.Sort.Ascending(a => a.PublishDate),
                 "created_at" => isDescending ? Builders<Application>.Sort.Descending(a => a.CreatedAt) : Builders<Application>.Sort.Ascending(a => a.CreatedAt),
-                _ => Builders<Application>.Sort.Ascending(a => a.Title)
+                "is_featured" => isDescending ? Builders<Application>.Sort.Descending(a => a.IsFeatured) : Builders<Application>.Sort.Ascending(a => a.IsFeatured),
+                _ => Builders<Application>.Sort.Descending(a => a.IsFeatured).ThenByDescending(a => a.PublishDate)
             };
         }
         else
         {
-            sortDefinition = Builders<Application>.Sort.Ascending(a => a.Title);
+            // Default sort: featured first, then by publish date desc
+            sortDefinition = Builders<Application>.Sort.Descending(a => a.IsFeatured).ThenByDescending(a => a.PublishDate);
         }
 
         var skip = (page - 1) * limit;

@@ -23,7 +23,7 @@ const SkillTypes = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await skillTypesAPI.getAll();
+      const response = await skillTypesAPI.getAll({ sort: 'label', order: 'asc' }); // Sort by label asc
       setSkillTypes(response.data.data || []);
     } catch (err) {
       setError('Failed to fetch skill types');

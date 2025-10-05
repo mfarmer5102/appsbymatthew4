@@ -13,9 +13,27 @@ public class SkillTypeService : ISkillTypeService
         _skillTypes = database.GetCollection<SkillType>("skill_types");
     }
 
-    public async Task<IEnumerable<SkillTypeDto>> GetAllAsync()
+    public async Task<IEnumerable<SkillTypeDto>> GetAllAsync(string? sort = null, string? order = null)
     {
-        var skillTypes = await _skillTypes.Find(_ => true).ToListAsync();
+        // Build sort definition
+        SortDefinition<SkillType> sortDefinition;
+        if (!string.IsNullOrEmpty(sort))
+        {
+            var isDescending = order?.ToLower() == "desc";
+            sortDefinition = sort.ToLower() switch
+            {
+                "code" => isDescending ? Builders<SkillType>.Sort.Descending(st => st.Code) : Builders<SkillType>.Sort.Ascending(st => st.Code),
+                "label" => isDescending ? Builders<SkillType>.Sort.Descending(st => st.Label.ToLower()) : Builders<SkillType>.Sort.Ascending(st => st.Label.ToLower()),
+                _ => Builders<SkillType>.Sort.Ascending(st => st.Label.ToLower())
+            };
+        }
+        else
+        {
+            // Default sort: by label asc
+            sortDefinition = Builders<SkillType>.Sort.Ascending(st => st.Label.ToLower());
+        }
+
+        var skillTypes = await _skillTypes.Find(_ => true).Sort(sortDefinition).ToListAsync();
         return skillTypes.Select(MapToDto);
     }
 

@@ -13,9 +13,27 @@ public class SupportStatusService : ISupportStatusService
         _supportStatuses = database.GetCollection<SupportStatus>("support_statuses");
     }
 
-    public async Task<IEnumerable<SupportStatusDto>> GetAllAsync()
+    public async Task<IEnumerable<SupportStatusDto>> GetAllAsync(string? sort = null, string? order = null)
     {
-        var supportStatuses = await _supportStatuses.Find(_ => true).ToListAsync();
+        // Build sort definition
+        SortDefinition<SupportStatus> sortDefinition;
+        if (!string.IsNullOrEmpty(sort))
+        {
+            var isDescending = order?.ToLower() == "desc";
+            sortDefinition = sort.ToLower() switch
+            {
+                "code" => isDescending ? Builders<SupportStatus>.Sort.Descending(ss => ss.Code) : Builders<SupportStatus>.Sort.Ascending(ss => ss.Code),
+                "label" => isDescending ? Builders<SupportStatus>.Sort.Descending(ss => ss.Label.ToLower()) : Builders<SupportStatus>.Sort.Ascending(ss => ss.Label.ToLower()),
+                _ => Builders<SupportStatus>.Sort.Ascending(ss => ss.Label.ToLower())
+            };
+        }
+        else
+        {
+            // Default sort: by label asc
+            sortDefinition = Builders<SupportStatus>.Sort.Ascending(ss => ss.Label.ToLower());
+        }
+
+        var supportStatuses = await _supportStatuses.Find(_ => true).Sort(sortDefinition).ToListAsync();
         return supportStatuses.Select(MapToDto);
     }
 

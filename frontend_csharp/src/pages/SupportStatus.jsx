@@ -23,7 +23,7 @@ const SupportStatus = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await supportStatusAPI.getAll();
+      const response = await supportStatusAPI.getAll({ sort: 'label', order: 'asc' }); // Sort by label asc
       setSupportStatuses(response.data.data || []);
     } catch (err) {
       setError('Failed to fetch support statuses');

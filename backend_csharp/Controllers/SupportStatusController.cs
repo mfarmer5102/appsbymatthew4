@@ -16,11 +16,13 @@ public class SupportStatusController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<SupportStatusDto>>> GetSupportStatuses()
+    public async Task<ActionResult<IEnumerable<SupportStatusDto>>> GetSupportStatuses(
+        [FromQuery] string? sort = null,
+        [FromQuery] string? order = null)
     {
         try
         {
-            var supportStatuses = await _supportStatusService.GetAllAsync();
+            var supportStatuses = await _supportStatusService.GetAllAsync(sort, order);
             return Ok(new { data = supportStatuses });
         }
         catch (Exception ex)
