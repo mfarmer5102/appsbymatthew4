@@ -32,3 +32,86 @@
 .status-description {
   /* Uses .info-box from shared styles */
 }
+
+/* Additional specific styles to match original frontend exactly */
+.support-status-card .card-content {
+  padding: 0 1rem 1rem 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.support-status-card .card-header {
+  padding: 1rem 1rem 0 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.support-status-card .card-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.3;
+}
+
+.support-status-card .card-actions {
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.8) 100%);
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+.support-status-card .card-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.support-status-card .card-actions .btn .material-icons {
+  font-size: 16px;
+}
+
+/* Override shared indicator size to match original */
+.support-status-card .status-indicator {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.support-status-card .status-indicator .material-icons {
+  color: white;
+  font-size: 20px;
+}
+
+.support-status-card .status-code {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.support-status-card .status-description {
+  font-size: 0.875rem;
+  color: #64748b;
+  padding: 0.75rem;
+  background: rgba(248, 250, 252, 0.5);
+  border-radius: 0.5rem;
+  border-left: 3px solid #3b82f6;
+  line-height: 1.4;
+}
