@@ -156,7 +156,10 @@ const Home = () => {
                           src={getApplicationImageUrl(app.imageUrlRelative)}
                           alt={app.title || 'Application'}
                           onError={(e) => {
-                            e.target.src = 'https://via.placeholder.com/300x300?text=No+Image';
+                            // Prevent infinite loop by checking if we're already showing a placeholder
+                            if (!e.target.src.includes('via.placeholder.com')) {
+                              e.target.src = 'https://via.placeholder.com/300x300?text=No+Image';
+                            }
                           }}
                         />
                         <div className="app-overlay">

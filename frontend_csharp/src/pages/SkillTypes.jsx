@@ -51,7 +51,7 @@ const SkillTypes = () => {
   const handleSave = async (skillTypeData) => {
     try {
       if (editingSkillType) {
-        await skillTypesAPI.update(editingSkillType._id, skillTypeData);
+        await skillTypesAPI.update(editingSkillType.id, skillTypeData);
       } else {
         await skillTypesAPI.create(skillTypeData);
       }
@@ -65,7 +65,7 @@ const SkillTypes = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await skillTypesAPI.delete(selectedSkillType._id);
+      await skillTypesAPI.delete(selectedSkillType.id);
       setShowDeleteModal(false);
       setSelectedSkillType(null);
       fetchData();

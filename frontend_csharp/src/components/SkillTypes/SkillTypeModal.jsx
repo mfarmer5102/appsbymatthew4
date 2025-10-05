@@ -56,7 +56,10 @@ const SkillTypeModal = ({ skillType, onSave, onClose, onDelete }) => {
             Cancel
           </button>
           {isEditing && (
-            <button type="button" onClick={() => onDelete(skillType)} className="btn btn-danger">
+            <button type="button" onClick={() => {
+              onDelete(skillType);
+              onClose();
+            }} className="btn btn-danger">
               Delete
             </button>
           )}

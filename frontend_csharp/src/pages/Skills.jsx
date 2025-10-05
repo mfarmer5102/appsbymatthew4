@@ -115,12 +115,13 @@ const Skills = () => {
   const handleSave = async (skillData) => {
     try {
       if (editingSkill) {
-        await skillsAPI.update(editingSkill._id, skillData);
+        await skillsAPI.update(editingSkill.id, skillData);
       } else {
         await skillsAPI.create(skillData);
       }
       setShowModal(false);
       setCurrentPage(1); // Reset to first page after creating/updating
+      fetchData(); // Explicitly refresh the data
     } catch (err) {
       setError('Failed to save skill');
       console.error('Error saving skill:', err);
@@ -129,10 +130,11 @@ const Skills = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await skillsAPI.delete(selectedSkill._id);
+      await skillsAPI.delete(selectedSkill.id);
       setShowDeleteModal(false);
       setSelectedSkill(null);
       setCurrentPage(1); // Reset to first page after deleting
+      fetchData(); // Explicitly refresh the data
     } catch (err) {
       setError('Failed to delete skill');
       console.error('Error deleting skill:', err);
@@ -256,7 +258,7 @@ const Skills = () => {
             >
               <option value="">All Types</option>
               {skillTypes.map(type => (
-                <option key={type._id} value={type.code}>
+                <option key={type.id} value={type.code}>
                   {type.label}
                 </option>
               ))}

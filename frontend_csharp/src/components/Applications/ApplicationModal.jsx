@@ -14,13 +14,13 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
     if (application) {
       setValue('title', application.title || '');
       setValue('description', application.description || '');
-      setValue('publish_date', application.publish_date ? new Date(application.publish_date).toISOString().split('T')[0] : '');
-      setValue('is_featured', application.is_featured || false);
-      setValue('deployed_link', application.deployed_link || '');
-      setValue('support_status_code', application.support_status_code || '');
-      setValue('image_url_relative', application.image_url_relative || '');
+      setValue('publish_date', application.publishDate ? new Date(application.publishDate).toISOString().split('T')[0] : '');
+      setValue('is_featured', application.isFeatured || false);
+      setValue('deployed_link', application.deployedLink || '');
+      setValue('support_status_code', application.supportStatusCode || '');
+      setValue('image_url_relative', application.imageUrlRelative || '');
       setRepositories(application.repositories || []);
-      setAssociatedSkills(application.associated_skill_codes || []);
+      setAssociatedSkills(application.associatedSkillCodes || []);
     } else {
       setRepositories([]);
       setAssociatedSkills([]);
@@ -29,10 +29,15 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
 
   const onSubmit = (data) => {
     const applicationData = {
-      ...data,
-      repositories,
-      associated_skill_codes: associatedSkills,
-      publish_date: data.publish_date ? new Date(data.publish_date) : null,
+      title: data.title,
+      description: data.description,
+      publishDate: data.publish_date ? new Date(data.publish_date) : null,
+      isFeatured: data.is_featured || false,
+      deployedLink: data.deployed_link,
+      repositories: repositories,
+      supportStatusCode: data.support_status_code,
+      associatedSkillCodes: associatedSkills,
+      imageUrlRelative: data.image_url_relative,
     };
     onSave(applicationData);
   };
@@ -104,7 +109,7 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
               <select id="support_status_code" {...register('support_status_code')}>
                 <option value="">Select status</option>
                 {supportStatuses.map((status) => (
-                  <option key={status._id} value={status.code}>
+                  <option key={status.id} value={status.code}>
                     {status.label}
                   </option>
                 ))}
@@ -181,7 +186,7 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
             <label>Associated Skills</label>
             <div className="checkbox-group">
               {skills.map((skill) => (
-                <div key={skill._id} className="checkbox-item">
+                <div key={skill.id} className="checkbox-item">
                   <label htmlFor={`skill-${skill.code}`}>
                     {skill.name}
                   </label>
@@ -204,7 +209,10 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
             Cancel
           </button>
           {isEditing && (
-            <button type="button" onClick={() => onDelete(application)} className="btn btn-danger">
+            <button type="button" onClick={() => {
+              onDelete(application);
+              onClose();
+            }} className="btn btn-danger">
               Delete
             </button>
           )}

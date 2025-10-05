@@ -11,14 +11,21 @@ const SkillModal = ({ skill, skillTypes, onSave, onClose, onDelete }) => {
     if (skill) {
       setValue('name', skill.name || '');
       setValue('code', skill.code || '');
-      setValue('skill_type_code', skill.skill_type_code || '');
-      setValue('is_proficient', skill.is_proficient || false);
-      setValue('is_visible_in_app_details', skill.is_visible_in_app_details || false);
+      setValue('skill_type_code', skill.skillTypeCode || '');
+      setValue('is_proficient', skill.isProficient || false);
+      setValue('is_visible_in_app_details', skill.isVisibleInAppDetails || false);
     }
   }, [skill, setValue]);
 
   const onSubmit = (data) => {
-    onSave(data);
+    const skillData = {
+      name: data.name,
+      code: data.code,
+      skillTypeCode: data.skill_type_code,
+      isProficient: data.is_proficient || false,
+      isVisibleInAppDetails: data.is_visible_in_app_details || false,
+    };
+    onSave(skillData);
   };
 
   return (
@@ -56,7 +63,7 @@ const SkillModal = ({ skill, skillTypes, onSave, onClose, onDelete }) => {
             <select id="skill_type_code" {...register('skill_type_code')}>
               <option value="">Select skill type</option>
               {skillTypes.map((type) => (
-                <option key={type._id} value={type.code}>
+                <option key={type.id} value={type.code}>
                   {type.label}
                 </option>
               ))}
@@ -97,7 +104,10 @@ const SkillModal = ({ skill, skillTypes, onSave, onClose, onDelete }) => {
             Cancel
           </button>
           {isEditing && (
-            <button type="button" onClick={() => onDelete(skill)} className="btn btn-danger">
+            <button type="button" onClick={() => {
+              onDelete(skill);
+              onClose();
+            }} className="btn btn-danger">
               Delete
             </button>
           )}

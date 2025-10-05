@@ -51,7 +51,7 @@ const SupportStatus = () => {
   const handleSave = async (supportStatusData) => {
     try {
       if (editingSupportStatus) {
-        await supportStatusAPI.update(editingSupportStatus._id, supportStatusData);
+        await supportStatusAPI.update(editingSupportStatus.id, supportStatusData);
       } else {
         await supportStatusAPI.create(supportStatusData);
       }
@@ -65,7 +65,7 @@ const SupportStatus = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await supportStatusAPI.delete(selectedSupportStatus._id);
+      await supportStatusAPI.delete(selectedSupportStatus.id);
       setShowDeleteModal(false);
       setSelectedSupportStatus(null);
       fetchData();

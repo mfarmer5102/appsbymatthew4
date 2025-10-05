@@ -56,7 +56,10 @@ const SupportStatusModal = ({ supportStatus, onSave, onClose, onDelete }) => {
             Cancel
           </button>
           {isEditing && (
-            <button type="button" onClick={() => onDelete(supportStatus)} className="btn btn-danger">
+            <button type="button" onClick={() => {
+              onDelete(supportStatus);
+              onClose();
+            }} className="btn btn-danger">
               Delete
             </button>
           )}

@@ -62,7 +62,7 @@ const Applications = () => {
   const handleSave = async (applicationData) => {
     try {
       if (editingApplication) {
-        await applicationsAPI.update(editingApplication._id, applicationData);
+        await applicationsAPI.update(editingApplication.id, applicationData);
       } else {
         await applicationsAPI.create(applicationData);
       }
@@ -76,7 +76,7 @@ const Applications = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await applicationsAPI.delete(selectedApplication._id);
+      await applicationsAPI.delete(selectedApplication.id);
       setShowDeleteModal(false);
       setSelectedApplication(null);
       fetchData();
@@ -153,7 +153,10 @@ const Applications = () => {
                 src={getApplicationImageUrl(app.imageUrlRelative)}
                 alt={app.title || 'Application'}
                 onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                  // Prevent infinite loop by checking if we're already showing a placeholder
+                  if (!e.target.src.includes('via.placeholder.com')) {
+                    e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                  }
                 }}
               />
             </div>
