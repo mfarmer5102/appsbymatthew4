@@ -92,7 +92,7 @@ const SkillTypes = () => {
   }
 
   return (
-    <div className="skill-types">
+    <div className="skill-types page-container">
       <div className="page-header">
         <h1>Skill Types</h1>
         {isAdminMode && (
@@ -109,7 +109,7 @@ const SkillTypes = () => {
         </div>
       )}
 
-      <div className="skill-types-grid">
+      <div className="skill-types-grid grid grid-auto-fill">
         {skillTypes.map((skillType) => {
           const getCategoryColor = (code) => {
             switch (code?.toLowerCase()) {
@@ -126,9 +126,9 @@ const SkillTypes = () => {
           };
 
           return (
-            <div key={skillType.id} className="skill-type-card">
+            <div key={skillType.id} className="skill-type-card card">
               <div className="card-header">
-                <div className="category-indicator" style={{ backgroundColor: getCategoryColor(skillType.code) }}>
+                <div className="category-indicator indicator" style={{ backgroundColor: getCategoryColor(skillType.code) }}>
                   <span className="material-icons">category</span>
                 </div>
                 <div className="header-content">
@@ -137,12 +137,12 @@ const SkillTypes = () => {
               </div>
               
               <div className="card-content">
-                <div className="skill-type-info">
-                  <div className="skill-type-detail">
+                <div className="skill-type-info detail-group">
+                  <div className="skill-type-detail detail-item">
                     <span className="detail-label">Code:</span>
                     <span className="detail-value">{skillType.code || 'N/A'}</span>
                   </div>
-                  <div className="skill-type-detail">
+                  <div className="skill-type-detail detail-item">
                     <span className="detail-label">Label:</span>
                     <span className="detail-value">{skillType.label || 'N/A'}</span>
                   </div>

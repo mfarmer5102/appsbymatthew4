@@ -92,7 +92,7 @@ const SupportStatus = () => {
   }
 
   return (
-    <div className="support-status">
+    <div className="support-status page-container">
       <div className="page-header">
         <h1>Support Status</h1>
         {isAdminMode && (
@@ -109,7 +109,7 @@ const SupportStatus = () => {
         </div>
       )}
 
-      <div className="support-status-grid">
+      <div className="support-status-grid grid grid-auto-fill">
         {supportStatuses.map((status) => {
           const getStatusIcon = (code) => {
             switch (code?.toLowerCase()) {
@@ -134,9 +134,9 @@ const SupportStatus = () => {
           };
 
           return (
-            <div key={status.id} className="support-status-card">
+            <div key={status.id} className="support-status-card card">
               <div className="card-header">
-                <div className="status-indicator" style={{ backgroundColor: getStatusColor(status.code) }}>
+                <div className="status-indicator indicator" style={{ backgroundColor: getStatusColor(status.code) }}>
                   <span className="material-icons">{getStatusIcon(status.code)}</span>
                 </div>
                 <div className="header-content">

@@ -128,7 +128,7 @@ const Applications = () => {
   }
 
   return (
-    <div className="applications">
+    <div className="applications page-container">
       <div className="page-header">
         <h1>Applications</h1>
         {isAdminMode && (
@@ -145,9 +145,9 @@ const Applications = () => {
         </div>
       )}
 
-      <div className="applications-grid">
+      <div className="applications-grid grid grid-auto-fill-large">
         {applications.map((app) => (
-          <div key={app.id} className="application-card">
+          <div key={app.id} className="application-card card">
             <div className="card-image">
               <img 
                 src={getApplicationImageUrl(app.imageUrlRelative)}
@@ -177,22 +177,22 @@ const Applications = () => {
                 )}
               </div>
               
-              <div className="app-info">
-                <div className="app-detail">
+              <div className="app-info detail-group">
+                <div className="app-detail detail-item">
                   <span className="detail-label">Published:</span>
                   <span className="detail-value">{app.publishDate ? new Date(app.publishDate).toLocaleDateString() : 'Not set'}</span>
                 </div>
-                <div className="app-detail">
+                <div className="app-detail detail-item">
                   <span className="detail-label">Status:</span>
                   <span className="detail-value">{getSupportStatusLabel(app.supportStatusCode)}</span>
                 </div>
-                <div className="app-detail">
+                <div className="app-detail detail-item">
                   <span className="detail-label">Featured:</span>
                   <span className={`detail-value ${app.isFeatured ? 'featured' : 'not-featured'}`}>
                     {app.isFeatured ? 'Yes' : 'No'}
                   </span>
                 </div>
-                <div className="app-detail">
+                <div className="app-detail detail-item">
                   <span className="detail-label">Deployed:</span>
                   <span className={`detail-value ${app.deployedLink ? 'deployed' : 'not-deployed'}`}>
                     {app.deployedLink ? 'Yes' : 'No'}

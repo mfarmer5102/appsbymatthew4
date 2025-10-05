@@ -207,7 +207,7 @@ const Skills = () => {
   }
 
   return (
-    <div className="skills">
+    <div className="skills page-container">
       <div className="page-header">
         <h1>Skills</h1>
         {isAdminMode && (
@@ -312,7 +312,7 @@ const Skills = () => {
         </div>
       )}
 
-      <div className="skills-grid">
+      <div className="skills-grid grid grid-auto-fill">
         {skills.map((skill) => {
           const getCategoryColor = (code) => {
             switch (code?.toLowerCase()) {
@@ -329,9 +329,9 @@ const Skills = () => {
           };
 
           return (
-            <div key={skill.id} className="skill-card">
+            <div key={skill.id} className="skill-card card">
               <div className="card-header">
-                <div className="category-indicator" style={{ backgroundColor: getCategoryColor(skill.skillTypeCode) }}>
+                <div className="category-indicator indicator" style={{ backgroundColor: getCategoryColor(skill.skillTypeCode) }}>
                   <span className="material-icons">code</span>
                 </div>
                 <div className="header-content">
@@ -340,24 +340,24 @@ const Skills = () => {
               </div>
               
               <div className="card-content">
-                <div className="skill-info">
-                  <div className="skill-detail">
+                <div className="skill-info detail-group">
+                  <div className="skill-detail detail-item">
                     <span className="detail-label">Code:</span>
                     <span className="detail-value">{skill.code || 'N/A'}</span>
                   </div>
-                  <div className="skill-detail">
+                  <div className="skill-detail detail-item">
                     <span className="detail-label">Type:</span>
                     <span className="detail-value">{skill.skillTypeCode || 'N/A'}</span>
                   </div>
                   {isAdminMode && (
                     <>
-                      <div className="skill-detail">
+                      <div className="skill-detail detail-item">
                         <span className="detail-label">Proficient:</span>
                         <span className={`detail-value ${skill.isProficient ? 'proficient' : 'not-proficient'}`}>
                           {skill.isProficient ? 'Yes' : 'No'}
                         </span>
                       </div>
-                      <div className="skill-detail">
+                      <div className="skill-detail detail-item">
                         <span className="detail-label">Visible:</span>
                         <span className={`detail-value ${skill.isVisibleInAppDetails ? 'visible' : 'hidden'}`}>
                           {skill.isVisibleInAppDetails ? 'Yes' : 'No'}
