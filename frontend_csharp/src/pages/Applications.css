@@ -1,18 +1,6 @@
 /* Applications Page Specific Styles */
 @import '../styles/index.css';
 
-.applications {
-  /* Uses .page-container from shared styles */
-}
-
-.applications-grid {
-  /* Uses .grid and .grid-auto-fill-large from shared styles */
-}
-
-.application-card {
-  /* Uses .card from shared styles */
-}
-
 .application-card .card-image {
   width: 100%;
   height: 200px;
@@ -30,14 +18,6 @@
 
 .application-card:hover .card-image img {
   transform: scale(1.05);
-}
-
-.app-info {
-  /* Uses .detail-group from shared styles */
-}
-
-.app-detail {
-  /* Uses .detail-item from shared styles */
 }
 
 .detail-value.featured {

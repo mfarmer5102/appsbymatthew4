@@ -1,36 +1,8 @@
 /* Support Status Page Specific Styles */
 @import '../styles/index.css';
 
-.support-status {
-  /* Uses .page-container from shared styles */
-}
-
-.support-status-grid {
-  /* Uses .grid and .grid-auto-fill from shared styles */
-}
-
-.support-status-card {
-  /* Uses .card from shared styles */
-}
-
 .support-status-card::before {
   background: var(--gradient-accent-alt);
-}
-
-.status-indicator {
-  /* Uses .indicator from shared styles */
-}
-
-.support-status-card .status-code {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  font-weight: var(--font-weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.status-description {
-  /* Uses .info-box from shared styles */
 }
 
 /* Additional specific styles to match original frontend exactly */

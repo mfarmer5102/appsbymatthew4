@@ -1,34 +1,6 @@
 /* Skill Types Page Specific Styles */
 @import '../styles/index.css';
 
-.skill-types {
-  /* Uses .page-container from shared styles */
-}
-
-.skill-types-grid {
-  /* Uses .grid and .grid-auto-fill from shared styles */
-}
-
-.skill-type-card {
-  /* Uses .card from shared styles */
-}
-
-.category-indicator {
-  /* Uses .indicator from shared styles */
-}
-
-.skill-type-info {
-  /* Uses .detail-group from shared styles */
-}
-
-.skill-type-detail {
-  /* Uses .detail-item from shared styles */
-}
-
-.category-description {
-  /* Uses .info-box from shared styles */
-}
-
 /* Additional specific styles to match original frontend exactly */
 .skill-type-card .card-content {
   padding: 0 1rem 1rem 1rem;

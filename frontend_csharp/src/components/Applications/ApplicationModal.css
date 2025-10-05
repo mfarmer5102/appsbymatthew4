@@ -1,29 +1,7 @@
 /* Application Modal Specific Styles */
 @import '../../styles/index.css';
 
-/* Uses .modal-overlay, .modal-content, .modal-header, .modal-body, .modal-footer from shared styles */
-
-.modal-form .form-row {
-  /* Uses .form-row from shared styles */
-}
-
-.modal-form .form-group {
-  /* Uses .form-group from shared styles */
-}
-
-.modal-form .form-label {
-  /* Uses .form-label from shared styles */
-}
-
-.modal-form .form-input,
-.modal-form .form-select,
-.modal-form .form-textarea {
-  /* Uses .form-input, .form-select, .form-textarea from shared styles */
-}
-
 .modal-form .form-textarea {
   min-height: 100px;
   resize: vertical;
 }
-
-/* Uses .checkbox-group from shared styles */
