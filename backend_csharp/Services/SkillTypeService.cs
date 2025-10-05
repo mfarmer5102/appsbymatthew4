@@ -23,14 +23,14 @@ public class SkillTypeService : ISkillTypeService
             sortDefinition = sort.ToLower() switch
             {
                 "code" => isDescending ? Builders<SkillType>.Sort.Descending(st => st.Code) : Builders<SkillType>.Sort.Ascending(st => st.Code),
-                "label" => isDescending ? Builders<SkillType>.Sort.Descending(st => st.Label.ToLower()) : Builders<SkillType>.Sort.Ascending(st => st.Label.ToLower()),
-                _ => Builders<SkillType>.Sort.Ascending(st => st.Label.ToLower())
+                "label" => isDescending ? Builders<SkillType>.Sort.Descending(st => st.Label) : Builders<SkillType>.Sort.Ascending(st => st.Label),
+                _ => Builders<SkillType>.Sort.Ascending(st => st.Label)
             };
         }
         else
         {
             // Default sort: by label asc
-            sortDefinition = Builders<SkillType>.Sort.Ascending(st => st.Label.ToLower());
+            sortDefinition = Builders<SkillType>.Sort.Ascending(st => st.Label);
         }
 
         var skillTypes = await _skillTypes.Find(_ => true).Sort(sortDefinition).ToListAsync();

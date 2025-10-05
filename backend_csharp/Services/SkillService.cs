@@ -43,16 +43,16 @@ public class SkillService : ISkillService
             var isDescending = order?.ToLower() == "desc";
             sortDefinition = sort.ToLower() switch
             {
-                "name" => isDescending ? Builders<Skill>.Sort.Descending(s => s.Name.ToLower()) : Builders<Skill>.Sort.Ascending(s => s.Name.ToLower()),
+                "name" => isDescending ? Builders<Skill>.Sort.Descending(s => s.Name) : Builders<Skill>.Sort.Ascending(s => s.Name),
                 "code" => isDescending ? Builders<Skill>.Sort.Descending(s => s.Code) : Builders<Skill>.Sort.Ascending(s => s.Code),
                 "skill_type_code" => isDescending ? Builders<Skill>.Sort.Descending(s => s.SkillTypeCode) : Builders<Skill>.Sort.Ascending(s => s.SkillTypeCode),
                 "is_proficient" => isDescending ? Builders<Skill>.Sort.Descending(s => s.IsProficient) : Builders<Skill>.Sort.Ascending(s => s.IsProficient),
-                _ => Builders<Skill>.Sort.Ascending(s => s.Name.ToLower())
+                _ => Builders<Skill>.Sort.Ascending(s => s.Name)
             };
         }
         else
         {
-            sortDefinition = Builders<Skill>.Sort.Ascending(s => s.Name.ToLower());
+            sortDefinition = Builders<Skill>.Sort.Ascending(s => s.Name);
         }
 
         var skip = (page - 1) * limit;

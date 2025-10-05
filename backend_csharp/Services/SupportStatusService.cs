@@ -23,14 +23,14 @@ public class SupportStatusService : ISupportStatusService
             sortDefinition = sort.ToLower() switch
             {
                 "code" => isDescending ? Builders<SupportStatus>.Sort.Descending(ss => ss.Code) : Builders<SupportStatus>.Sort.Ascending(ss => ss.Code),
-                "label" => isDescending ? Builders<SupportStatus>.Sort.Descending(ss => ss.Label.ToLower()) : Builders<SupportStatus>.Sort.Ascending(ss => ss.Label.ToLower()),
-                _ => Builders<SupportStatus>.Sort.Ascending(ss => ss.Label.ToLower())
+                "label" => isDescending ? Builders<SupportStatus>.Sort.Descending(ss => ss.Label) : Builders<SupportStatus>.Sort.Ascending(ss => ss.Label),
+                _ => Builders<SupportStatus>.Sort.Ascending(ss => ss.Label)
             };
         }
         else
         {
             // Default sort: by label asc
-            sortDefinition = Builders<SupportStatus>.Sort.Ascending(ss => ss.Label.ToLower());
+            sortDefinition = Builders<SupportStatus>.Sort.Ascending(ss => ss.Label);
         }
 
         var supportStatuses = await _supportStatuses.Find(_ => true).Sort(sortDefinition).ToListAsync();
