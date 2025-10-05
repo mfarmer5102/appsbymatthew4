@@ -23,9 +23,3 @@ dist-ssr
 *.sln
 *.sw?
 .vite/*
-
-./flutter_portfolio/*
-.DS_Store
-
-backend_csharp/bin
-backend_csharp/obj
