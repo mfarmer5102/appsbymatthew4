@@ -29,3 +29,6 @@ dist-ssr
 
 backend_csharp/bin
 backend_csharp/obj
+
+run-frontend.sh 
+run-backend.sh
