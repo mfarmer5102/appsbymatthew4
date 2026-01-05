@@ -1,6 +1,27 @@
-const handle_lambda_request = (event, context) => {
-    return 'hello world';
-}
+// const handle_lambda_request = (event, context) => {
+//     return 'hello world';
+// }
+
+exports.handle_lambda_request = async (event, context) => {
+    // Log the event data for debugging in CloudWatch
+    console.log("Received event:", JSON.stringify(event, null, 2));
+
+    // A simple message to be returned
+    const message = 'Hello from AWS Lambda!';
+
+    // The response object must follow the structure expected by the invoker (e.g., API Gateway)
+    const response = {
+        'statusCode': 200,
+        'body': JSON.stringify({
+            message: message,
+            input: event, // Optionally echo the input event
+        }),
+    };
+
+    // Return the response object
+    return response;
+};
+
 
 /*
 import asyncio
