@@ -36,7 +36,7 @@ on:
 
 env:
   AWS_REGION: us-east-1                   # set this to your preferred AWS region, e.g. us-west-1
-  ECR_REPOSITORY: appsByMatthew4-api           # set this to your Amazon ECR repository name
+  ECR_REPOSITORY: appsbymatthew4-api           # set this to your Amazon ECR repository name
   # ECS_SERVICE: MY_ECS_SERVICE                 # set this to your Amazon ECS service name
   # ECS_CLUSTER: MY_ECS_CLUSTER                 # set this to your Amazon ECS cluster name
   # ECS_TASK_DEFINITION: MY_ECS_TASK_DEFINITION # set this to the path to your Amazon ECS task definition
@@ -88,7 +88,7 @@ jobs:
         IMAGE_TAG: latest #${{ github.sha }}
       run: |
         aws lambda update-function-code \
-        --function-name appsByMatthew4_allRoutes \
+        --function-name appsbymatthew4_allRoutes \
         --image-uri $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         
 
