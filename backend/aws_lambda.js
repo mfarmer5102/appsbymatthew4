@@ -1,4 +1,4 @@
-export const handle_lambda_request = (event, context) => {
+const handle_lambda_request = (event, context) => {
     return 'hello world';
 }
 
