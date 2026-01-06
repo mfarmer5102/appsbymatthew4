@@ -22,7 +22,6 @@ exports.handle_lambda_request = async (event, context) => {
     return response;
 };
 
-
 /*
 import asyncio
 import json
