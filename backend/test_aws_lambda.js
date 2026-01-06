@@ -1,4 +1,4 @@
-const handle_lambda_request = require('./aws_lambda.js').handle_lambda_request;
+const handle_lambda_request = require('./_aws_lambda.js').handle_lambda_request;
 
 handle_lambda_request({
     httpMethod: 'GET',
