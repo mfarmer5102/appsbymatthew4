@@ -1,4 +1,4 @@
-class MongoConfig {
+export class MongoConfig {
     constructor(database_name, instance_url) {
         this.mongo_client = pymongo.MongoClient(instance_url, tlsCAFile=certifi.where());
         this.database_name = database_name;
@@ -6,7 +6,7 @@ class MongoConfig {
     }
 }
 
-class MongoColl {
+export class MongoColl {
     constructor(mongo_config, name) {
         this.db = mongo_config.database_name;
         this.name = name;

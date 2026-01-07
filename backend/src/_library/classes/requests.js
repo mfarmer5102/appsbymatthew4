@@ -1,4 +1,4 @@
-class StandardizedRequestObject {
+export class StandardizedRequestObject {
     constructor(http_method, path, headers, query_string_params, req_body, state) {
         this.http_method = http_method;
         this.path = path;

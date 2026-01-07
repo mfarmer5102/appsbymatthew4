@@ -3,34 +3,34 @@ import { StandardizedResponseObject } from '../_library/classes/responses.js';
 import { StandardizedRequestObject } from '../_library/classes/requests.js';
 
 export function get_many(req_objx) {
-    return StandardizedResponseObject(
-        status_code=200,
-        res_body=do_get_many(req_objx),
-        error=None
+    return new StandardizedResponseObject(
+        200,
+        do_get_many(req_objx),
+        null
     )
 }
 
 export function create(req_objx) {
-    return StandardizedResponseObject(
-        status_code=201,
-        res_body=do_create(req_objx),
-        error=None
+    return new StandardizedResponseObject(
+        201,
+        do_create(req_objx),
+        null
     )
 }
 
 export function update(req_objx) {
-    return StandardizedResponseObject(
-        status_code=200,
-        res_body=do_update(req_objx),
-        error=None
+    return new StandardizedResponseObject(
+        200,
+        do_update(req_objx),
+        null
     )
 }
 
 export function delete_one(req_objx) {
-    return StandardizedResponseObject(
-        status_code=200,
-        res_body=do_delete(req_objx),
-        error=None
+    return new StandardizedResponseObject(
+        200,
+        do_delete(req_objx),
+        null
     )
 }
 

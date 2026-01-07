@@ -1,22 +1,29 @@
-class SecretConfig {
+export class SecretConfig {
     constructor(aws_region_name) {
-        this.IS_AWS_ORIGINATED = os.environ.get("AWS_EXECUTION_ENV");
+        this.IS_AWS_ORIGINATED = process.env.AWS_EXECUTION_ENV;
         this.AWS_REGION = aws_region_name;
     }
 
     get_secret_value_from_aws(secret_name) {
-        session = boto3.session.Session();
-        client = session.client(
-            service_name='secretsmanager',
-            region_name=self.AWS_REGION
-        );
+        const session = boto3.session.Session()
+        const client = session.client(
+            'secretsmanager',
+            self.AWS_REGION
+        )
+        try {
+            const get_secret_value_response = client.get_secret_value(secret_name)
+            return JSON.parse(get_secret_value_response['SecretString'])
+        }
+        catch(e) {
+            throw Error;
+        }
     }
 
-    attach_secret(key, aws_secret_name=None) {
+    attach_secret(key, aws_secret_name=null) {
         if (this.IS_AWS_ORIGINATED) {
-            setattr(this, key, this.get_secret_value_from_aws(secret_name=aws_secret_name)[key]);
+            this.key = this.get_secret_value_from_aws(aws_secret_name)[key];
         } else {
-            setattr(this, key, os.getenv(key));
+            this.key = process.env[key];
         }
     }
 }

@@ -1,5 +1,5 @@
-class Route {
-    constructor(method, path, handler, is_async=False) {
+export class Route {
+    constructor(method, path, handler, is_async=false) {
         this.method = method;
         this.path = path;
         this.handler = handler;
@@ -7,7 +7,7 @@ class Route {
     }
 }
 
-class RoutingConfig {
+export class RoutingConfig {
     constructor(unprotected_routes, protected_routes, error_config) {
         this.unprotected_routes = unprotected_routes;
         this.protected_routes = protected_routes;
@@ -15,15 +15,15 @@ class RoutingConfig {
     }
 
     async handle_path(req_objx, secret_config, middleware_config) {
-        protected_routes = this.protected_routes;
-        unprotected_routes = this.unprotected_routes;
+        const protected_routes = this.protected_routes;
+        const unprotected_routes = this.unprotected_routes;
         for (const mid_func of middleware_config.middleware_funcs) {
             mid_func(req_objx, protected_routes, unprotected_routes, secret_config);
         }
 
-        all_routes = unprotected_routes + protected_routes;
+        const all_routes = unprotected_routes + protected_routes;
         for (const item of all_routes) {
-            if (item.method == req_objx.http_method && item.path == req_objx.path) {
+            if (item.method === req_objx.http_method && item.path === req_objx.path) {
                 if (item.is_async) {
                     return await item.handler(req_objx);
                 } else {
@@ -32,7 +32,7 @@ class RoutingConfig {
             }
         }
 
-        throw new Exception(this.error_config.select_error("not_found"));
+        throw new Error(this.error_config.select_error("not_found"));
     }
 }
 

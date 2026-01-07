@@ -1,6 +1,6 @@
-import ErrorConfig from '../_library/classes/errors';
+import {ErrorConfig} from '../_library/classes/errors.js';
 
-error_config = new ErrorConfig([
+export const error_config = new ErrorConfig([
     {
         "key": "source_already_exists",
         "message": "Source already exists.",

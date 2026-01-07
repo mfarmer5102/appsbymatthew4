@@ -1,4 +1,5 @@
-const handle_lambda_request = require('./_aws_lambda.js').handle_lambda_request;
+import "./_aws_lambda.js";
+import { handle_lambda_request } from "./_aws_lambda.js";
 
 handle_lambda_request({
     httpMethod: 'GET',
@@ -7,4 +8,6 @@ handle_lambda_request({
     queryStringParameters: {},
     body: {},
     state: {}
-}, null);
+}, null).then(r => {
+    console.log(r);
+});

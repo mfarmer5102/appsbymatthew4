@@ -1,11 +1,13 @@
 {
   "name": "portfolio-backend",
+  "type": "module",
   "version": "1.0.0",
   "description": "Node.js API for portfolio data management",
-  "main": "server.js",
+  "main": "_express.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node _express.js",
+    "dev": "nodemon _express.js",
+    "lambda_test": "node test_aws_lambda.js",
     "test": "jest"
   },
   "keywords": ["portfolio", "api", "mongodb", "express"],

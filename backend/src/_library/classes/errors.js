@@ -1,5 +1,5 @@
-class ErrorConfig {
-    constructor(custom_errors=None) {
+export class ErrorConfig {
+    constructor(custom_errors=null) {
         if (!custom_errors) custom_errors = [];
         this.default_errors = [
             {
@@ -29,7 +29,7 @@ class ErrorConfig {
             },
         ];
         this.custom_errors = custom_errors;
-        this.all_errors = this.default_errors + this.custom_errors;
+        this.all_errors = this.default_errors.concat(this.custom_errors);
         this.valid_error_keys = this.all_errors.map(error => error.key);
     }
     
@@ -41,11 +41,11 @@ class ErrorConfig {
 
     prepare_error_notice(e) {
         for (const err of this.all_errors) {
-            if (err.key == str(e)) {
-                return err.status_code, err.message;
+            if (err.key === e.toString()) {
+                return [err.status_code, err.message];
             }
         }
-        return 500, str(e);
+        return [500, e.toString()];
     }
 }
 

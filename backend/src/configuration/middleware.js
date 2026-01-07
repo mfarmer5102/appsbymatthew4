@@ -1,6 +1,6 @@
-import MiddlewareConfig from '../_library/classes/middleware';
+import {MiddlewareConfig} from '../_library/classes/middleware.js';
 
-middleware_config = new MiddlewareConfig([]);
+export const middleware_config = new MiddlewareConfig([]);
 
 /*
 from src.configuration.auth import auth_config
