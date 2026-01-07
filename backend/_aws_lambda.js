@@ -1,25 +1,71 @@
-// const handle_lambda_request = (event, context) => {
-//     return 'hello world';
-// }
+import {error_config} from './src/configuration/errors.js';
+import {routing_config} from './src/configuration/routing.js';
+import {secret_config} from './src/configuration/secrets.js';
+import {middleware_config} from './src/configuration/middleware.js';
+import {StandardizedRequestObject} from './src/_library/classes/requests.js';
 
-exports.handle_lambda_request = async (event, context) => {
-    // Log the event data for debugging in CloudWatch
-    console.log("Received event:", JSON.stringify(event, null, 2));
+export const handle_lambda_request = async (event, context) => {
+// exports.handle_lambda_request = async (event, context) => {
+    try {
+        const res = await handle_lambda_async_request(event, context);
+        return {
+            'isBase64Encoded': false,
+            'statusCode': res.status_code,
+            'headers': {
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Methods': '*'
+            },
+            "multiValueHeaders": {},
+            'body': JSON.stringify(res.res_body),
+        }
+    }
+    catch (e) {
+        const [status_code, message] = error_config.prepare_error_notice(e)
+        return {
+            'isBase64Encoded': false,
+            'statusCode': status_code,
+            'headers': {
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Methods': '*'
+            },
+            "multiValueHeaders": {},
+            'body': JSON.stringify(message),
+        }
+    }
+};
 
-    // A simple message to be returned
-    const message = 'Hello from AWS Lambda!';
+const handle_lambda_async_request = async (event, context) => {
+    const standardized_request_object = ingest_lambda_request(event, context)
+    // Return the standardized_response_object
+    return await routing_config.handle_path(
+        standardized_request_object,
+        secret_config,
+        middleware_config
+    );
+}
 
-    // The response object must follow the structure expected by the invoker (e.g., API Gateway)
-    const response = {
-        'statusCode': 200,
-        'body': JSON.stringify({
-            message: message,
-            input: event, // Optionally echo the input event
-        }),
-    };
+const ingest_lambda_request = (event, context) => {
 
-    // Return the response object
-    return response;
+    // When coming from API Gateway, req_body may need to be converted to a dict
+    let req_body = event['body'];
+    if (typeof req_body === 'string') {
+        try {
+            req_body = JSON.parse(event.body);
+        }
+        catch (e) {
+            console.log("Couldn't convert req body to JSON");
+        }
+    }
+
+    // Generate standardized req obj
+    return new StandardizedRequestObject(
+        event['httpMethod'],
+        event['path'],
+        event['headers'],
+        event['queryStringParameters'] || {},
+        req_body,
+        {}
+    );
 };
 
 /*
