@@ -1,71 +1,77 @@
-import { entries_coll } from '../configuration/mongo.js';
-import { StandardizedRequestObject } from '../_library/classes/requests.js';
+import { applications_coll } from '../configuration/mongo.js';
 
-export function do_get_many(req_objx) {
-    username = req_objx.get_state("username")
-    source_key = req_objx.get_query_string_param("sourceKey")
-    page_size = req_objx.get_query_string_param("pageSize")
-    sort_column = req_objx.get_query_string_param("sortColumn")
-    sort_direction = req_objx.get_query_string_param("sortDirection")
+export const do_get_many = async (req_objx) => {
+    let findObj = {}
+    let projectObj = {
+        _id: 0,
+        embeddings: 0
+    }
+    return await applications_coll.ref.find(findObj).project(projectObj).toArray();
 
-    find_obj = {
-        "username": username,
-        "source_key": source_key,
-        "deleted_date": None
-    }
-    sort_obj = {
-        sort_column: int(sort_direction)
-    }
-    results = list(entries_coll.ref.find(find_obj).sort(sort_obj))
-
-    for (const item of results) {
-        item['_id'] = item['_id'].toString()
-        item['user_id'] = item['user_id'].toString()
-        item['source_id'] = item['source_id'].toString()
-        item['amount'] = parseFloat(item['amount'])
-        item['entry_date'] = item['entry_date'].toISOString()
-        item['created_date'] = item['created_date'].toISOString()
-        item['last_edited_date'] = item['last_edited_date'].toISOString()
-    }
-    return results
+    // username = req_objx.get_state("username")
+    // source_key = req_objx.get_query_string_param("sourceKey")
+    // page_size = req_objx.get_query_string_param("pageSize")
+    // sort_column = req_objx.get_query_string_param("sortColumn")
+    // sort_direction = req_objx.get_query_string_param("sortDirection")
+    //
+    // find_obj = {
+    //     "username": username,
+    //     "source_key": source_key,
+    //     "deleted_date": None
+    // }
+    // sort_obj = {
+    //     sort_column: int(sort_direction)
+    // }
+    // results = list(entries_coll.ref.find(find_obj).sort(sort_obj))
+    //
+    // for (const item of results) {
+    //     item['_id'] = item['_id'].toString()
+    //     item['user_id'] = item['user_id'].toString()
+    //     item['source_id'] = item['source_id'].toString()
+    //     item['amount'] = parseFloat(item['amount'])
+    //     item['entry_date'] = item['entry_date'].toISOString()
+    //     item['created_date'] = item['created_date'].toISOString()
+    //     item['last_edited_date'] = item['last_edited_date'].toISOString()
+    // }
+    // return results
 }
 
-export function do_create(req_objx) {
-    provided_entry_date = req_objx.get_req_body('entryDate')
-    formatted_entry_date = new Date(provided_entry_date)
-    entries_coll.ref.insert_one({
-        "username": req_objx.get_state("username"),
-        "entry_date": formatted_entry_date,
-        "comments": req_objx.get_req_body('comments'),
-        "created_date": new Date(),
-        "amount": parseFloat(req_objx.get_req_body('amount')),
-        "source_key": req_objx.get_req_body('sourceKey'),
-    })
-    return
-}
+// export function do_create(req_objx) {
+//     provided_entry_date = req_objx.get_req_body('entryDate')
+//     formatted_entry_date = new Date(provided_entry_date)
+//     entries_coll.ref.insert_one({
+//         "username": req_objx.get_state("username"),
+//         "entry_date": formatted_entry_date,
+//         "comments": req_objx.get_req_body('comments'),
+//         "created_date": new Date(),
+//         "amount": parseFloat(req_objx.get_req_body('amount')),
+//         "source_key": req_objx.get_req_body('sourceKey'),
+//     })
+//     return
+// }
 
-export function do_update(req_objx) {
-    find_obj = {"_id": ObjectId(req_objx.get_req_body("_id"))}
-    update_obj = {"last_edited_date": new Date()}
-    if (req_objx.get_req_body("entryDate") !== null) {
-        update_obj['entry_date'] = new Date(req_objx.get_req_body('entryDate'))
-    }
-    if (req_objx.get_req_body("comments") !== null) {
-        update_obj['comments'] = req_objx.get_req_body("comments")
-    }
-    if (req_objx.get_req_body("amount") !== null) {
-        update_obj['amount'] = parseFloat(req_objx.get_req_body("amount"))
-    }
-    entries_coll.ref.update_one(find_obj, {"$set": update_obj})
-    return
-}
+// export function do_update(req_objx) {
+//     find_obj = {"_id": ObjectId(req_objx.get_req_body("_id"))}
+//     update_obj = {"last_edited_date": new Date()}
+//     if (req_objx.get_req_body("entryDate") !== null) {
+//         update_obj['entry_date'] = new Date(req_objx.get_req_body('entryDate'))
+//     }
+//     if (req_objx.get_req_body("comments") !== null) {
+//         update_obj['comments'] = req_objx.get_req_body("comments")
+//     }
+//     if (req_objx.get_req_body("amount") !== null) {
+//         update_obj['amount'] = parseFloat(req_objx.get_req_body("amount"))
+//     }
+//     entries_coll.ref.update_one(find_obj, {"$set": update_obj})
+//     return
+// }
 
-export function do_delete(req_objx) {
-    find_obj = {"_id": ObjectId(req_objx.get_req_body("_id"))}
-    update_obj = {"deleted_date": new Date()}
-    entries_coll.ref.update_one(find_obj, {"$set": update_obj})
-    return
-}
+// export function do_delete(req_objx) {
+//     find_obj = {"_id": ObjectId(req_objx.get_req_body("_id"))}
+//     update_obj = {"deleted_date": new Date()}
+//     entries_coll.ref.update_one(find_obj, {"$set": update_obj})
+//     return
+// }
 
 /*
 from datetime import datetime

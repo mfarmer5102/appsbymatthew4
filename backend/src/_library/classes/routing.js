@@ -21,7 +21,7 @@ export class RoutingConfig {
             mid_func(req_objx, protected_routes, unprotected_routes, secret_config);
         }
 
-        const all_routes = unprotected_routes + protected_routes;
+        const all_routes = unprotected_routes.concat(protected_routes);
         for (const item of all_routes) {
             if (item.method === req_objx.http_method && item.path === req_objx.path) {
                 if (item.is_async) {

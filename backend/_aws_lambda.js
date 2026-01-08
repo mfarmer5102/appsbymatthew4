@@ -1,6 +1,6 @@
 import {error_config} from './src/configuration/errors.js';
 import {routing_config} from './src/configuration/routing.js';
-import {secret_config} from './src/configuration/secrets.js';
+import secret_config from './src/configuration/secrets.js';
 import {middleware_config} from './src/configuration/middleware.js';
 import {StandardizedRequestObject} from './src/_library/classes/requests.js';
 

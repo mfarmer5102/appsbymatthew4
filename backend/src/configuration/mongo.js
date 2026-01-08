@@ -1,14 +1,13 @@
-import {MongoConfig} from '../_library/classes/mongo';
-import {MongoColl} from '../_library/classes/mongo';
-import {secret_config} from './secrets.js';
+import {MongoConfig, MongoColl} from '../_library/classes/mongo.js';
+import secret_config from "./secrets.js";
 
-const mongo_config = new MongoConfig('apps_by_matthew', secret_config.MONGO_INSTANCE_URL);
+const mongo_config = new MongoConfig('apps_by_matthew', secret_config['MONGO_INSTANCE_URL']);
 
-export const entries_coll = new MongoColl(mongo_config, 'entries');
-export const monthly_reports_coll = new MongoColl(mongo_config, 'monthly_reports');
-export const source_types_coll = new MongoColl(mongo_config, 'source_types');
-export const sources_coll = new MongoColl(mongo_config, 'sources');
-export const users_coll = new MongoColl(mongo_config, 'users');
+export const applications_coll = new MongoColl(mongo_config, 'applications');
+// export const monthly_reports_coll = new MongoColl(mongo_config, 'monthly_reports');
+// export const source_types_coll = new MongoColl(mongo_config, 'source_types');
+// export const sources_coll = new MongoColl(mongo_config, 'sources');
+// export const users_coll = new MongoColl(mongo_config, 'users');
 
 /*
 from src.configuration.secrets import secret_config

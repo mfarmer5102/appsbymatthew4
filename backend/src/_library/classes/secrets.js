@@ -21,9 +21,9 @@ export class SecretConfig {
 
     attach_secret(key, aws_secret_name=null) {
         if (this.IS_AWS_ORIGINATED) {
-            this.key = this.get_secret_value_from_aws(aws_secret_name)[key];
+            this[key] = this.get_secret_value_from_aws(aws_secret_name)[key];
         } else {
-            this.key = process.env[key];
+            this[key] = process.env[key];
         }
     }
 }

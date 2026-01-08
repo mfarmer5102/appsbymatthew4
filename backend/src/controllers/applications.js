@@ -1,38 +1,38 @@
-import { do_get_many, do_create, do_update, do_delete } from '../data/entries.js';
+import { do_get_many /*, do_create, do_update, do_delete */ } from '../data/applications.js';
 import { StandardizedResponseObject } from '../_library/classes/responses.js';
 import { StandardizedRequestObject } from '../_library/classes/requests.js';
 
-export function get_many(req_objx) {
+export const get_many = async (req_objx) => {
     return new StandardizedResponseObject(
         200,
-        do_get_many(req_objx),
+        await do_get_many(req_objx),
         null
     )
 }
 
-export function create(req_objx) {
-    return new StandardizedResponseObject(
-        201,
-        do_create(req_objx),
-        null
-    )
-}
-
-export function update(req_objx) {
-    return new StandardizedResponseObject(
-        200,
-        do_update(req_objx),
-        null
-    )
-}
-
-export function delete_one(req_objx) {
-    return new StandardizedResponseObject(
-        200,
-        do_delete(req_objx),
-        null
-    )
-}
+// export function create(req_objx) {
+//     return new StandardizedResponseObject(
+//         201,
+//         do_create(req_objx),
+//         null
+//     )
+// }
+//
+// export function update(req_objx) {
+//     return new StandardizedResponseObject(
+//         200,
+//         do_update(req_objx),
+//         null
+//     )
+// }
+//
+// export function delete_one(req_objx) {
+//     return new StandardizedResponseObject(
+//         200,
+//         do_delete(req_objx),
+//         null
+//     )
+// }
 
 /*
 from src.data.entries import *

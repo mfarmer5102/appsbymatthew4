@@ -3,7 +3,7 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 
 handle_lambda_request({
     httpMethod: 'GET',
-    path: '/api/users/login',
+    path: "/api/applications/getMany",
     headers: {},
     queryStringParameters: {},
     body: {},

@@ -1,6 +1,7 @@
 import {RoutingConfig, Route} from '../_library/classes/routing.js';
 
 import {error_config} from './errors.js';
+import * as applications from "../controllers/applications.js";
 
 // import users from '../controllers/users';
 // import entries from '../controllers/entries';
@@ -9,7 +10,9 @@ import {error_config} from './errors.js';
 // import source_types from '../controllers/source_types';
 
 export const routing_config = new RoutingConfig(
-    [new Route("GET", "/", (req_objx) => 'Hello!')],
+    [
+        new Route("GET", "/api/applications/getMany", (req_objx) => applications.get_many(req_objx), true)
+    ],
     [],
     // [
     //     //Users
