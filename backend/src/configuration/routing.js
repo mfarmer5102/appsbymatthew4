@@ -2,6 +2,9 @@ import {RoutingConfig, Route} from '../_library/classes/routing.js';
 
 import {error_config} from './errors.js';
 import * as applications from "../controllers/applications.js";
+import * as skillTypes from "../controllers/skill_types.js";
+import * as skills from "../controllers/skills.js";
+import * as supportStatuses from "../controllers/support_statuses.js";
 
 // import users from '../controllers/users';
 // import entries from '../controllers/entries';
@@ -11,7 +14,14 @@ import * as applications from "../controllers/applications.js";
 
 export const routing_config = new RoutingConfig(
     [
-        new Route("GET", "/api/applications/getMany", (req_objx) => applications.get_many(req_objx), true)
+        new Route("GET", "/api/applications", (req_objx) => applications.get_many(req_objx), true),
+        // new Route("GET", "/api/applications/getOne", (req_objx) => applications.get_one(req_objx), true),
+        new Route("GET", "/api/skill-types", (req_objx) => skillTypes.get_many(req_objx), true),
+        // new Route("GET", "/api/applications/getOne", (req_objx) => applications.get_one(req_objx), true),
+        new Route("GET", "/api/skills", (req_objx) => skills.get_many(req_objx), true),
+        // new Route("GET", "/api/applications/getOne", (req_objx) => applications.get_one(req_objx), true),
+        new Route("GET", "/api/support-status", (req_objx) => supportStatuses.get_many(req_objx), true),
+        // new Route("GET", "/api/applications/getOne", (req_objx) => applications.get_one(req_objx), true),
     ],
     [],
     // [

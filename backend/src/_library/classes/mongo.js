@@ -4,7 +4,7 @@ export class MongoConfig {
     constructor(database_name, instance_url) {
         this.mongo_client = new MongoClient(instance_url);
         this.database_name = database_name;
-        this.database = this.mongo_client.db(database_name);
+        this.database = this.mongo_client.db(this.database_name);
     }
 }
 
@@ -13,23 +13,6 @@ export class MongoColl {
         this.db = mongo_config.database;
         this.name = name // Name of standard collection
         this.ref = mongo_config.database.collection(this.name) // Direct ref to standard collection
-        this.temp_name = `${this.name}_temp` // Name of temp collection
-        this.temp_ref = mongo_config.database.collection(this.temp_name) // Direct ref to temp collection
-        this.backup_name = `${this.name}_backup` // Name of backup collection
-        this.broken_name = `${this.name}_broken` // Name of broken collection
-    }
-    convert_primary_to_backup() {
-        try {
-            self.ref.rename(self.backup_name, dropTarget=True)
-        } catch (e) {
-            console.log("No primary collection to rename.");
-        }
-    }
-    convert_temp_to_broken() {
-        self.temp_ref.rename(self.broken_name, dropTarget=True)
-    }
-    convert_temp_to_primary() {
-        self.temp_ref.rename(self.name, dropTarget=True)
     }
 }
 

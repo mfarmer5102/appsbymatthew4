@@ -1,4 +1,4 @@
-import {do_get_many} from '../data/applications.js';
+import {do_get_many} from '../data/skills.js';
 import { StandardizedResponseObject } from '../_library/classes/responses.js';
 
 export const get_many = async (req_objx) => {

@@ -1,4 +1,4 @@
-import { applications_coll } from '../configuration/mongo.js';
+import { skill_types_coll } from '../configuration/mongo.js';
 
 export const do_get_many = async (req_objx) => {
     let findObj = {}
@@ -8,7 +8,7 @@ export const do_get_many = async (req_objx) => {
             embeddings: 0
         }
     }
-    return await applications_coll.ref.find(findObj, options).toArray();
+    return await skill_types_coll.ref.find(findObj, options).toArray();
 }
 
 // export const do_get_one = async (req_objx) => {
@@ -19,7 +19,7 @@ export const do_get_many = async (req_objx) => {
 //             embeddings: 0
 //         }
 //     }
-//     return await applications_coll.ref.findOne(findObj, options);
+//     return await skill_types_coll.ref.findOne(findObj, options);
 // }
 
 // export function do_create(req_objx) {
