@@ -1,14 +1,36 @@
-import { skill_types_coll } from '../configuration/mongo.js';
+import {skill_types_coll} from '../configuration/mongo.js';
 
 export const do_get_many = async (req_objx) => {
-    let findObj = {}
+    const limit = req_objx.get_state("limit") || 50;
+    const offset = req_objx.get_state("offset") || 0;
+
+    let findObj = {};
+
     let options = {
         projection: {
             _id: 0,
             embeddings: 0
         }
     }
-    return await skill_types_coll.ref.find(findObj, options).toArray();
+
+    const skillTypes = await skill_types_coll.ref
+        .find(findObj, options)
+        .limit(Number(limit))
+        .skip(Number(offset))
+        .sort({ label: 1 })
+        .toArray();
+
+    const total = await skill_types_coll.ref.countDocuments(findObj);
+
+    return {
+        data: skillTypes,
+        pagination: {
+            total,
+            limit: Number(limit),
+            offset: Number(offset),
+            hasMore: (Number(offset) + skillTypes.length) < total
+        }
+    };
 }
 
 // export const do_get_one = async (req_objx) => {
