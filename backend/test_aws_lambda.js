@@ -3,7 +3,7 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 
 handle_lambda_request({
     httpMethod: 'GET',
-    path: "/api/support-status",
+    path: "/api/skills",
     headers: {},
     queryStringParameters: {},
     body: {},

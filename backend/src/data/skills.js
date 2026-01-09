@@ -1,14 +1,55 @@
-import { skills_coll } from '../configuration/mongo.js';
+import {skills_coll} from '../configuration/mongo.js';
 
 export const do_get_many = async (req_objx) => {
-    let findObj = {}
+    const proficient = req_objx.get_state("proficient");
+    const skill_type = req_objx.get_state("skill_type");
+    const visible = req_objx.get_state("visible");
+    const limit = req_objx.get_state("limit") || 50;
+    const offset = req_objx.get_state("offset") || 0;
+    const sort = req_objx.get_state("sort");
+    const order = req_objx.get_state("order");
+
+    let findObj = {};
+    if (proficient !== undefined) {
+        findObj.is_proficient = proficient === 'true';
+    }
+    if (skill_type) {
+        findObj.skill_type_code = skill_type.toUpperCase();
+    }
+    if (visible !== undefined) {
+        findObj.is_visible_in_app_details = visible === 'true';
+    }
+
     let options = {
         projection: {
             _id: 0,
             embeddings: 0
         }
     }
-    return await skills_coll.ref.find(findObj, options).toArray();
+
+    // Build sort object
+    const sortObj = {};
+    const sortField = sort === 'code' ? 'code' : 'name';
+    sortObj[sortField] = order === 'desc' ? -1 : 1;
+
+    const skills = await skills_coll.ref
+        .find(findObj, options)
+        .limit(Number(limit))
+        .skip(Number(offset))
+        .sort(sortObj)
+        .toArray();
+
+    const total = await skills_coll.ref.countDocuments(findObj);
+
+    return {
+        data: skills,
+        pagination: {
+            total,
+            limit: Number(limit),
+            offset: Number(offset),
+            hasMore: (Number(offset) + skills.length) < total
+        }
+    };
 }
 
 // export const do_get_one = async (req_objx) => {

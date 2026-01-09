@@ -1,14 +1,45 @@
 import { applications_coll } from '../configuration/mongo.js';
 
 export const do_get_many = async (req_objx) => {
-    let findObj = {}
+    const featured = req_objx.get_state("featured");
+    const support_status = req_objx.get_state("support_status");
+    const limit = req_objx.get_state("limit") || 50;
+    const offset = req_objx.get_state("offset") || 0;
+
+    let findObj = {};
+    findObj.deleted_date = null;
+    if (featured !== undefined) {
+        findObj.is_featured = featured === 'true';
+    }
+    if (support_status) {
+        findObj.support_status_code = support_status;
+    }
+
     let options = {
         projection: {
             _id: 0,
             embeddings: 0
         }
     }
-    return await applications_coll.ref.find(findObj, options).toArray();
+
+    const applications = await applications_coll.ref
+        .find(findObj, options)
+        .limit(Number(limit))
+        .skip(Number(offset))
+        .sort({ publish_date: -1 })
+        .toArray();
+
+    const total = await applications_coll.ref.countDocuments(findObj);
+
+    return {
+        data: applications,
+        pagination: {
+            total,
+            limit: Number(limit),
+            offset: Number(offset),
+            hasMore: (Number(offset) + applications.length) < total
+        }
+    };
 }
 
 // export const do_get_one = async (req_objx) => {
