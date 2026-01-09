@@ -6,51 +6,31 @@ import * as skillTypes from "../controllers/skill_types.js";
 import * as skills from "../controllers/skills.js";
 import * as supportStatuses from "../controllers/support_statuses.js";
 
-// import users from '../controllers/users';
-// import entries from '../controllers/entries';
-// import monthly_reports from '../controllers/monthly_reports';
-// import sources from '../controllers/sources';
-// import source_types from '../controllers/source_types';
-
 export const routing_config = new RoutingConfig(
     [
         new Route("GET", "/api/applications", (req_objx) => applications.get_many(req_objx), true),
-        // new Route("GET", "/api/applications/getOne", (req_objx) => applications.get_one(req_objx), true),
         new Route("GET", "/api/skill-types", (req_objx) => skillTypes.get_many(req_objx), true),
-        // new Route("GET", "/api/applications/getOne", (req_objx) => applications.get_one(req_objx), true),
         new Route("GET", "/api/skills", (req_objx) => skills.get_many(req_objx), true),
-        // new Route("GET", "/api/applications/getOne", (req_objx) => applications.get_one(req_objx), true),
         new Route("GET", "/api/support-status", (req_objx) => supportStatuses.get_many(req_objx), true),
-        // new Route("GET", "/api/applications/getOne", (req_objx) => applications.get_one(req_objx), true),
     ],
-    [],
-    // [
-    //     //Users
-    //     Route("POST", "/api/users/login", (req_objx) => users.login(req_objx)),
-    //     Route("POST", "/api/users/verify2fa", (req_objx) => users.verify_2fa(req_objx)),
-    //     Route("POST", "/api/users/generate2fa", (req_objx) => users.generate_2fa_setup(req_objx)),
-    //     Route("POST", "/api/users/complete2fa", (req_objx) => users.complete_2fa_setup(req_objx)),
-    //     Route("POST", "/api/users/create", (req_objx) => users.create(req_objx)),
-    // ],
-    // [
-    //     //Entries
-    //     Route("GET", "/api/entries/getMany", (req_objx) => entries.get_many(req_objx)),
-    //     Route("POST", "/api/entries/create", (req_objx) => entries.create(req_objx)),
-    //     Route("PUT", "/api/entries/update", (req_objx) => entries.update(req_objx)),
-    //     Route("DELETE", "/api/entries/delete", (req_objx) => entries.delete(req_objx)),
-    //     //Monthly Reports
-    //     Route("GET", "/api/monthlyReports/getMany", (req_objx) => monthly_reports.get_many(req_objx)),
-    //     Route("GET", "/api/monthlyReports/getInstantAmountsBySource", (req_objx) => monthly_reports.get_instance_amounts_by_source(req_objx)),
-    //     Route("GET", "/api/monthlyReports/getInstantAmountsBySourceType", (req_objx) => monthly_reports.get_instance_amounts_by_source_type(req_objx)),
-    //     //Sources
-    //     Route("GET", "/api/sources/getMany", (req_objx) => sources.get_many(req_objx)),
-    //     Route("POST", "/api/sources/create", (req_objx) => sources.create(req_objx)),
-    //     Route("PUT", "/api/sources/update", (req_objx) => sources.update(req_objx)),
-    //     Route("PUT", "/api/sources/archive", (req_objx) => sources.archive(req_objx)),
-    //     Route("DELETE", "/api/sources/delete", (req_objx) => sources.delete(req_objx)),
-    //     //Source Types
-    //     Route("GET", "/api/sourceTypes/getMany", (req_objx) => source_types.get_many(req_objx)),
-    // ],
+    [
+        // Applications
+        new Route("POST", "/api/applications", (req_objx) => applications.create(req_objx), true),
+        new Route("PUT", "/api/applications", (req_objx) => applications.update(req_objx), true),
+        new Route("DELETE", "/api/applications", (req_objx) => applications.delete_one(req_objx), true),
+        // Skill Types
+        new Route("POST", "/api/skill-types", (req_objx) => skillTypes.create(req_objx), true),
+        new Route("PUT", "/api/skill-types", (req_objx) => skillTypes.update(req_objx), true),
+        new Route("DELETE", "/api/skill-types", (req_objx) => skillTypes.delete_one(req_objx), true),
+        // Skills
+        new Route("POST", "/api/skills", (req_objx) => skills.create(req_objx), true),
+        new Route("PUT", "/api/skills", (req_objx) => skills.update(req_objx), true),
+        new Route("DELETE", "/api/skills", (req_objx) => skills.delete_one(req_objx), true),
+        // Support Statuses
+        new Route("POST", "/api/support-status", (req_objx) => supportStatuses.create(req_objx), true),
+        new Route("PUT", "/api/support-status", (req_objx) => supportStatuses.update(req_objx), true),
+        new Route("DELETE", "/api/support-status", (req_objx) => supportStatuses.delete_one(req_objx), true),
+    ],
     error_config,
 );
 

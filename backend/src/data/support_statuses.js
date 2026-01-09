@@ -33,53 +33,17 @@ export const do_get_many = async (req_objx) => {
     };
 }
 
-// export const do_get_one = async (req_objx) => {
-//     let findObj = {}
-//     let options = {
-//         projection: {
-//             _id: 0,
-//             embeddings: 0
-//         }
-//     }
-//     return await support_statuses_coll.ref.findOne(findObj, options);
-// }
+export const do_create = async (req_objx) => {
+    return
+}
 
-// export function do_create(req_objx) {
-//     provided_entry_date = req_objx.get_req_body('entryDate')
-//     formatted_entry_date = new Date(provided_entry_date)
-//     entries_coll.ref.insert_one({
-//         "username": req_objx.get_state("username"),
-//         "entry_date": formatted_entry_date,
-//         "comments": req_objx.get_req_body('comments'),
-//         "created_date": new Date(),
-//         "amount": parseFloat(req_objx.get_req_body('amount')),
-//         "source_key": req_objx.get_req_body('sourceKey'),
-//     })
-//     return
-// }
+export const do_update = async (req_objx) => {
+    return
+}
 
-// export function do_update(req_objx) {
-//     find_obj = {"_id": ObjectId(req_objx.get_req_body("_id"))}
-//     update_obj = {"last_edited_date": new Date()}
-//     if (req_objx.get_req_body("entryDate") !== null) {
-//         update_obj['entry_date'] = new Date(req_objx.get_req_body('entryDate'))
-//     }
-//     if (req_objx.get_req_body("comments") !== null) {
-//         update_obj['comments'] = req_objx.get_req_body("comments")
-//     }
-//     if (req_objx.get_req_body("amount") !== null) {
-//         update_obj['amount'] = parseFloat(req_objx.get_req_body("amount"))
-//     }
-//     entries_coll.ref.update_one(find_obj, {"$set": update_obj})
-//     return
-// }
-
-// export function do_delete(req_objx) {
-//     find_obj = {"_id": ObjectId(req_objx.get_req_body("_id"))}
-//     update_obj = {"deleted_date": new Date()}
-//     entries_coll.ref.update_one(find_obj, {"$set": update_obj})
-//     return
-// }
+export const do_delete = async (req_objx) => {
+    return
+}
 
 /*
 from datetime import datetime

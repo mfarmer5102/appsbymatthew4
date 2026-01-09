@@ -8,11 +8,6 @@ export const skills_coll = new MongoColl(mongo_config, 'skills');
 export const skill_types_coll = new MongoColl(mongo_config, 'skill_types');
 export const support_statuses_coll = new MongoColl(mongo_config, 'support_statuses');
 
-// export const monthly_reports_coll = new MongoColl(mongo_config, 'monthly_reports');
-// export const source_types_coll = new MongoColl(mongo_config, 'source_types');
-// export const sources_coll = new MongoColl(mongo_config, 'sources');
-// export const users_coll = new MongoColl(mongo_config, 'users');
-
 /*
 from src.configuration.secrets import secret_config
 from src._library.classes.mongo import MongoConfig, MongoColl
