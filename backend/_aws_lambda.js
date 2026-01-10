@@ -8,7 +8,7 @@ export const handle_lambda_request = async (event, context) => {
 // exports.handle_lambda_request = async (event, context) => {
     try {
         const res = await handle_lambda_async_request(event, context);
-        return {
+        const returnObj = {
             'isBase64Encoded': false,
             'statusCode': res.status_code,
             'headers': {
@@ -18,10 +18,11 @@ export const handle_lambda_request = async (event, context) => {
             "multiValueHeaders": {},
             'body': JSON.stringify(res.res_body),
         }
+        return returnObj;
     }
     catch (e) {
         const [status_code, message] = error_config.prepare_error_notice(e)
-        return {
+        const returnObj = {
             'isBase64Encoded': false,
             'statusCode': status_code,
             'headers': {
@@ -31,6 +32,7 @@ export const handle_lambda_request = async (event, context) => {
             "multiValueHeaders": {},
             'body': JSON.stringify(message),
         }
+        return returnObj;
     }
 };
 

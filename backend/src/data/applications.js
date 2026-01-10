@@ -1,4 +1,5 @@
-import { applications_coll } from '../configuration/mongo.js';
+import {applications_coll} from '../configuration/mongo.js';
+import {error_config} from "../configuration/errors.js";
 
 export const do_get_many = async (req_objx) => {
     const title = req_objx.get_query_string_param("title");
@@ -50,6 +51,10 @@ export const do_create = async (req_objx) => {
     const description = req_objx.get_req_body("description");
     const repositories = req_objx.get_req_body("repositories");
     const support_status_code = req_objx.get_req_body("support_status_code");
+
+    // Make sure an app with this title doesn't already exist
+    const matched_title_count = await applications_coll.ref.countDocuments({title});
+    if (matched_title_count > 0) throw new Error(error_config.select_error('application_already_exists'));
 
     const insertObj = {
         title,

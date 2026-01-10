@@ -27,7 +27,7 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 //     headers: {},
 //     queryStringParameters: {},
 //     body: {
-//         title: "Test App",
+//         title: "Grape Flask",
 //         publish_date: new Date().toISOString(),
 //         associated_skill_codes: ['JSON'],
 //         is_featured: false,
@@ -40,7 +40,10 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 //     state: {}
 // }, null).then(r => {
 //     console.log(JSON.parse(r.body));
-//     process.exit(0);
+// }).catch(e => {
+//     console.log(e)
+// }).finally(() => {
+//     process.exit(0)
 // });
 
 // handle_lambda_request({

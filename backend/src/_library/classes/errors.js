@@ -37,11 +37,12 @@ export class ErrorConfig {
         if (!this.valid_error_keys.includes(err_key)) {
             console.log(`Warning: Error key ${err_key} not defined.`);
         }
+        return err_key;
     }
 
     prepare_error_notice(e) {
         for (const err of this.all_errors) {
-            if (err.key === e.toString()) {
+            if (err.key === e['message']) {
                 return [err.status_code, err.message];
             }
         }
