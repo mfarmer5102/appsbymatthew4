@@ -1,6 +1,10 @@
 import "./_aws_lambda.js";
 import { handle_lambda_request } from "./_aws_lambda.js";
 
+///////////////////////////////////////////////////////
+////////// APPLICATIONS ////////////
+///////////////////////////////////////////////////////
+
 // handle_lambda_request({
 //     httpMethod: 'GET',
 //     path: "/api/applications",
@@ -75,6 +79,10 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 //     process.exit(0);
 // });
 
+///////////////////////////////////////////////////////
+////////// SKILLS ////////////
+///////////////////////////////////////////////////////
+
 // handle_lambda_request({
 //     httpMethod: 'GET',
 //     path: "/api/skills",
@@ -133,6 +141,68 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 //     queryStringParameters: {},
 //     body: {
 //         code: 'FAKE',
+//     },
+//     state: {}
+// }, null).then(r => {
+//     console.log(JSON.parse(r.body));
+//     process.exit(0);
+// });
+
+///////////////////////////////////////////////////////
+////////// SKILL TYPES ////////////
+///////////////////////////////////////////////////////
+
+// handle_lambda_request({
+//     httpMethod: 'GET',
+//     path: "/api/skill-types",
+//     headers: {},
+//     queryStringParameters: {
+//         code: 'CLOUD'
+//     },
+//     body: {},
+//     state: {}
+// }, null).then(r => {
+//     console.log(JSON.parse(r.body));
+//     process.exit(0);
+// });
+
+// handle_lambda_request({
+//     httpMethod: 'POST',
+//     path: "/api/skill-types",
+//     headers: {},
+//     queryStringParameters: {},
+//     body: {
+//         label: "Fake",
+//         code: "FAKE"
+//     },
+//     state: {}
+// }, null).then(r => {
+//     console.log(JSON.parse(r.body));
+//     process.exit(0);
+// });
+
+// handle_lambda_request({
+//     httpMethod: 'PUT',
+//     path: "/api/skill-types",
+//     headers: {},
+//     queryStringParameters: {},
+//     body: {
+//         label: "Fakeness",
+//         code: "FAKE"
+//     },
+//     state: {}
+// }, null).then(r => {
+//     console.log(JSON.parse(r.body));
+//     process.exit(0);
+// });
+
+// handle_lambda_request({
+//     httpMethod: 'DELETE',
+//     path: "/api/skill-types",
+//     headers: {},
+//     queryStringParameters: {},
+//     body: {
+//         code: "FAKE"
 //     },
 //     state: {}
 // }, null).then(r => {

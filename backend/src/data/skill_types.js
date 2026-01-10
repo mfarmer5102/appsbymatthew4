@@ -1,10 +1,14 @@
 import {skill_types_coll} from '../configuration/mongo.js';
 
 export const do_get_many = async (req_objx) => {
-    const limit = req_objx.get_state("limit") || 50;
-    const offset = req_objx.get_state("offset") || 0;
+    const label = req_objx.get_query_string_param("label");
+    const code = req_objx.get_query_string_param("code");
+    const limit = req_objx.get_query_string_param("limit") || 50;
+    const offset = req_objx.get_query_string_param("offset") || 0;
 
     let findObj = {};
+    if (label) findObj.label = label;
+    if (code) findObj.code = code;
 
     let options = {
         projection: {
@@ -17,7 +21,7 @@ export const do_get_many = async (req_objx) => {
         .find(findObj, options)
         .limit(Number(limit))
         .skip(Number(offset))
-        .sort({ label: 1 })
+        .sort({ code: 1 })
         .toArray();
 
     const total = await skill_types_coll.ref.countDocuments(findObj);
@@ -34,16 +38,57 @@ export const do_get_many = async (req_objx) => {
 }
 
 export const do_create = async (req_objx) => {
-    return
+    const label = req_objx.get_req_body("label");
+    const code = req_objx.get_req_body("code");
+
+    const insertObj = {
+        label,
+        code,
+        created_at: new Date()
+    }
+    return await skill_types_coll.ref.insertOne(insertObj)
 }
 
 export const do_update = async (req_objx) => {
-    return
+    const label = req_objx.get_req_body("label");
+    const code = req_objx.get_req_body("code");
+
+    const filterObj = {
+        code,
+    }
+    const updateObj = {
+        $set: {
+            label,
+            code,
+            updated_at: new Date(),
+        }
+    }
+    const options = {
+        upsert: false,
+    }
+
+    return await skill_types_coll.ref.updateOne(filterObj, updateObj, options)
 }
 
 export const do_delete = async (req_objx) => {
-    return
+    const code = req_objx.get_req_body("code");
+
+    const filterObj = {
+        code,
+    }
+    const updateObj = {
+        $set: {
+            updated_at: new Date(),
+            deleted_at: new Date(),
+        }
+    }
+    const options = {
+        upsert: false,
+    }
+
+    return await skill_types_coll.ref.updateOne(filterObj, updateObj, options)
 }
+
 
 /*
 from datetime import datetime
