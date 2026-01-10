@@ -49,7 +49,9 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 // handle_lambda_request({
 //     httpMethod: 'PUT',
 //     path: "/api/applications",
-//     headers: {},
+//     headers: {
+//         Authorization: `lemon`,
+//     },
 //     queryStringParameters: {},
 //     body: {
 //         title: "Some Fake App",

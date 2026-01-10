@@ -12,6 +12,6 @@ export class MongoColl {
     constructor(mongo_config, name) {
         this.db = mongo_config.database;
         this.name = name // Name of standard collection
-        this.ref = mongo_config.database.collection(this.name) // Direct ref to standard collection
+        this.ref = this.db.collection(this.name) // Direct ref to standard collection
     }
 }
