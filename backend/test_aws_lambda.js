@@ -74,3 +74,68 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 //     console.log(JSON.parse(r.body));
 //     process.exit(0);
 // });
+
+// handle_lambda_request({
+//     httpMethod: 'GET',
+//     path: "/api/skills",
+//     headers: {},
+//     queryStringParameters: {
+//         skill_type_code: "LANGUAGE",
+//         limit: 3
+//     },
+//     body: {},
+//     state: {}
+// }, null).then(r => {
+//     console.log(JSON.parse(r.body));
+//     process.exit(0);
+// });
+
+// handle_lambda_request({
+//     httpMethod: 'POST',
+//     path: "/api/skills",
+//     headers: {},
+//     queryStringParameters: {},
+//     body: {
+//         is_proficient: false,
+//         name: 'Fake Language',
+//         skill_type_code: 'LANGUAGE',
+//         code: 'FAKE',
+//         is_visible_in_app_details: false
+//     },
+//     state: {}
+// }, null).then(r => {
+//     console.log(JSON.parse(r.body));
+//     process.exit(0);
+// });
+
+// handle_lambda_request({
+//     httpMethod: 'PUT',
+//     path: "/api/skills",
+//     headers: {},
+//     queryStringParameters: {},
+//     body: {
+//         is_proficient: true,
+//         name: 'Fake Language',
+//         skill_type_code: 'LANGUAGE',
+//         code: 'FAKE',
+//         is_visible_in_app_details: false
+//     },
+//     state: {}
+// }, null).then(r => {
+//     console.log(JSON.parse(r.body));
+//     process.exit(0);
+// });
+
+// handle_lambda_request({
+//     httpMethod: 'DELETE',
+//     path: "/api/skills",
+//     headers: {},
+//     queryStringParameters: {},
+//     body: {
+//         code: 'FAKE',
+//     },
+//     state: {}
+// }, null).then(r => {
+//     console.log(JSON.parse(r.body));
+//     process.exit(0);
+// });

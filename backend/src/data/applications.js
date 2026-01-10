@@ -61,7 +61,7 @@ export const do_create = async (req_objx) => {
         description,
         repositories,
         support_status_code,
-        updated_at: new Date(),
+        created_at: new Date(),
     }
     return await applications_coll.ref.insertOne(insertObj)
 }
@@ -109,8 +109,8 @@ export const do_delete = async (req_objx) => {
     }
     const updateObj = {
         $set: {
-            last_updated_date: new Date(),
-            deleted_date: new Date(),
+            updated_at: new Date(),
+            deleted_at: new Date(),
         }
     }
     const options = {
