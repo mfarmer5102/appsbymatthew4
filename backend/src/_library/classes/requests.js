@@ -26,7 +26,7 @@ export class StandardizedRequestObject {
 
     get_req_body(key) {
         try {
-            return this.req_body.get(key);
+            return this.req_body[key];
         } catch (e) {
             return null;
         }
