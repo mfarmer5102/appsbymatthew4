@@ -209,3 +209,65 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 //     console.log(JSON.parse(r.body));
 //     process.exit(0);
 // });
+
+///////////////////////////////////////////////////////
+////////// SUPPORT STATUS ////////////
+///////////////////////////////////////////////////////
+
+// handle_lambda_request({
+//     httpMethod: 'GET',
+//     path: "/api/support-status",
+//     headers: {},
+//     queryStringParameters: {
+//         code: 'ACTIVE'
+//     },
+//     body: {},
+//     state: {}
+// }, null).then(r => {
+//     console.log(JSON.parse(r.body));
+//     process.exit(0);
+// });
+
+// handle_lambda_request({
+//     httpMethod: 'POST',
+//     path: "/api/support-status",
+//     headers: {},
+//     queryStringParameters: {},
+//     body: {
+//         label: "Lost",
+//         code: "LOST"
+//     },
+//     state: {}
+// }, null).then(r => {
+//     console.log(JSON.parse(r.body));
+//     process.exit(0);
+// });
+
+// handle_lambda_request({
+//     httpMethod: 'PUT',
+//     path: "/api/support-status",
+//     headers: {},
+//     queryStringParameters: {},
+//     body: {
+//         label: "Lostness",
+//         code: "LOST"
+//     },
+//     state: {}
+// }, null).then(r => {
+//     console.log(JSON.parse(r.body));
+//     process.exit(0);
+// });
+
+// handle_lambda_request({
+//     httpMethod: 'DELETE',
+//     path: "/api/support-status",
+//     headers: {},
+//     queryStringParameters: {},
+//     body: {
+//         code: "LOST"
+//     },
+//     state: {}
+// }, null).then(r => {
+//     console.log(JSON.parse(r.body));
+//     process.exit(0);
+// });
