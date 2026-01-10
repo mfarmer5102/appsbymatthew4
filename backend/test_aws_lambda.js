@@ -17,7 +17,7 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 //     body: {},
 //     state: {}
 // }, null).then(r => {
-//     console.log(JSON.parse(r.body));
+//     console.log(r);
 //     process.exit(0);
 // });
 
@@ -27,7 +27,7 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 //     headers: {},
 //     queryStringParameters: {},
 //     body: {
-//         title: "Grape Flask",
+//         title: "Some Fake App",
 //         publish_date: new Date().toISOString(),
 //         associated_skill_codes: ['JSON'],
 //         is_featured: false,
@@ -52,7 +52,7 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 //     headers: {},
 //     queryStringParameters: {},
 //     body: {
-//         title: "Test App",
+//         title: "Some Fake App",
 //         publish_date: new Date(),
 //         associated_skill_codes: ['JSON'],
 //         is_featured: false,
@@ -64,7 +64,7 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 //     },
 //     state: {}
 // }, null).then(r => {
-//     console.log(JSON.parse(r.body));
+//     console.log(r);
 //     process.exit(0);
 // });
 
