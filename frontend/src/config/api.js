@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5011/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:2021/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -12,11 +12,11 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    console.log(`🚀 Making ${config.method?.toUpperCase()} request to ${config.baseURL}${config.url}`);
+    console.log(`Making ${config.method?.toUpperCase()} request to ${config.baseURL}${config.url}`);
     return config;
   },
   (error) => {
-    console.error('❌ Request interceptor error:', error);
+    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -28,8 +28,8 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('❌ API Error:', error.response?.data || error.message);
-    console.error('❌ Error details:', {
+    console.error('API Error:', error.response?.data || error.message);
+    console.error('Error details:', {
       status: error.response?.status,
       statusText: error.response?.statusText,
       url: error.config?.url,

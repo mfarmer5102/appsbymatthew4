@@ -3,9 +3,13 @@ import {skills_coll} from '../configuration/mongo.js';
 export const do_get_many = async (req_objx) => {
     const name = req_objx.get_query_string_param("name");
     const code = req_objx.get_query_string_param("code");
-    const skill_type_code = req_objx.get_query_string_param("skill_type_code");
-    const is_visible_in_app_details = req_objx.get_query_string_param("is_visible_in_app_details");
-    const is_proficient = req_objx.get_query_string_param("is_proficient");
+    const skill_type_code = req_objx.get_query_string_param("skill_type");
+    const is_visible_in_app_details = req_objx.get_query_string_param("visible");
+    const is_proficient = req_objx.get_query_string_param("proficient");
+
+    const sort_field = req_objx.get_query_string_param("sort") || 'code';
+    const sort_order = req_objx.get_query_string_param("order") || 'asc';
+    const sort_order_numeric = sort_order === 'asc' ? 1 : -1;
     const limit = req_objx.get_query_string_param("limit") || 50;
     const offset = req_objx.get_query_string_param("offset") || 0;
 
@@ -13,8 +17,12 @@ export const do_get_many = async (req_objx) => {
     if (name) findObj.name = name;
     if (code) findObj.code = code;
     if (skill_type_code) findObj.skill_type_code = skill_type_code;
-    if (is_visible_in_app_details) findObj.is_visible_in_app_details = is_visible_in_app_details;
-    if (is_proficient) findObj.is_proficient = is_proficient;
+    if (is_visible_in_app_details !== undefined) {
+        findObj.is_visible_in_app_details = is_visible_in_app_details === 'true';
+    }
+    if (is_proficient !== undefined) {
+        findObj.is_proficient = is_proficient === 'true';
+    }
 
     let options = {
         projection: {
@@ -23,11 +31,13 @@ export const do_get_many = async (req_objx) => {
         }
     }
 
+    let sortObj = {[sort_field]: sort_order_numeric};
+
     const skills = await skills_coll.ref
         .find(findObj, options)
         .limit(Number(limit))
         .skip(Number(offset))
-        .sort({ code: 1 })
+        .sort(sortObj)
         .toArray();
 
     const total = await skills_coll.ref.countDocuments(findObj);

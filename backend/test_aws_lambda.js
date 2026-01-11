@@ -17,17 +17,19 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 //     body: {},
 //     state: {}
 // }, null).then(r => {
-//     console.log(r);
+//     console.log(JSON.parse(r.body));
 //     process.exit(0);
 // });
 
 // handle_lambda_request({
 //     httpMethod: 'POST',
 //     path: "/api/applications",
-//     headers: {},
+//     headers: {
+//         "Authorization": `lemon`,
+//     },
 //     queryStringParameters: {},
 //     body: {
-//         title: "Some Fake App",
+//         title: "Some Fake App 3",
 //         publish_date: new Date().toISOString(),
 //         associated_skill_codes: ['JSON'],
 //         is_featured: false,
@@ -39,6 +41,8 @@ import { handle_lambda_request } from "./_aws_lambda.js";
 //     },
 //     state: {}
 // }, null).then(r => {
+//     console.log(r);
+//     console.log('----------');
 //     console.log(JSON.parse(r.body));
 // }).catch(e => {
 //     console.log(e)

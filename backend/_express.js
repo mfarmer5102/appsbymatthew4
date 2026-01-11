@@ -1,40 +1,16 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-
-// Import database connection
-const connectDB = require('./config/database');
-
-// Import routes
-const applicationsRoutes = require('./routes/applications');
-const skillTypesRoutes = require('./routes/skillTypes');
-const skillsRoutes = require('./routes/skills');
-const supportStatusRoutes = require('./routes/supportStatus');
-
-// Import middleware
-const errorHandler = require('./middleware/errorHandler');
-const notFound = require('./middleware/notFound');
-
-// Connect to database
-connectDB();
+import express from 'express';
+import cors from 'cors';
+import {StandardizedRequestObject} from "./src/_library/classes/requests.js";
+import {routing_config} from "./src/configuration/routing.js";
+import {error_config} from "./src/configuration/errors.js";
+import {middleware_config} from "./src/configuration/middleware.js";
+import secret_config from "./src/configuration/secrets.js";
 
 const app = express();
 
-// Security middleware
-app.use(helmet());
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // limit each IP to 1000 requests per windowMs
-  message: {
-    error: 'Too many requests from this IP, please try again later.'
-  }
-});
-app.use(limiter);
+// TODO: Body parser
+// TODO: Helmet
+// TODO: Rate limiter middleware
 
 // CORS configuration
 app.use(cors({
@@ -45,97 +21,98 @@ app.use(cors({
   credentials: true
 }));
 
-// Logging middleware
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-} else {
-  app.use(morgan('combined'));
+const extract_query_params_from_request = (request) => {
+  try {
+    return request.query;
+  }
+  catch (e) {
+    return null;
+  }
 }
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+const extract_req_body_from_request = (request) => {
+  try {
+    return request.body;
+  }
+  catch (e) {
+    return null;
+  }
+}
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
-});
+const extract_all_from_request = async (request) => {
+  const query_params = extract_query_params_from_request(request);
+  const req_body = await extract_req_body_from_request(request);
+  const headers = request.headers;
+  return [query_params, req_body, headers];
+}
 
-// API routes
-app.use('/api/applications', applicationsRoutes);
-app.use('/api/skill-types', skillTypesRoutes);
-app.use('/api/skills', skillsRoutes);
-app.use('/api/support-status', supportStatusRoutes);
+const ingest_expressjs_request = async (http_method, path, request) => {
+  const [query_params, req_body, headers] = await extract_all_from_request(request)
+  return new StandardizedRequestObject(
+      http_method,
+      path="/" + path,
+      headers,
+      query_params,
+      req_body,
+      {}
+  )
+}
 
-// API documentation endpoint
-app.get('/api', (req, res) => {
-  res.json({
-    message: 'Portfolio API',
-    version: '1.0.0',
-    endpoints: {
-      applications: {
-        base: '/api/applications',
-        methods: ['GET', 'POST'],
-        'by-id': '/api/applications/:id',
-        'by-id-methods': ['GET', 'PUT', 'PATCH', 'DELETE']
+const handle_expressjs_request = async (http_method, path, request) => {
+  try {
+    const standardized_request_object = await ingest_expressjs_request(http_method, path, request)
+    standardized_request_object.path = standardized_request_object.path.replaceAll('//', '/')
+    const standardized_response_object = await routing_config.handle_path(
+        standardized_request_object,
+        secret_config,
+        middleware_config
+    )
+    return {
+      'isBase64Encoded': false,
+      'statusCode': standardized_response_object.status_code,
+      'headers': {
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': '*',
+        'Access-Control-Allow-Origin': '*',
       },
-      skillTypes: {
-        base: '/api/skill-types',
-        methods: ['GET', 'POST'],
-        'by-id': '/api/skill-types/:id',
-        'by-id-methods': ['GET', 'PUT', 'PATCH', 'DELETE'],
-        'by-code': '/api/skill-types/code/:code',
-        'by-code-methods': ['GET']
-      },
-      skills: {
-        base: '/api/skills',
-        methods: ['GET', 'POST'],
-        'by-id': '/api/skills/:id',
-        'by-id-methods': ['GET', 'PUT', 'PATCH', 'DELETE'],
-        'by-code': '/api/skills/code/:code',
-        'by-code-methods': ['GET'],
-        'by-type': '/api/skills/type/:skillTypeCode',
-        'by-type-methods': ['GET']
-      },
-      supportStatus: {
-        base: '/api/support-status',
-        methods: ['GET', 'POST'],
-        'by-id': '/api/support-status/:id',
-        'by-id-methods': ['GET', 'PUT', 'PATCH', 'DELETE'],
-        'by-code': '/api/support-status/code/:code',
-        'by-code-methods': ['GET']
-      }
-    },
-    queryParameters: {
-      pagination: {
-        limit: 'Number of items per page (default: 50)',
-        offset: 'Number of items to skip (default: 0)'
-      },
-      applications: {
-        featured: 'Filter by featured status (true/false)',
-        support_status: 'Filter by support status code'
-      },
-      skills: {
-        proficient: 'Filter by proficiency (true/false)',
-        skill_type: 'Filter by skill type code',
-        visible: 'Filter by visibility in app details (true/false)'
-      }
+      "multiValueHeaders": {},
+      'body': standardized_response_object.res_body,
     }
-  });
-});
+  }
+  catch (e) {
+    const [status_code, message] = error_config.prepare_error_notice(e)
+    return {
+      'isBase64Encoded': false,
+      'statusCode': status_code,
+      'headers': {
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': '*',
+        'Access-Control-Allow-Origin': '*',
+      },
+      "multiValueHeaders": {},
+      'body': message
+    }
+  }
+}
 
-// 404 handler
-app.use(notFound);
-
-// Error handling middleware
-app.use(errorHandler);
+app.get('*', async (req, res) => {
+  const x = await handle_expressjs_request('GET', req.path, req)
+  return res.status(x['statusCode']).json(x.body);
+})
+app.post('*', async (req, res) => {
+  const x = await handle_expressjs_request('POST', req.path, req)
+  return res.status(x['statusCode']).json(x.body);
+})
+app.put('*', async (req, res) => {
+  const x = await handle_expressjs_request('PUT', req.path, req)
+  return res.status(x['statusCode']).json(x.body);
+})
+app.delete('*', async (req, res) => {
+  const x = await handle_expressjs_request('DELETE', req.path, req)
+  return res.status(x['statusCode']).json(x.body);
+})
 
 const PORT = process.env.PORT || 2021;
-
 app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });

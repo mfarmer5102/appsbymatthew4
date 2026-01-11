@@ -11,7 +11,9 @@ export const do_get_many = async (req_objx) => {
     let findObj = {};
     findObj.deleted_date = null;
     if (title) findObj.title = title;
-    if (featured) findObj.is_featured = featured === 'true';
+    if (featured !== undefined) {
+        findObj.featured = featured === 'true';
+    }
     if (support_status) findObj.support_status_code = support_status;
 
     let options = {
@@ -43,7 +45,7 @@ export const do_get_many = async (req_objx) => {
 
 export const do_create = async (req_objx) => {
     const title = req_objx.get_req_body("title");
-    const publish_date = req_objx.get_req_body("publish_date");
+    const publish_date = Date.parse(req_objx.get_req_body("publish_date"));
     const associated_skill_codes = req_objx.get_req_body("associated_skill_codes");
     const is_featured = req_objx.get_req_body("is_featured");
     const image_url_relative = req_objx.get_req_body("image_url_relative");
@@ -73,7 +75,7 @@ export const do_create = async (req_objx) => {
 
 export const do_update = async (req_objx) => {
     const title = req_objx.get_req_body("title");
-    const publish_date = req_objx.get_req_body("publish_date");
+    const publish_date = Date.parse(req_objx.get_req_body("publish_date"));
     const associated_skill_codes = req_objx.get_req_body("associated_skill_codes");
     const is_featured = req_objx.get_req_body("is_featured");
     const image_url_relative = req_objx.get_req_body("image_url_relative");
