@@ -8,7 +8,7 @@ export class SecretConfig {
 
     get_secret_value_from_aws = async (secretName) => {
         // Create a Secrets Manager client
-        const client = new SecretsManagerClient({ region: "us-east-1" }); // Specify your AWS region
+        const client = new SecretsManagerClient({ region: this.AWS_REGION }); // Specify your AWS region
       
         try {
           const response = await client.send(
