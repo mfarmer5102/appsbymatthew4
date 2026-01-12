@@ -16,14 +16,19 @@ export class SecretConfig {
               SecretId: secretName,
             })
           );
-      
-          // Check if the secret is a string or binary and return its value
-          if (response.SecretString) {
-            return response.SecretString;
-          }
-          if (response.SecretBinary) {
-            return response.SecretBinary;
-          }
+
+          // Check if the secret is a plain string or a JSON object
+            if (response.SecretString) {
+                // If the secret is stored as a JSON string, you may want to parse it
+                try {
+                    return JSON.parse(response.SecretString);
+                } catch (e) {
+                    return response.SecretString;
+                }
+            } else if (response.SecretBinary) {
+                // Handle binary secrets if needed
+                return response.SecretBinary;
+            }
         } catch (error) {
           // Log the error and handle it as appropriate for your application
           console.error("Error retrieving secret:", error);
@@ -31,9 +36,9 @@ export class SecretConfig {
         }
       };
 
-    attach_secret(key, aws_secret_name=null) {
+    attach_secret = async (key, aws_secret_name=null) => {
         if (this.IS_AWS_ORIGINATED) {
-            this[key] = this.get_secret_value_from_aws(aws_secret_name)[key];
+            this[key] = await this.get_secret_value_from_aws(aws_secret_name)[key];
         } else {
             this[key] = process.env[key];
         }
