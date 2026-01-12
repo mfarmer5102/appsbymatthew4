@@ -1,10 +1,9 @@
 import secret_config from './src/configuration/secrets.js';
-import {mongo_config} from './src/configuration/mongo.js';
 import {error_config} from './src/configuration/errors.js';
 import {routing_config} from './src/configuration/routing.js';
 import {middleware_config} from './src/configuration/middleware.js';
 import {StandardizedRequestObject} from './src/_library/classes/requests.js';
-import {MongoColl} from "./src/_library/classes/mongo.js";
+import {mongo_config} from './src/configuration/mongo.js';
 
 export const handle_lambda_request = async (event, context) => {
 // exports.handle_lambda_request = async (event, context) => {
