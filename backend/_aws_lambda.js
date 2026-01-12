@@ -1,14 +1,17 @@
+import secret_config from './src/configuration/secrets.js';
+import {mongo_config} from './src/configuration/mongo.js';
 import {error_config} from './src/configuration/errors.js';
 import {routing_config} from './src/configuration/routing.js';
-import secret_config from './src/configuration/secrets.js';
 import {middleware_config} from './src/configuration/middleware.js';
 import {StandardizedRequestObject} from './src/_library/classes/requests.js';
+import {MongoColl} from "./src/_library/classes/mongo.js";
 
 export const handle_lambda_request = async (event, context) => {
 // exports.handle_lambda_request = async (event, context) => {
+    console.log(secret_config['MONGO_INSTANCE_URL']);
     try {
         const res = await handle_lambda_async_request(event, context);
-        const returnObj = {
+        return {
             'isBase64Encoded': false,
             'statusCode': res.status_code,
             'headers': {
@@ -17,12 +20,11 @@ export const handle_lambda_request = async (event, context) => {
             },
             "multiValueHeaders": {},
             'body': JSON.stringify(res.res_body),
-        }
-        return returnObj;
+        };
     }
     catch (e) {
         const [status_code, message] = error_config.prepare_error_notice(e)
-        const returnObj = {
+        return {
             'isBase64Encoded': false,
             'statusCode': status_code,
             'headers': {
@@ -31,8 +33,7 @@ export const handle_lambda_request = async (event, context) => {
             },
             "multiValueHeaders": {},
             'body': JSON.stringify(message),
-        }
-        return returnObj;
+        };
     }
 };
 
