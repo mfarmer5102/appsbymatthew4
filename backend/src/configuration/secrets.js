@@ -1,7 +1,16 @@
 import {SecretConfig} from '../_library/classes/secrets.js';
 
-const secret_config = new SecretConfig("us-east-1");
-await secret_config.attach_secret('MONGO_INSTANCE_URL', 'prd-secrets');
-await secret_config.attach_secret('APPSBYMATTHEW_ADMIN_CODE', 'prd-secrets');
+const secret_config = new SecretConfig("us-east-1", [
+    {
+        'key': 'MONGO_INSTANCE_URL',
+        'parent': 'prd-secrets'
+    },
+    {
+        'key': 'APPSBYMATTHEW_ADMIN_CODE',
+        'parent': 'prd-secrets'
+    }
+]);
+// await secret_config.attach_secret('MONGO_INSTANCE_URL', 'prd-secrets');
+// await secret_config.attach_secret('APPSBYMATTHEW_ADMIN_CODE', 'prd-secrets');
 
 export default secret_config;
