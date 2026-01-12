@@ -7,39 +7,11 @@ export class SecretConfig {
     }
 
     get_secret_value_from_aws = async (secretName) => {
-        // Create a Secrets Manager client
-        console.log(`creating secret client`);
-        console.log('aws region is: ', this.AWS_REGION);
-        const client = new SecretsManagerClient({
-            region: this.AWS_REGION
-        });
-
-        try {
-            const input = {SecretId: secretName};
-            console.log('input', input)
-            const command = new GetSecretValueCommand(input);
-            console.log('command', command);
-            const response = await client.send(command);
-            console.log("Full AWS Response:", response); // Log to see what AWS is actually sending
-            if (response.SecretString) {
-                try {
-                    console.log('Secret Response block 1:', JSON.parse(response.SecretString));
-                    return JSON.parse(response.SecretString);
-                } catch (e) {
-                    console.log('Secret Response block 2:', response.SecretString);
-                    return response.SecretString;
-                }
-            }
-            if (response.SecretBinary) {
-                console.log('Secret Response block 3:', response.SecretBinary);
-                return response.SecretBinary;
-            }
-            // If we reach here, neither String nor Binary was found
-            console.warn("Secret found but contained no data.");
-            return null;
-        } catch (error) {
-            console.error("Error retrieving secret:", error);
-            throw error;
+        const client = new AWS.SecretsManager({ region: "us-east-1" });
+        const data = await client.getSecretValue({ SecretId: secretName }).promise();
+        console.log(data);
+        if (data.SecretString) {
+            return data.SecretString;
         }
     };
 
