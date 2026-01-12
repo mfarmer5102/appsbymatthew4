@@ -8,6 +8,7 @@ export class SecretConfig {
 
     get_secret_value_from_aws = async (secretName) => {
         // Create a Secrets Manager client
+        console.log(`creating secret client`);
         const client = new SecretsManagerClient({ region: this.AWS_REGION }); // Specify your AWS region
       
         try {
@@ -38,6 +39,7 @@ export class SecretConfig {
 
     attach_secret = async (key, aws_secret_name=null) => {
         if (this.IS_AWS_ORIGINATED) {
+            console.log('attaching aws secret')
             this[key] = await this.get_secret_value_from_aws(aws_secret_name)[key];
         } else {
             this[key] = process.env[key];
