@@ -46,6 +46,9 @@ export class SecretConfig {
                 console.log('Fell into catch block of client.send().');
                 console.log(e);
                 console.error(e);
+            }).finally((x) => {
+                console.log('Inside finally block')
+                console.log('Finally block returns the following: ', x);
             });
         } catch (error) {
             console.error("Error retrieving secret:", error);
