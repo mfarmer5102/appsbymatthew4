@@ -69,8 +69,28 @@ export class SecretConfig {
     }
 
     apply_list_of_secrets = async ()=> {
-        for (const secret of this.list_of_secrets) {
-            await this.attach_secret(secret.key, secret.parent);
+         const self = this;
+         const is_aws_originated = this.IS_AWS_ORIGINATED;
+        for (const secret of self.list_of_secrets) {
+            const secret_key = secret.key;
+            const secret_parent = secret.parent;
+            if (!is_aws_originated) {
+                self[secret_key] = process.env[secret_key];
+            }
+            else {
+                const client = new SecretsManagerClient({'region': self.AWS_REGION });
+
+                try {
+                    const response = await client.send(
+                        new GetSecretValueCommand({ SecretId: secret_parent })
+                    );
+                    const secret_bundle = JSON.parse(response.SecretString);
+                    self[secret_key] = secret_bundle[secret_key];
+                } catch (error) {
+                    console.error("Error retrieving secret:", error);
+                    throw error;
+                }
+            }
         }
     }
 }
