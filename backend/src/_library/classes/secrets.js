@@ -10,12 +10,16 @@ export class SecretConfig {
         // Create a Secrets Manager client
         console.log(`creating secret client`);
         console.log('aws region is: ', this.AWS_REGION);
-        const client = new SecretsManagerClient({ region: this.AWS_REGION }); // Specify your AWS region
+        const client = new SecretsManagerClient({
+            region: this.AWS_REGION
+        });
 
         try {
-            const response = await client.send(
-                new GetSecretValueCommand({ SecretId: secretName })
-            );
+            const input = {SecretId: secretName};
+            console.log('input', input)
+            const command = new GetSecretValueCommand(input);
+            console.log('command', command);
+            const response = await client.send(command);
             console.log("Full AWS Response:", response); // Log to see what AWS is actually sending
             if (response.SecretString) {
                 try {
