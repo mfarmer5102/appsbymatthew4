@@ -1,5 +1,5 @@
-import {MongoConfig, MongoColl} from '../_library/classes/mongo.js';
 import secret_config from "./secrets.js";
+import {MongoConfig, MongoColl} from '../_library/classes/mongo.js';
 
 export const mongo_config = new MongoConfig('apps_by_matthew', secret_config['MONGO_INSTANCE_URL']);
 
