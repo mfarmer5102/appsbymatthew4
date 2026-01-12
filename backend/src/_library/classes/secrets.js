@@ -41,6 +41,7 @@ export class SecretConfig {
         if (this.IS_AWS_ORIGINATED) {
             console.log('attaching aws secret', aws_secret_name, key);
             this[key] = await this.get_secret_value_from_aws(aws_secret_name)[key];
+            console.log(`value attached: ${this[key]}`);
         } else {
             this[key] = process.env[key];
         }
