@@ -81,7 +81,7 @@ export class SecretConfig {
             }
             else {
                 try {
-                    console.log('secret_parent'. secret_parent);
+                    console.log('secret_parent', secret_parent);
                     console.log('secret_key', secret_key);
                     const response = await client.send(
                         new GetSecretValueCommand({ SecretId: secret_parent })
