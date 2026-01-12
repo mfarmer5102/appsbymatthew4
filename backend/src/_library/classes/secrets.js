@@ -42,6 +42,10 @@ export class SecretConfig {
                 // If we reach here, neither String nor Binary was found
                 console.warn("Secret found but contained no data.");
                 return null;
+            }).catch(e => {
+                console.log('Fell into catch block of client.send().');
+                console.log(e);
+                console.error(e);
             });
         } catch (error) {
             console.error("Error retrieving secret:", error);
