@@ -39,7 +39,7 @@ export class SecretConfig {
 
     attach_secret = async (key, aws_secret_name=null) => {
         if (this.IS_AWS_ORIGINATED) {
-            console.log('attaching aws secret')
+            console.log('attaching aws secret', aws_secret_name, key);
             this[key] = await this.get_secret_value_from_aws(aws_secret_name)[key];
         } else {
             this[key] = process.env[key];
