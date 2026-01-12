@@ -24,7 +24,7 @@ export class SecretConfig {
             console.log('input', input)
             const command = new GetSecretValueCommand(input);
             console.log('preparing to enter promise');
-            client.send(command).then(response => {
+            await client.send(command).then(response => {
                 console.log("Full AWS Response:", response); // Log to see what AWS is actually sending
                 if (response.SecretString) {
                     try {
@@ -56,7 +56,7 @@ export class SecretConfig {
      attach_secret = async (key, aws_secret_name=null)=> {
         if (this.IS_AWS_ORIGINATED) {
             console.log('attaching aws secret', aws_secret_name, key);
-            const secretValue = await this.get_secret_value_from_aws(aws_secret_name);
+            const secretValue = await this.get_secret_value_from_aws(aws_secret_name); // <-- secret value is coming back null
             console.log('secretValue', secretValue);
             this[key] = secretValue[key];
             console.log(`value attached: ${this[key]}`);
