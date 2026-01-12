@@ -83,14 +83,23 @@ export class SecretConfig {
                 try {
                     console.log('secret_parent', secret_parent);
                     console.log('secret_key', secret_key);
-                    const response = await client.send(
-                        new GetSecretValueCommand({ SecretId: secret_parent })
-                    );
-                    console.log('response', response);
-                    const secret_bundle = JSON.parse(response.SecretString);
-                    console.log('secret_bundle', secret_bundle);
-                    console.log('secret_bundle.secret_key', secret_bundle[secret_key]);
-                    self[secret_key] = secret_bundle[secret_key];
+                    console.log('preparing to enter promise')
+                    await client.send(new GetSecretValueCommand({ SecretId: secret_parent }))
+                        .then(response => {
+                            console.log('response', response);
+                            const secret_bundle = JSON.parse(response.SecretString);
+                            console.log('secret_bundle', secret_bundle);
+                            console.log('secret_bundle.secret_key', secret_bundle[secret_key]);
+                            self[secret_key] = secret_bundle[secret_key];
+                        })
+                        .catch(e => {
+                            console.log("Catch block")
+                            console.log(e);
+                        })
+                        .finally(x => {
+                            console.log('Finally');
+                            console.log(x);
+                        });
                 } catch (error) {
                     console.error("Error retrieving secret:", error);
                     throw error;

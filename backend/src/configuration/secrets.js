@@ -2,11 +2,11 @@ import {SecretConfig} from '../_library/classes/secrets.js';
 
 const secret_config = new SecretConfig("us-east-1", [
     {
-        'key': 'MONGO_INSTANCE_URL',
+        'key': 'APPSBYMATTHEW_ADMIN_CODE',
         'parent': 'prd-secrets'
     },
     {
-        'key': 'APPSBYMATTHEW_ADMIN_CODE',
+        'key': 'MONGO_INSTANCE_URL',
         'parent': 'prd-secrets'
     }
 ]);
