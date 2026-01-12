@@ -23,12 +23,15 @@ export class SecretConfig {
             console.log("Full AWS Response:", response); // Log to see what AWS is actually sending
             if (response.SecretString) {
                 try {
+                    console.log('Secret Response block 1:', JSON.parse(response.SecretString));
                     return JSON.parse(response.SecretString);
                 } catch (e) {
+                    console.log('Secret Response block 2:', response.SecretString);
                     return response.SecretString;
                 }
             }
             if (response.SecretBinary) {
+                console.log('Secret Response block 3:', response.SecretBinary);
                 return response.SecretBinary;
             }
             // If we reach here, neither String nor Binary was found
