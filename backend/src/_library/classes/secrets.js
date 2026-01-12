@@ -11,7 +11,7 @@ export class SecretConfig {
         });
     }
 
-     async get_secret_value_from_aws(secretName) {
+     get_secret_value_from_aws = async (secretName) => {
         // Create a Secrets Manager client
         console.log(`creating secret client`);
         console.log('aws region is: ', this.AWS_REGION);
@@ -53,7 +53,7 @@ export class SecretConfig {
         }
     };
 
-     async attach_secret(key, aws_secret_name=null) {
+     attach_secret = async (key, aws_secret_name=null)=> {
         if (this.IS_AWS_ORIGINATED) {
             console.log('attaching aws secret', aws_secret_name, key);
             const secretValue = await this.get_secret_value_from_aws(aws_secret_name);
@@ -65,9 +65,9 @@ export class SecretConfig {
         }
     }
 
-    async apply_list_of_secrets() {
-        this.list_of_secrets.forEach((secret) => {
-            this.attach_secret(secret.key, secret.parent);
-        })
+    apply_list_of_secrets = async ()=> {
+        for (const secret of this.list_of_secrets) {
+            await this.attach_secret(secret.key, secret.parent);
+        }
     }
 }
