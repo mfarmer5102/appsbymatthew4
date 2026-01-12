@@ -1,6 +1,7 @@
 import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 
 export class SecretConfig {
+
     constructor(aws_region_name, list_of_secrets) {
         this.IS_AWS_ORIGINATED = process.env.AWS_EXECUTION_ENV;
         this.AWS_REGION = aws_region_name;
@@ -10,7 +11,7 @@ export class SecretConfig {
         });
     }
 
-    get_secret_value_from_aws = async (secretName) => {
+     async get_secret_value_from_aws(secretName) {
         // Create a Secrets Manager client
         console.log(`creating secret client`);
         console.log('aws region is: ', this.AWS_REGION);
@@ -47,7 +48,7 @@ export class SecretConfig {
         }
     };
 
-    attach_secret = async (key, aws_secret_name=null) => {
+     async attach_secret(key, aws_secret_name=null) {
         if (this.IS_AWS_ORIGINATED) {
             console.log('attaching aws secret', aws_secret_name, key);
             const secretValue = await this.get_secret_value_from_aws(aws_secret_name);
@@ -59,7 +60,7 @@ export class SecretConfig {
         }
     }
 
-    apply_list_of_secrets = async () => {
+    async apply_list_of_secrets() {
         this.list_of_secrets.forEach((secret) => {
             this.attach_secret(secret.key, secret.parent);
         })
