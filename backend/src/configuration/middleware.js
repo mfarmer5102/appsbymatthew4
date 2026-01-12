@@ -1,5 +1,5 @@
-import {MiddlewareConfig} from '../_library/classes/middleware.js';
 import secret_config from "./secrets.js";
+import {MiddlewareConfig} from '../_library/classes/middleware.js';
 import {error_config} from "./errors.js";
 
 const validate_provided_code = (req_objx, protected_routes) => {

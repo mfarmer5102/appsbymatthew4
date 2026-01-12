@@ -3,11 +3,9 @@ import {error_config} from './src/configuration/errors.js';
 import {routing_config} from './src/configuration/routing.js';
 import {middleware_config} from './src/configuration/middleware.js';
 import {StandardizedRequestObject} from './src/_library/classes/requests.js';
-import {mongo_config} from './src/configuration/mongo.js';
 
 export const handle_lambda_request = async (event, context) => {
 // exports.handle_lambda_request = async (event, context) => {
-    console.log(secret_config['MONGO_INSTANCE_URL']);
     try {
         const res = await handle_lambda_async_request(event, context);
         return {
