@@ -1,5 +1,5 @@
-import "./_aws_lambda.js";
-import { handle_lambda_request } from "./_aws_lambda.js";
+import "./_aws_lambda.mjs";
+import { handle_lambda_request } from "./_aws_lambda.mjs";
 
 ///////////////////////////////////////////////////////
 ////////// APPLICATIONS ////////////
