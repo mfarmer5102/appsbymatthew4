@@ -10,9 +10,9 @@ import {StandardizedRequestObject} from './src/_library/classes/requests.js';
 // const middleware_config = require('./src/configuration/middleware.js').middleware_config;
 // const StandardizedRequestObject = require('./src/_library/classes/requests.js').StandardizedRequestObject;
 
-// export const handle_lambda_request = async (event, context) => {
+export const handle_lambda_request = async (event, context) => {
 //     console.log('hi')
-exports.handle_lambda_request = async (event, context) => {
+// exports.handle_lambda_request = async (event, context) => {
     try {
         const res = await handle_lambda_async_request(event, context);
         return {
