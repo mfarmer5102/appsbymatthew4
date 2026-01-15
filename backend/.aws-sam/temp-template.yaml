@@ -1,0 +1,11 @@
+Resources:
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 300
+      MemorySize: 1152
+      Handler: _aws_lambda.handle_lambda_request
+      CodeUri: /Users/Developer/Repositories/appsbymatthew4/backend
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64

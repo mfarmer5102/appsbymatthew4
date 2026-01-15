@@ -1,7 +1,0 @@
-/* Support Status Modal Specific Styles */
-@import '../../styles/index.css';
-
-.modal-form .form-textarea {
-  min-height: 100px;
-  resize: vertical;
-}
