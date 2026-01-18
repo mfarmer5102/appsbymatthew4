@@ -67,7 +67,9 @@ const SkillTypes = () => {
     try {
       await skillTypesAPI.delete({ code: selectedSkillType.code });
       setShowDeleteModal(false);
+      setShowModal(false);
       setSelectedSkillType(null);
+      setEditingSkillType(null);
       fetchData();
     } catch (err) {
       setError('Failed to delete skill type');

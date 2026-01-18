@@ -67,7 +67,9 @@ const SupportStatus = () => {
     try {
       await supportStatusAPI.delete({ code: selectedSupportStatus.code });
       setShowDeleteModal(false);
+      setShowModal(false);
       setSelectedSupportStatus(null);
+      setEditingSupportStatus(null);
       fetchData();
     } catch (err) {
       setError('Failed to delete support status');

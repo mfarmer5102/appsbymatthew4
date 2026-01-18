@@ -78,7 +78,9 @@ const Applications = () => {
     try {
       await applicationsAPI.delete({ title: selectedApplication.title });
       setShowDeleteModal(false);
+      setShowModal(false);
       setSelectedApplication(null);
+      setEditingApplication(null);
       fetchData();
     } catch (err) {
       setError('Failed to delete application');

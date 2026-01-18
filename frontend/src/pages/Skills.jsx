@@ -115,6 +115,7 @@ const Skills = () => {
       }
       setShowModal(false);
       setCurrentPage(1); // Reset to first page after creating/updating
+      fetchData(); // Reload data to reflect changes
     } catch (err) {
       setError('Failed to save skill');
       console.error('Error saving skill:', err);
@@ -125,8 +126,11 @@ const Skills = () => {
     try {
       await skillsAPI.delete({ code: selectedSkill.code });
       setShowDeleteModal(false);
+      setShowModal(false);
       setSelectedSkill(null);
+      setEditingSkill(null);
       setCurrentPage(1); // Reset to first page after deleting
+      fetchData(); // Reload data to reflect changes
     } catch (err) {
       setError('Failed to delete skill');
       console.error('Error deleting skill:', err);
