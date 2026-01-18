@@ -8,7 +8,10 @@ import secret_config from "./src/configuration/secrets.js";
 
 const app = express();
 
-// TODO: Body parser
+// Body parser
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+
 // TODO: Helmet
 // TODO: Rate limiter middleware
 

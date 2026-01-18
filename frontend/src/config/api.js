@@ -12,6 +12,11 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
+    // Add authorization header from localStorage
+    const adminCode = localStorage.getItem('APPSBYMATTHEW_ADMIN_CODE');
+    if (adminCode) {
+      config.headers.Authorization = adminCode;
+    }
     console.log(`Making ${config.method?.toUpperCase()} request to ${config.baseURL}${config.url}`);
     return config;
   },
@@ -44,9 +49,9 @@ export const applicationsAPI = {
   getAll: (params = {}) => api.get('/applications', { params }),
   getById: (id) => api.get(`/applications/${id}`),
   create: (data) => api.post('/applications', data),
-  update: (id, data) => api.put(`/applications/${id}`, data),
-  patch: (id, data) => api.patch(`/applications/${id}`, data),
-  delete: (id) => api.delete(`/applications/${id}`),
+  update: (data) => api.put('/applications', data),
+  patch: (data) => api.patch('/applications', data),
+  delete: (data) => api.delete('/applications', { data }),
 };
 
 // Skills API
@@ -54,9 +59,9 @@ export const skillsAPI = {
   getAll: (params = {}) => api.get('/skills', { params }),
   getById: (id) => api.get(`/skills/${id}`),
   create: (data) => api.post('/skills', data),
-  update: (id, data) => api.put(`/skills/${id}`, data),
-  patch: (id, data) => api.patch(`/skills/${id}`, data),
-  delete: (id) => api.delete(`/skills/${id}`),
+  update: (data) => api.put('/skills', data),
+  patch: (data) => api.patch('/skills', data),
+  delete: (data) => api.delete('/skills', { data }),
 };
 
 // Skill Types API
@@ -64,9 +69,9 @@ export const skillTypesAPI = {
   getAll: (params = {}) => api.get('/skill-types', { params }),
   getById: (id) => api.get(`/skill-types/${id}`),
   create: (data) => api.post('/skill-types', data),
-  update: (id, data) => api.put(`/skill-types/${id}`, data),
-  patch: (id, data) => api.patch(`/skill-types/${id}`, data),
-  delete: (id) => api.delete(`/skill-types/${id}`),
+  update: (data) => api.put('/skill-types', data),
+  patch: (data) => api.patch('/skill-types', data),
+  delete: (data) => api.delete('/skill-types', { data }),
 };
 
 // Support Status API
@@ -74,9 +79,9 @@ export const supportStatusAPI = {
   getAll: (params = {}) => api.get('/support-status', { params }),
   getById: (id) => api.get(`/support-status/${id}`),
   create: (data) => api.post('/support-status', data),
-  update: (id, data) => api.put(`/support-status/${id}`, data),
-  patch: (id, data) => api.patch(`/support-status/${id}`, data),
-  delete: (id) => api.delete(`/support-status/${id}`),
+  update: (data) => api.put('/support-status', data),
+  patch: (data) => api.patch('/support-status', data),
+  delete: (data) => api.delete('/support-status', { data }),
 };
 
 export default api;

@@ -109,7 +109,7 @@ const Skills = () => {
   const handleSave = async (skillData) => {
     try {
       if (editingSkill) {
-        await skillsAPI.update(editingSkill._id, skillData);
+        await skillsAPI.update(skillData);
       } else {
         await skillsAPI.create(skillData);
       }
@@ -123,7 +123,7 @@ const Skills = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await skillsAPI.delete(selectedSkill._id);
+      await skillsAPI.delete({ code: selectedSkill.code });
       setShowDeleteModal(false);
       setSelectedSkill(null);
       setCurrentPage(1); // Reset to first page after deleting

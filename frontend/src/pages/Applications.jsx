@@ -62,7 +62,7 @@ const Applications = () => {
   const handleSave = async (applicationData) => {
     try {
       if (editingApplication) {
-        await applicationsAPI.update(editingApplication._id, applicationData);
+        await applicationsAPI.update(applicationData);
       } else {
         await applicationsAPI.create(applicationData);
       }
@@ -76,7 +76,7 @@ const Applications = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await applicationsAPI.delete(selectedApplication._id);
+      await applicationsAPI.delete({ title: selectedApplication.title });
       setShowDeleteModal(false);
       setSelectedApplication(null);
       fetchData();

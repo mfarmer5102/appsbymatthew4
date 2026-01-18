@@ -6,7 +6,7 @@ export const do_get_many = async (req_objx) => {
     const limit = req_objx.get_query_string_param("limit") || 50;
     const offset = req_objx.get_query_string_param("offset") || 0;
 
-    let findObj = {};
+    let findObj = {deleted_at: null};
     if (label) findObj.label = label;
     if (code) findObj.code = code;
 
