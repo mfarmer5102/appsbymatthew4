@@ -3,6 +3,7 @@ import Header from './Header';
 import SideNav from './SideNav';
 import BottomNav from './BottomNav';
 import Footer from './Footer';
+import ChatPanel from '../Chat/ChatPanel';
 import spriteImage from '../../assets/sprite.png';
 import './Layout.css';
 
@@ -21,6 +22,7 @@ const Layout = ({ children }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -41,6 +43,10 @@ const Layout = ({ children }) => {
 
   const toggleAdminMode = () => {
     setIsAdminMode(!isAdminMode);
+  };
+
+  const toggleChat = () => {
+    setChatOpen(!chatOpen);
   };
 
   return (
@@ -64,11 +70,14 @@ const Layout = ({ children }) => {
         
         {isMobile && <BottomNav isAdminMode={isAdminMode} />}
         <Footer />
-        
-        {/* Decorative sprite image */}
-        <div className="sprite-decoration">
-          <img src={spriteImage} alt="Decorative sprite" />
+
+        {/* Decorative sprite image - now clickable to open chat */}
+        <div className="sprite-decoration" onClick={toggleChat}>
+          <img src={spriteImage} alt="Chat Assistant" />
         </div>
+
+        {/* Chat Panel */}
+        <ChatPanel isOpen={chatOpen} onClose={() => setChatOpen(false)} />
       </div>
     </AdminContext.Provider>
   );
