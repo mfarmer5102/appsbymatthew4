@@ -5,7 +5,6 @@ import BottomNav from './BottomNav';
 import Footer from './Footer';
 import ChatPanel from '../Chat/ChatPanel';
 import spriteImage from '../../assets/sprite.png';
-import speechBubbleImage from '../../assets/speechbubble.png';
 import './Layout.css';
 
 // Create Admin Context
@@ -74,8 +73,7 @@ const Layout = ({ children }) => {
 
         {/* Decorative sprite image - now clickable to open chat */}
         <div className="sprite-decoration" onClick={toggleChat}>
-          <img className="speech-bubble" src={speechBubbleImage} alt="Speech bubble" />
-          <img src={spriteImage} alt="Chat Assistant" />
+          <img className="sprite-img" src={spriteImage} alt="Chat Assistant" />
         </div>
 
         {/* Chat Panel */}

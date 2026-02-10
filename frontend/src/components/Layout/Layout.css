@@ -81,13 +81,6 @@
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
-.sprite-decoration .speech-bubble {
-  width: 140px;
-  height: 140px;
-  margin-right: -25px;
-  margin-bottom: 10px;
-}
-
 .sprite-decoration:hover {
   opacity: 0.95;
   transform: scale(1.1); /* More pronounced hover effect */
@@ -97,6 +90,29 @@
   transform: scale(0.95); /* Click feedback */
 }
 
+.sprite-decoration .sprite-img {
+  animation: rock 3s ease-in-out infinite;
+  transform-origin: bottom center;
+  will-change: transform;
+}
+
+@keyframes rock {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(8deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(-8deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
 
 @keyframes fadeIn {
   from {
