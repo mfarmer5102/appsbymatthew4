@@ -16,7 +16,8 @@ export class VectorSearchHelper {
             const pipeline = [
                 {
                     $vectorSearch: {
-                        index: 'applications_vector_index',
+                        index: 'vector_index',
+                        // index: 'applications_vector_index',
                         path: 'embedding',
                         queryVector: queryEmbedding,
                         numCandidates: 50, // Number of candidates to consider
