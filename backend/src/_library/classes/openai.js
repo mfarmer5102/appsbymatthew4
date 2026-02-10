@@ -5,7 +5,7 @@ export class OpenAIConfig {
     constructor(api_key) {
         this.client = new OpenAI({ apiKey: api_key });
         this.embedding_model = 'text-embedding-3-small'; // 1536 dimensions
-        this.chat_model = 'gpt-4-turbo-preview';
+        this.chat_model = 'gpt-4o-mini';
     }
 
     /**
@@ -75,13 +75,13 @@ export class OpenAIConfig {
 
         return contextRecords.map((record, index) => {
             return `
-Project ${index + 1}: ${record.title}
-Description: ${record.description || 'No description available'}
-Technologies/Skills: ${record.associated_skill_codes ? record.associated_skill_codes.join(', ') : 'N/A'}
-Support Status: ${record.support_status_code || 'N/A'}
-Featured: ${record.is_featured ? 'Yes' : 'No'}
-${record.live_site_url ? `Live Site: ${record.live_site_url}` : ''}
-${record.repo_urls && record.repo_urls.length > 0 ? `Repository: ${record.repo_urls[0].url}` : ''}
+                Project ${index + 1}: ${record.title}
+                Description: ${record.description || 'No description available'}
+                Technologies/Skills: ${record.associated_skill_codes ? record.associated_skill_codes.join(', ') : 'N/A'}
+                Support Status: ${record.support_status_code || 'N/A'}
+                Featured: ${record.is_featured ? 'Yes' : 'No'}
+                ${record.live_site_url ? `Live Site: ${record.live_site_url}` : ''}
+                ${record.repo_urls && record.repo_urls.length > 0 ? `Repository: ${record.repo_urls[0].url}` : ''}
             `.trim();
         }).join('\n\n---\n\n');
     }
@@ -91,20 +91,23 @@ ${record.repo_urls && record.repo_urls.length > 0 ? `Repository: ${record.repo_u
      * @private
      */
     _getSystemPrompt(contextText) {
-        return `You are a helpful AI assistant for Matthew's portfolio website. You help visitors learn about his projects, skills, and experience.
+        return `
+        
+        You are a helpful AI assistant for Matthew's portfolio website. You help visitors learn about his projects, skills, and experience.
 
-IMPORTANT GUIDELINES:
-- Be friendly, professional, and concise
-- When answering questions about projects or skills, ONLY reference the information provided in the CONTEXT section below
-- If the context doesn't contain relevant information to answer a question, politely say you don't have that information
-- Provide specific details from the projects when available (technologies used, features, status)
-- If asked about contact information or things not in the context, guide users to the appropriate section of the website
-- Keep responses under 200 words unless more detail is specifically requested
-
-CONTEXT (Relevant Portfolio Projects):
-${contextText}
-
-Answer the user's questions based on this context. Be helpful and conversational!`;
+        IMPORTANT GUIDELINES:
+        - Be friendly, professional, and concise
+        - If the context doesn't contain relevant information to answer a question, politely say you don't have that information
+        - Provide specific details from the projects when available (technologies used, features, status)
+        - If asked about contact information or things not in the context, guide users to the appropriate section of the website
+        - Keep responses under 200 words unless more detail is specifically requested
+        
+        CONTEXT (Relevant Portfolio Projects):
+        ${contextText}
+        
+        Answer the user's questions based on this context. Be helpful and conversational!
+        
+        `;
     }
 
     /**
