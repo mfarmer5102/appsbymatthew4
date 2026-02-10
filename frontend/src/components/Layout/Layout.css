@@ -63,13 +63,15 @@
 /* Decorative sprite image - now clickable for chat */
 .sprite-decoration {
   position: fixed;
-  bottom: 10px;
+  bottom: 20px;
   right: 20px;
   z-index: 500; /* Above main content but below navigation and chat */
   pointer-events: auto; /* Now clickable */
   cursor: pointer; /* Show it's interactive */
   opacity: 1;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: flex-end;
 }
 
 .sprite-decoration img {
@@ -77,6 +79,13 @@
   height: 80px;
   object-fit: contain;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.sprite-decoration .speech-bubble {
+  width: 140px;
+  height: 140px;
+  margin-right: -25px;
+  margin-bottom: 10px;
 }
 
 .sprite-decoration:hover {
@@ -88,24 +97,6 @@
   transform: scale(0.95); /* Click feedback */
 }
 
-/* Persistent tooltip beside sprite */
-.sprite-decoration::after {
-  content: 'Chat';
-  position: absolute;
-  top: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(30, 41, 59, 0.95);
-  color: white;
-  padding: 0.375rem 0.625rem;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  pointer-events: none;
-  z-index: 1;
-}
 
 @keyframes fadeIn {
   from {
@@ -122,9 +113,4 @@
     bottom: 66px; /* Moved up to avoid bottom nav */
   }
 
-  /* Adjust tooltip on mobile */
-  .sprite-decoration::after {
-    font-size: 0.625rem;
-    padding: 0.25rem 0.5rem;
-  }
 }
