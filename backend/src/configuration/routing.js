@@ -5,6 +5,7 @@ import * as applications from "../controllers/applications.js";
 import * as skillTypes from "../controllers/skill_types.js";
 import * as skills from "../controllers/skills.js";
 import * as supportStatuses from "../controllers/support_statuses.js";
+import * as chat from "../controllers/chat.js";
 
 export const routing_config = new RoutingConfig(
     [
@@ -12,10 +13,14 @@ export const routing_config = new RoutingConfig(
         new Route("GET", "/api/skill-types", (req_objx) => skillTypes.get_many(req_objx), true),
         new Route("GET", "/api/skills", (req_objx) => skills.get_many(req_objx), true),
         new Route("GET", "/api/support-status", (req_objx) => supportStatuses.get_many(req_objx), true),
+        // Chat
+        new Route("POST", "/api/chat", (req_objx) => chat.send_message(req_objx), true),
+        new Route("GET", "/api/chat/history", (req_objx) => chat.get_chat_history(req_objx), true),
     ],
     [
         // Applications
         new Route("POST", "/api/applications", (req_objx) => applications.create(req_objx), true),
+        new Route("POST", "/api/applications/vectorize", (req_objx) => applications.vectorize(req_objx), true),
         new Route("PUT", "/api/applications", (req_objx) => applications.update(req_objx), true),
         new Route("DELETE", "/api/applications", (req_objx) => applications.delete_one(req_objx), true),
         // Skill Types

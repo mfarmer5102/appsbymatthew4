@@ -1,5 +1,26 @@
 import {applications_coll} from '../configuration/mongo.js';
 import {error_config} from "../configuration/errors.js";
+import secret_config from '../configuration/secrets.js';
+import { OpenAIConfig } from '../_library/classes/openai.js';
+
+// Initialize OpenAI for embeddings
+const openai_config = new OpenAIConfig(secret_config['OPENAI_API_KEY']);
+
+/**
+ * Format application data for vectorization
+ */
+function formatForVectorization(appData) {
+    const parts = [];
+
+    if (appData.title) parts.push(`Title: ${appData.title}`);
+    if (appData.description) parts.push(`Description: ${appData.description}`);
+    if (appData.associated_skill_codes && appData.associated_skill_codes.length > 0) {
+        parts.push(`Technologies/Skills: ${appData.associated_skill_codes.join(', ')}`);
+    }
+    if (appData.support_status_code) parts.push(`Support Status: ${appData.support_status_code}`);
+
+    return parts.join('\n');
+}
 
 export const do_get_many = async (req_objx) => {
     const title = req_objx.get_query_string_param("title");
@@ -69,6 +90,17 @@ export const do_create = async (req_objx) => {
         support_status_code,
         created_at: new Date(),
     }
+
+    // Generate embedding for vector search
+    try {
+        const textToVectorize = formatForVectorization(insertObj);
+        const embedding = await openai_config.generateEmbedding(textToVectorize);
+        insertObj.embedding = embedding;
+    } catch (error) {
+        console.error('Failed to generate embedding for new application:', error);
+        // Continue without embedding - non-critical for creation
+    }
+
     return await applications_coll.ref.insertOne(insertObj)
 }
 
@@ -100,11 +132,57 @@ export const do_update = async (req_objx) => {
             updated_at: new Date(),
         }
     }
+
+    // Generate updated embedding for vector search
+    try {
+        const appData = {
+            title,
+            description,
+            associated_skill_codes,
+            support_status_code
+        };
+        const textToVectorize = formatForVectorization(appData);
+        const embedding = await openai_config.generateEmbedding(textToVectorize);
+        updateObj.$set.embedding = embedding;
+    } catch (error) {
+        console.error('Failed to generate embedding for updated application:', error);
+        // Continue without embedding update - non-critical
+    }
+
     const options = {
         upsert: false,
     }
 
     return await applications_coll.ref.updateOne(filterObj, updateObj, options)
+}
+
+export const do_vectorize = async (req_objx) => {
+    const appsWithoutEmbeddings = await applications_coll.ref
+        .find({deleted_at: null})
+        .toArray();
+
+    const total = appsWithoutEmbeddings.length;
+    let processed = 0;
+    let failed = 0;
+
+    for (const app of appsWithoutEmbeddings) {
+        try {
+            const textToVectorize = formatForVectorization(app);
+            const embedding = await openai_config.generateEmbedding(textToVectorize);
+
+            await applications_coll.ref.updateOne(
+                { _id: app._id },
+                { $set: { embedding, updated_at: new Date() } }
+            );
+
+            processed++;
+        } catch (error) {
+            console.error(`Failed to vectorize "${app.title}":`, error.message);
+            failed++;
+        }
+    }
+
+    return { total, processed, failed };
 }
 
 export const do_delete = async (req_objx) => {

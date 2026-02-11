@@ -7,3 +7,4 @@ export const applications_coll = new MongoColl(mongo_config, 'applications');
 export const skills_coll = new MongoColl(mongo_config, 'skills');
 export const skill_types_coll = new MongoColl(mongo_config, 'skill_types');
 export const support_statuses_coll = new MongoColl(mongo_config, 'support_statuses');
+export const chat_history_coll = new MongoColl(mongo_config, 'chat_history');

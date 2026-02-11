@@ -18,7 +18,10 @@ const validate_provided_code = (req_objx, protected_routes) => {
     const provided_code = req_objx.get_headers('authorization')
     const is_protected_route = check_if_protected_route(req_objx, protected_routes)
     if (is_protected_route) {
-        if (provided_code !== secret_config['APPSBYMATTHEW_ADMIN_CODE']) {
+        if (!secret_config['APPSBYMATTHEW_ADMIN_CODE']) {
+            throw new Error(error_config.select_error('admin_code_not_configured'));
+        }
+        else if (provided_code !== secret_config['APPSBYMATTHEW_ADMIN_CODE']) {
             throw new Error(error_config.select_error('invalid_token'));
         }
     }

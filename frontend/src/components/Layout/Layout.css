@@ -60,15 +60,18 @@
   }
 }
 
-/* Decorative sprite image */
+/* Decorative sprite image - now clickable for chat */
 .sprite-decoration {
   position: fixed;
-  bottom: 10px;
+  bottom: 20px;
   right: 20px;
-  z-index: 500; /* Above main content but below navigation */
-  pointer-events: none; /* Don't interfere with user interactions */
-  opacity: 1; /* Fully opaque */
+  z-index: 500; /* Above main content but below navigation and chat */
+  pointer-events: auto; /* Now clickable */
+  cursor: pointer; /* Show it's interactive */
+  opacity: 1;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: flex-end;
 }
 
 .sprite-decoration img {
@@ -79,13 +82,51 @@
 }
 
 .sprite-decoration:hover {
-  opacity: 0.9;
-  transform: scale(1.05);
+  opacity: 0.95;
+  transform: scale(1.1); /* More pronounced hover effect */
+}
+
+.sprite-decoration:active {
+  transform: scale(0.95); /* Click feedback */
+}
+
+.sprite-decoration .sprite-img {
+  animation: rock 3s ease-in-out infinite;
+  transform-origin: bottom center;
+  will-change: transform;
+}
+
+@keyframes rock {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(8deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(-8deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Adjust positioning on mobile to account for bottom nav */
 @media (max-width: 768px) {
   .sprite-decoration {
-    bottom: 66px; /* Moved down 10px from flush position */
+    bottom: 66px; /* Moved up to avoid bottom nav */
   }
+
 }

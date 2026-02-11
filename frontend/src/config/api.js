@@ -84,4 +84,10 @@ export const supportStatusAPI = {
   delete: (data) => api.delete('/support-status', { data }),
 };
 
+// Chat API
+export const chatAPI = {
+  sendMessage: (data) => api.post('/chat', data),
+  getChatHistory: (params = {}) => api.get('/chat/history', { params }),
+};
+
 export default api;

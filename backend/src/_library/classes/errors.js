@@ -27,6 +27,11 @@ export class ErrorConfig {
                 "message": "Not found.",
                 "status_code": 404
             },
+            {
+                "key": "admin_code_not_configured",
+                "message": "Admin code not configured.",
+                "status_code": 500
+            }
         ];
         this.custom_errors = custom_errors;
         this.all_errors = this.default_errors.concat(this.custom_errors);
