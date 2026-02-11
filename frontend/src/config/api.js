@@ -52,6 +52,7 @@ export const applicationsAPI = {
   update: (data) => api.put('/applications', data),
   patch: (data) => api.patch('/applications', data),
   delete: (data) => api.delete('/applications', { data }),
+  vectorize: () => api.post('/applications/vectorize'),
 };
 
 // Skills API

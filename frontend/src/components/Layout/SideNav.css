@@ -84,6 +84,19 @@
   font-weight: 500;
 }
 
+button.nav-action {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+button.nav-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
   .sidenav {
     display: none;
