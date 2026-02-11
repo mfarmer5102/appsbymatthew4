@@ -156,6 +156,35 @@ export const do_update = async (req_objx) => {
     return await applications_coll.ref.updateOne(filterObj, updateObj, options)
 }
 
+export const do_vectorize = async (req_objx) => {
+    const appsWithoutEmbeddings = await applications_coll.ref
+        .find({deleted_at: null})
+        .toArray();
+
+    const total = appsWithoutEmbeddings.length;
+    let processed = 0;
+    let failed = 0;
+
+    for (const app of appsWithoutEmbeddings) {
+        try {
+            const textToVectorize = formatForVectorization(app);
+            const embedding = await openai_config.generateEmbedding(textToVectorize);
+
+            await applications_coll.ref.updateOne(
+                { _id: app._id },
+                { $set: { embedding, updated_at: new Date() } }
+            );
+
+            processed++;
+        } catch (error) {
+            console.error(`Failed to vectorize "${app.title}":`, error.message);
+            failed++;
+        }
+    }
+
+    return { total, processed, failed };
+}
+
 export const do_delete = async (req_objx) => {
     const title = req_objx.get_req_body("title");
 

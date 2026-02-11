@@ -1,4 +1,4 @@
-import {do_get_many, do_create, do_update, do_delete} from '../data/applications.js';
+import {do_get_many, do_create, do_update, do_delete, do_vectorize} from '../data/applications.js';
 import { StandardizedResponseObject } from '../_library/classes/responses.js';
 
 export const get_many = async (req_objx) => {
@@ -29,6 +29,14 @@ export const delete_one = async (req_objx) => {
     return new StandardizedResponseObject(
         200,
         await do_delete(req_objx),
+        null
+    )
+}
+
+export const vectorize = async (req_objx) => {
+    return new StandardizedResponseObject(
+        200,
+        await do_vectorize(req_objx),
         null
     )
 }

@@ -20,6 +20,7 @@ export const routing_config = new RoutingConfig(
     [
         // Applications
         new Route("POST", "/api/applications", (req_objx) => applications.create(req_objx), true),
+        new Route("POST", "/api/applications/vectorize", (req_objx) => applications.vectorize(req_objx), true),
         new Route("PUT", "/api/applications", (req_objx) => applications.update(req_objx), true),
         new Route("DELETE", "/api/applications", (req_objx) => applications.delete_one(req_objx), true),
         // Skill Types
