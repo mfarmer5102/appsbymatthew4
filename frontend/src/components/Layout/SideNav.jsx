@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { applicationsAPI } from '../../config/api';
 import './SideNav.css';
 
 const SideNav = ({ onItemClick, isAdminMode }) => {
   const location = useLocation();
+  const [vectorizing, setVectorizing] = useState(false);
 
   const allNavItems = [
     { path: '/', label: 'Home', icon: 'home' },
@@ -17,6 +20,20 @@ const SideNav = ({ onItemClick, isAdminMode }) => {
   const handleItemClick = () => {
     if (onItemClick) {
       onItemClick();
+    }
+  };
+
+  const handleVectorize = async () => {
+    if (vectorizing) return;
+    setVectorizing(true);
+    try {
+      const response = await applicationsAPI.vectorize();
+      const { total, processed, failed } = response.data;
+      alert(`Vectorization complete: ${processed}/${total} processed, ${failed} failed`);
+    } catch (error) {
+      alert('Vectorization failed: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setVectorizing(false);
     }
   };
 
@@ -35,6 +52,18 @@ const SideNav = ({ onItemClick, isAdminMode }) => {
             </Link>
           </li>
         ))}
+        {isAdminMode && (
+          <li className="nav-item">
+            <button
+              className="nav-link nav-action"
+              onClick={handleVectorize}
+              disabled={vectorizing}
+            >
+              <span className="material-icons nav-icon">memory</span>
+              <span className="nav-label">{vectorizing ? 'Vectorizing...' : 'Vectorize Applications'}</span>
+            </button>
+          </li>
+        )}
       </ul>
     </nav>
   );
