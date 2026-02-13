@@ -256,3 +256,4 @@ backend_csharp/obj
 
 run-frontend.sh 
 run-backend.sh
+/data/.venv/

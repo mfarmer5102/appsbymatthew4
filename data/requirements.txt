@@ -1,0 +1,11 @@
+pyspark == 3.4.1
+pytest
+pymongo == 4.4.0
+certifi
+slack-sdk
+
+#pandas == 1.5.2
+#pyarrow
+#pytest-cov
+#coverage
+

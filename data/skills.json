@@ -1,7 +1,0 @@
-{
-    "is_proficient": true,
-    "name": "Google App Engine",
-    "skill_type_code": "CLOUD",
-    "code": "GCPAPPENGINE",
-    "is_visible_in_app_details": true
-  }
