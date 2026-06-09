@@ -24,6 +24,17 @@ const cors_headers = (event) => {
 export const handle_lambda_request = async (event, context) => {
 //     console.log('hi')
 // exports.handle_lambda_request = async (event, context) => {
+    // Answer CORS preflight requests directly — they must return a 2xx status.
+    if (event['httpMethod'] === 'OPTIONS') {
+        return {
+            'isBase64Encoded': false,
+            'statusCode': 204,
+            'headers': cors_headers(event),
+            "multiValueHeaders": {},
+            'body': '',
+        };
+    }
+
     try {
         const res = await handle_lambda_async_request(event, context);
         return {
