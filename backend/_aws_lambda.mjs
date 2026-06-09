@@ -10,6 +10,17 @@ import {StandardizedRequestObject} from './src/_library/classes/requests.js';
 // const middleware_config = require('./src/configuration/middleware.js').middleware_config;
 // const StandardizedRequestObject = require('./src/_library/classes/requests.js').StandardizedRequestObject;
 
+// Reflect the request's Origin so both appsbymatthew.com and www.appsbymatthew.com work.
+const cors_headers = (event) => {
+    const headers = event['headers'] || {};
+    const origin = headers['origin'] || headers['Origin'];
+    return {
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Methods': '*',
+        'Access-Control-Allow-Origin': /^https:\/\/(www\.)?appsbymatthew\.com$/.test(origin) ? origin : '*',
+    };
+};
+
 export const handle_lambda_request = async (event, context) => {
 //     console.log('hi')
 // exports.handle_lambda_request = async (event, context) => {
@@ -18,10 +29,7 @@ export const handle_lambda_request = async (event, context) => {
         return {
             'isBase64Encoded': false,
             'statusCode': res.status_code,
-            'headers': {
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Allow-Methods': '*'
-            },
+            'headers': cors_headers(event),
             "multiValueHeaders": {},
             'body': JSON.stringify(res.res_body),
         };
@@ -31,10 +39,7 @@ export const handle_lambda_request = async (event, context) => {
         return {
             'isBase64Encoded': false,
             'statusCode': status_code,
-            'headers': {
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Allow-Methods': '*'
-            },
+            'headers': cors_headers(event),
             "multiValueHeaders": {},
             'body': JSON.stringify(message),
         };
