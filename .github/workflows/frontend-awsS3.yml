@@ -5,7 +5,7 @@ name: Build and Push to S3
 
 on:
   push:
-    branches: [ "main", "prepare-node-backend-for-aws-lambda" ]
+    branches: [ "main"]
     paths:
       - 'frontend/**'
       - '.github/**'

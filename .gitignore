@@ -256,3 +256,6 @@ backend_csharp/obj
 
 run-frontend.sh 
 run-backend.sh
+
+*__pycache__/*
+*.pyc
