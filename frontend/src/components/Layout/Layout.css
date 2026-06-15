@@ -14,8 +14,8 @@
   flex: 1;
   padding: 2rem;
   padding-top: calc(1rem + 80px);
-  padding-bottom: calc(2rem + 32px); /* Add space for footer */
-  background-color: #f8fafc;
+  padding-bottom: calc(2rem + 32px);
+  background-color: var(--color-bg);
   min-height: calc(100vh - 80px);
   transition: margin-left 0.3s ease-in-out;
   margin-top: 0;
@@ -25,7 +25,7 @@
 .main-content.mobile {
   padding: 1rem;
   padding-top: calc(1rem + 80px);
-  padding-bottom: calc(1rem + 80px); /* No footer on mobile */
+  padding-bottom: calc(1rem + 80px);
   min-height: calc(100vh - 140px);
   margin-left: 0;
   margin-top: 0;
@@ -54,20 +54,20 @@
   .main-content {
     padding: 1rem;
     padding-top: calc(1rem + 80px);
-    padding-bottom: calc(1rem + 80px); /* No footer on mobile */
+    padding-bottom: calc(1rem + 80px);
     margin-left: 0;
     margin-top: 0;
   }
 }
 
-/* Decorative sprite image - now clickable for chat */
+/* Decorative sprite image - clickable for chat */
 .sprite-decoration {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 500; /* Above main content but below navigation and chat */
-  pointer-events: auto; /* Now clickable */
-  cursor: pointer; /* Show it's interactive */
+  z-index: 500;
+  pointer-events: auto;
+  cursor: pointer;
   opacity: 1;
   transition: all 0.3s ease;
   display: flex;
@@ -83,11 +83,11 @@
 
 .sprite-decoration:hover {
   opacity: 0.95;
-  transform: scale(1.1); /* More pronounced hover effect */
+  transform: scale(1.1);
 }
 
 .sprite-decoration:active {
-  transform: scale(0.95); /* Click feedback */
+  transform: scale(0.95);
 }
 
 .sprite-decoration .sprite-img {
@@ -123,10 +123,8 @@
   }
 }
 
-/* Adjust positioning on mobile to account for bottom nav */
 @media (max-width: 768px) {
   .sprite-decoration {
-    bottom: 66px; /* Moved up to avoid bottom nav */
+    bottom: 66px;
   }
-
 }

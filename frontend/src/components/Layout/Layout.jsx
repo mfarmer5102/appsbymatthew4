@@ -23,6 +23,10 @@ const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [chatOpen, setChatOpen] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const stored = localStorage.getItem('darkMode');
+    return stored === null ? true : stored === 'true';
+  });
 
   useEffect(() => {
     const checkMobile = () => {
@@ -37,12 +41,21 @@ const Layout = ({ children }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+    localStorage.setItem('darkMode', isDarkMode);
+  }, [isDarkMode]);
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
   const toggleAdminMode = () => {
     setIsAdminMode(!isAdminMode);
+  };
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(prev => !prev);
   };
 
   const toggleChat = () => {
@@ -52,11 +65,13 @@ const Layout = ({ children }) => {
   return (
     <AdminContext.Provider value={{ isAdminMode, toggleAdminMode }}>
       <div className="layout">
-        <Header 
-          isMobile={isMobile} 
+        <Header
+          isMobile={isMobile}
           onMenuClick={toggleSidebar}
           isAdminMode={isAdminMode}
           onToggleAdminMode={toggleAdminMode}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={toggleDarkMode}
         />
         
         <div className="layout-content">
