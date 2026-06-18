@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, useMemo, createContext, useContext } from 'react';
 import Header from './Header';
 import SideNav from './SideNav';
 import BottomNav from './BottomNav';
@@ -22,7 +22,7 @@ const Layout = ({ children }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [chatOpen, setChatOpen] = useState(true);
+  const [chatOpen, setChatOpen] = useState(() => window.innerWidth >= 768);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const stored = localStorage.getItem('darkMode');
     return stored === null ? true : stored === 'true';
@@ -62,9 +62,40 @@ const Layout = ({ children }) => {
     setChatOpen(!chatOpen);
   };
 
+  const dustParticles = useMemo(
+    () =>
+      Array.from({ length: 24 }, (_, i) => ({
+        id: i,
+        left: (i * 41 + 7) % 100,
+        size: 2 + ((i * 7) % 4),
+        duration: 14 + ((i * 5) % 12),
+        delay: -((i * 3) % 16),
+      })),
+    []
+  );
+
   return (
     <AdminContext.Provider value={{ isAdminMode, toggleAdminMode }}>
       <div className="layout">
+        <div className="bg-decoration" aria-hidden="true">
+          <div className="bg-blob bg-blob-1" />
+          <div className="bg-blob bg-blob-2" />
+          <div className="bg-blob bg-blob-3" />
+          {dustParticles.map((p) => (
+            <div
+              key={p.id}
+              className="dust-particle"
+              style={{
+                left: `${p.left}%`,
+                width: `${p.size}px`,
+                height: `${p.size}px`,
+                animationDuration: `${p.duration}s`,
+                animationDelay: `${p.delay}s`,
+              }}
+            />
+          ))}
+        </div>
+
         <Header
           isMobile={isMobile}
           onMenuClick={toggleSidebar}

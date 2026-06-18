@@ -11,10 +11,24 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-alt) 100%);
+  background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-alt) 50%, var(--color-bg) 100%);
+  background-size: 200% 200%;
+  animation: bgDrift 24s ease-in-out infinite;
   color: var(--color-text);
   line-height: 1.6;
   min-height: 100vh;
+}
+
+@keyframes bgDrift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none;
+  }
 }
 
 

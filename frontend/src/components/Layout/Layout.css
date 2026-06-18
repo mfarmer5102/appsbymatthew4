@@ -15,7 +15,6 @@
   padding: 2rem;
   padding-top: calc(1rem + 80px);
   padding-bottom: calc(2rem + 32px);
-  background-color: var(--color-bg);
   min-height: calc(100vh - 80px);
   transition: margin-left 0.3s ease-in-out;
   margin-top: 0;
@@ -126,5 +125,106 @@
 @media (max-width: 768px) {
   .sprite-decoration {
     bottom: 66px;
+  }
+}
+
+.bg-decoration {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.25;
+  will-change: transform;
+}
+
+.bg-blob-1 {
+  width: 420px;
+  height: 420px;
+  top: -120px;
+  left: -100px;
+  background: #3b82f6;
+  animation: blobDrift1 26s ease-in-out infinite;
+}
+
+.bg-blob-2 {
+  width: 360px;
+  height: 360px;
+  top: 40%;
+  right: -120px;
+  background: #8b5cf6;
+  animation: blobDrift2 32s ease-in-out infinite;
+}
+
+.bg-blob-3 {
+  width: 320px;
+  height: 320px;
+  bottom: -100px;
+  left: 30%;
+  background: #10b981;
+  animation: blobDrift3 28s ease-in-out infinite;
+}
+
+@keyframes blobDrift1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(80px, 60px) scale(1.1); }
+}
+
+@keyframes blobDrift2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-60px, 40px) scale(1.15); }
+}
+
+@keyframes blobDrift3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(50px, -50px) scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-blob {
+    animation: none;
+  }
+}
+
+.dust-particle {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  opacity: 0;
+  animation-name: dustRise;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes dustRise {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.35;
+  }
+  50% {
+    transform: translate(20px, -50vh);
+  }
+  90% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: translate(-15px, -100vh);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dust-particle {
+    display: none;
   }
 }
