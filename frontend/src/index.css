@@ -15,6 +15,11 @@ html, body {
 
 /* ===== Theme variables ===== */
 :root {
+  /* Radius scale */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+
   /* Page backgrounds */
   --color-bg: #f8fafc;
   --color-bg-alt: #f1f5f9;
@@ -45,6 +50,13 @@ html, body {
   --color-toggle-off: #d1d5db;
   --color-carousel-btn: rgba(255, 255, 255, 0.9);
   --color-carousel-btn-icon: #374151;
+
+  /* Glass surfaces (nav chrome, modals, panels) */
+  --glass-bg: rgba(255, 255, 255, 0.32);
+  --glass-bg-strong: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-blur: 18px;
+  --glass-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 [data-theme="dark"] {
@@ -73,4 +85,47 @@ html, body {
   --color-toggle-off: #334155;
   --color-carousel-btn: rgba(30, 41, 59, 0.9);
   --color-carousel-btn-icon: #cbd5e1;
+
+  /* Glass surfaces (nav chrome, modals, panels) */
+  --glass-bg: rgba(15, 23, 42, 0.32);
+  --glass-bg-strong: rgba(15, 23, 42, 0.48);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: 18px;
+  --glass-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* ===== Scrollbar ===== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-input) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-input);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ===== Focus visibility ===== */
+a:focus-visible,
+button:focus-visible,
+.nav-link:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.6);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }

@@ -282,7 +282,7 @@ body.home-page {
   border: 1px solid var(--color-border-error);
   color: #dc2626;
   padding: 1rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   text-align: center;
   margin: 2rem 0;
 }

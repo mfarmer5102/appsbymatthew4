@@ -25,7 +25,7 @@ const Layout = ({ children }) => {
   const [chatOpen, setChatOpen] = useState(() => window.innerWidth >= 768);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const stored = localStorage.getItem('darkMode');
-    return stored === null ? true : stored === 'true';
+    return stored === null ? false : stored === 'true';
   });
 
   useEffect(() => {

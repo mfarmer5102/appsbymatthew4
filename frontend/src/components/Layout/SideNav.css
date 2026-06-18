@@ -1,9 +1,10 @@
 .sidenav {
   width: 280px;
-  background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-muted) 100%);
-  backdrop-filter: blur(8px);
-  border-right: 1px solid var(--color-border);
-  box-shadow: 1px 0 3px 0 rgba(0, 0, 0, 0.1);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border-right: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
   height: 100vh;
   overflow-y: auto;
   position: fixed;
@@ -47,7 +48,7 @@
 }
 
 .nav-link:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 197, 253, 0.05) 100%);
+  background: var(--color-border);
   color: var(--color-text);
   transform: translateX(3px);
 }
@@ -57,7 +58,7 @@
 }
 
 .nav-link.active {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 197, 253, 0.1) 100%);
+  background: var(--color-border);
   color: var(--color-text);
   font-weight: 600;
   transform: translateX(3px);

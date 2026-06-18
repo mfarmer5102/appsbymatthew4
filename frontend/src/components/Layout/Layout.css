@@ -140,7 +140,7 @@
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
-  opacity: 0.25;
+  opacity: 0.3;
   will-change: transform;
 }
 

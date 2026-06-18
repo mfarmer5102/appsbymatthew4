@@ -25,12 +25,14 @@
 }
 
 .support-status-card {
-  background: var(--color-surface);
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(59, 130, 246, 0.1);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--color-border);
   overflow: hidden;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -49,9 +51,8 @@
 }
 
 .support-status-card:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transform: translateY(-2px);
-  border-color: rgba(59, 130, 246, 0.2);
+  box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
 }
 
 .support-status-card .card-header {
@@ -71,7 +72,6 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .status-indicator .material-icons {
@@ -114,15 +114,19 @@
   font-size: 0.875rem;
   color: var(--color-text-muted);
   padding: 0.75rem;
-  background: var(--color-surface-raised);
-  border-radius: 0.5rem;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: var(--radius-sm);
   border-left: 3px solid #3b82f6;
   line-height: 1.4;
 }
 
 .support-status-card .card-actions {
   padding: 0.75rem 1rem;
-  background: var(--color-surface-raised);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-top: 1px solid var(--color-border-sub);
   display: flex;
   gap: 0.5rem;
