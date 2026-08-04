@@ -5,7 +5,11 @@ export class OpenAIConfig {
     constructor(api_key) {
         this.client = new OpenAI({ apiKey: api_key });
         this.embedding_model = 'text-embedding-3-small'; // 1536 dimensions
-        this.chat_model = 'gpt-4o-mini';
+        this.chat_model = 'gpt-5.6-luna';
+        // GPT-5-family models take `max_completion_tokens` (which also covers hidden
+        // reasoning tokens) instead of `max_tokens`, and reject a non-default
+        // `temperature`. Sending either legacy param fails the whole request with a 400.
+        this.chat_params = { max_completion_tokens: 1000 };
     }
 
     /**
@@ -53,8 +57,7 @@ export class OpenAIConfig {
             const response = await this.client.chat.completions.create({
                 model: this.chat_model,
                 messages: messages,
-                temperature: 0.7,
-                max_tokens: 1000,
+                ...this.chat_params,
             });
 
             return response.choices[0].message.content;
