@@ -149,10 +149,20 @@ Required variables:
 - `NODE_ENV`: development or production
 - `PORT`: Server port (default: 2021)
 - `FRONTEND_URL`: Frontend URL for CORS (default: http://localhost:*)
-- `PGSSL_NO_VERIFY`: Optional. Set to `true` only for a self-hosted Postgres behind a
-  private CA; Supabase's own certificate verifies normally.
+- `PGSSL_ROOT_CERT`: Optional. Path to a CA file for the database connection. Overrides
+  the CA bundled at `backend/certs/supabase-prod-ca-2021.crt`.
+- `PGSSL_NO_VERIFY`: Optional. Set to `true` to encrypt without verifying the server
+  certificate. Not needed for Supabase — see the TLS note below.
 
-For AWS deployment, secrets are retrieved from AWS Secrets Manager (`prd-secrets` secret) using `@aws-sdk/client-secrets-manager`. The presence of `AWS_EXECUTION_ENV` signals the Lambda runtime.
+Supabase's pooler presents a chain rooted in Supabase's own **Supabase Root 2021 CA**,
+which is not in Node's trust store. Verifying against the system trust store therefore
+fails with `SELF_SIGNED_CERT_IN_CHAIN`. That CA is committed at
+`backend/certs/supabase-prod-ca-2021.crt` and trusted by default in
+`src/_library/classes/postgres.js`. It must stay in the deployment package — nothing
+about TLS is configurable per environment, because Lambda and App Runner have no `.env`
+and their secrets arrive via Secrets Manager rather than `process.env`.
+
+For AWS deployment, secrets are retrieved from AWS Secrets Manager (`prd-secrets` secret) using `@aws-sdk/client-secrets-manager`. The presence of `AWS_EXECUTION_ENV` signals the Lambda runtime. Note that only the keys listed in `src/configuration/secrets.js` are read from there; anything read straight off `process.env` (such as the `PGSSL_*` variables) is simply unset in AWS.
 
 ### Frontend
 

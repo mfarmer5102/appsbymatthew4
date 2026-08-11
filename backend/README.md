@@ -154,7 +154,10 @@ POST /api/applications
 - `PORT` - Server port (default: 5000)
 - `SUPABASE_DB_URL` - Supabase PostgreSQL connection string (transaction pooler)
 - `OPENAI_API_KEY` - OpenAI key for embeddings and chat completions
-- `PGSSL_NO_VERIFY` - Set to `true` only for a self-hosted instance with a private CA
+- `PGSSL_ROOT_CERT` - Optional path to a CA file, overriding the CA bundled at
+  `certs/supabase-prod-ca-2021.crt` (Supabase's pooler uses a private CA, so that file is
+  trusted by default; without it Node reports `SELF_SIGNED_CERT_IN_CHAIN`)
+- `PGSSL_NO_VERIFY` - Set to `true` to skip certificate verification entirely
 - `FRONTEND_URL` - Frontend URL for CORS (default: http://localhost:3000)
 
 ## Health Check
