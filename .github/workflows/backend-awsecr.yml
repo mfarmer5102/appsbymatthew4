@@ -28,7 +28,7 @@ name: Backend - AWS ECR
 
 on:
   push:
-    branches: [ "main", "prepare-node-backend-for-aws-lambda" ]
+    branches: [ "main" ]
     paths:
         - 'backend/**'
         - '.github/workflows/backend-awsecr.yml'
