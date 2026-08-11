@@ -5,6 +5,7 @@ import DeleteModal from '../components/Common/DeleteModal';
 import SkeletonGrid from '../components/Common/SkeletonGrid';
 import { useAdmin } from '../components/Layout/Layout';
 import { getApplicationImageUrl } from '../config/images';
+import { formatPublishDate } from '../config/display';
 import './Applications.css';
 
 const Applications = () => {
@@ -22,15 +23,21 @@ const Applications = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [isAdminMode]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
+      // The skills list only feeds the admin modal's checkboxes, so hidden skills are
+      // requested alongside the rest when admin mode is on — otherwise they could never
+      // be attached to an application.
+      const skillParams = { limit: 1000, offset: 0 };
+      if (isAdminMode) skillParams.include_hidden = true;
+
       const [appsRes, supportRes, skillsRes] = await Promise.all([
         applicationsAPI.getAll(),
         supportStatusAPI.getAll(),
-        skillsAPI.getAll({ limit: 1000, offset: 0 }) // Fetch all skills for modal
+        skillsAPI.getAll(skillParams)
       ]);
       
       setApplications(appsRes.data.data || []);
@@ -76,7 +83,7 @@ const Applications = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await applicationsAPI.delete({ title: selectedApplication.title });
+      await applicationsAPI.delete({ application_key: selectedApplication.application_key });
       setShowDeleteModal(false);
       setShowModal(false);
       setSelectedApplication(null);
@@ -86,19 +93,6 @@ const Applications = () => {
       setError('Failed to delete application');
       console.error('Error deleting application:', err);
     }
-  };
-
-  const getSupportStatusLabel = (code) => {
-    const status = supportStatuses.find(s => s.code === code);
-    return status ? status.label : code || 'N/A';
-  };
-
-  const getSkillLabels = (codes) => {
-    if (!codes || codes.length === 0) return 'None';
-    return codes.map(code => {
-      const skill = skills.find(s => s.code === code);
-      return skill ? skill.name : code;
-    }).join(', ');
   };
 
   const toggleDescription = (appId) => {
@@ -149,10 +143,10 @@ const Applications = () => {
 
       <div className="applications-grid">
         {applications.map((app) => (
-          <div key={app._id} className="application-card">
+          <div key={app.application_key} className="application-card">
             <div className="card-image">
-              <img 
-                src={getApplicationImageUrl(app.image_url_relative)}
+              <img
+                src={getApplicationImageUrl(app.image_filename)}
                 alt={app.title || 'Application'}
                 onError={(e) => {
                   e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
@@ -166,15 +160,15 @@ const Applications = () => {
             
             <div className="card-content">
               <div className="description-container">
-                <p className={`description ${expandedDescriptions.has(app._id) ? 'expanded' : ''}`}>
+                <p className={`description ${expandedDescriptions.has(app.application_key) ? 'expanded' : ''}`}>
                   {app.description || 'No description provided'}
                 </p>
                 {app.description && app.description.length > 100 && (
-                  <button 
+                  <button
                     className="expand-button"
-                    onClick={() => toggleDescription(app._id)}
+                    onClick={() => toggleDescription(app.application_key)}
                   >
-                    {expandedDescriptions.has(app._id) ? 'Show less' : 'Show more'}
+                    {expandedDescriptions.has(app.application_key) ? 'Show less' : 'Show more'}
                   </button>
                 )}
               </div>
@@ -182,11 +176,11 @@ const Applications = () => {
               <div className="app-info">
                 <div className="app-detail">
                   <span className="detail-label">Published:</span>
-                  <span className="detail-value">{app.publish_date ? new Date(app.publish_date).toLocaleDateString() : 'Not set'}</span>
+                  <span className="detail-value">{formatPublishDate(app.publish_date)}</span>
                 </div>
                 <div className="app-detail">
                   <span className="detail-label">Status:</span>
-                  <span className="detail-value">{getSupportStatusLabel(app.support_status_code)}</span>
+                  <span className="detail-value">{app.support_status || 'N/A'}</span>
                 </div>
                 <div className="app-detail">
                   <span className="detail-label">Featured:</span>
@@ -196,8 +190,8 @@ const Applications = () => {
                 </div>
                 <div className="app-detail">
                   <span className="detail-label">Deployed:</span>
-                  <span className={`detail-value ${app.deployed_link ? 'deployed' : 'not-deployed'}`}>
-                    {app.deployed_link ? 'Yes' : 'No'}
+                  <span className={`detail-value ${app.deployed_url ? 'deployed' : 'not-deployed'}`}>
+                    {app.deployed_url ? 'Yes' : 'No'}
                   </span>
                 </div>
               </div>

@@ -4,6 +4,7 @@ import SupportStatusModal from '../components/SupportStatus/SupportStatusModal';
 import DeleteModal from '../components/Common/DeleteModal';
 import SkeletonGrid from '../components/Common/SkeletonGrid';
 import { useAdmin } from '../components/Layout/Layout';
+import { getSupportStatusStyle } from '../config/display';
 import './SupportStatus.css';
 
 const SupportStatus = () => {
@@ -65,7 +66,7 @@ const SupportStatus = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await supportStatusAPI.delete({ code: selectedSupportStatus.code });
+      await supportStatusAPI.delete({ support_status_key: selectedSupportStatus.support_status_key });
       setShowDeleteModal(false);
       setShowModal(false);
       setSelectedSupportStatus(null);
@@ -113,41 +114,17 @@ const SupportStatus = () => {
 
       <div className="support-status-grid">
         {supportStatuses.map((status) => {
-          const getStatusIcon = (code) => {
-            switch (code?.toLowerCase()) {
-              case 'active': return 'check_circle';
-              case 'inactive': return 'cancel';
-              case 'deprecated': return 'warning';
-              case 'maintenance': return 'build';
-              case 'discontinued': return 'block';
-              default: return 'help';
-            }
-          };
-
-          const getStatusColor = (code) => {
-            switch (code?.toLowerCase()) {
-              case 'active': return '#10b981';
-              case 'inactive': return '#6b7280';
-              case 'deprecated': return '#f59e0b';
-              case 'maintenance': return '#3b82f6';
-              case 'discontinued': return '#ef4444';
-              default: return '#8b5cf6';
-            }
-          };
+          const { color, icon } = getSupportStatusStyle(status);
 
           return (
-            <div key={status._id} className="support-status-card">
+            <div key={status.support_status_key} className="support-status-card">
               <div className="card-header">
-                <div className="status-indicator" style={{ backgroundColor: getStatusColor(status.code) }}>
-                  <span className="material-icons">{getStatusIcon(status.code)}</span>
+                <div className="status-indicator" style={{ backgroundColor: color }}>
+                  <span className="material-icons">{icon}</span>
                 </div>
                 <div className="header-content">
-                  <h3>{status.label || 'Unnamed Status'}</h3>
+                  <h3>{status.support_status || 'Unnamed Status'}</h3>
                 </div>
-              </div>
-              
-              <div className="card-content">
-                <div className="status-code">{status.code || 'N/A'}</div>
               </div>
 
               {isAdminMode && (

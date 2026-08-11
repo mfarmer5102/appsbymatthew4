@@ -4,6 +4,7 @@ import SkillTypeModal from '../components/SkillTypes/SkillTypeModal';
 import DeleteModal from '../components/Common/DeleteModal';
 import SkeletonGrid from '../components/Common/SkeletonGrid';
 import { useAdmin } from '../components/Layout/Layout';
+import { getCategoryColor } from '../config/display';
 import './SkillTypes.css';
 
 const SkillTypes = () => {
@@ -65,7 +66,7 @@ const SkillTypes = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await skillTypesAPI.delete({ code: selectedSkillType.code });
+      await skillTypesAPI.delete({ skill_type_key: selectedSkillType.skill_type_key });
       setShowDeleteModal(false);
       setShowModal(false);
       setSelectedSkillType(null);
@@ -113,40 +114,22 @@ const SkillTypes = () => {
 
       <div className="skill-types-grid">
         {skillTypes.map((skillType) => {
-          const getCategoryColor = (code) => {
-            switch (code?.toLowerCase()) {
-              case 'frontend': return '#3b82f6';
-              case 'backend': return '#10b981';
-              case 'database': return '#f59e0b';
-              case 'mobile': return '#8b5cf6';
-              case 'devops': return '#ef4444';
-              case 'design': return '#ec4899';
-              case 'testing': return '#06b6d4';
-              case 'tools': return '#6b7280';
-              default: return '#8b5cf6';
-            }
-          };
-
           return (
-            <div key={skillType._id} className="skill-type-card">
+            <div key={skillType.skill_type_key} className="skill-type-card">
               <div className="card-header">
-                <div className="category-indicator" style={{ backgroundColor: getCategoryColor(skillType.code) }}>
+                <div className="category-indicator" style={{ backgroundColor: getCategoryColor(skillType.skill_type_key) }}>
                   <span className="material-icons">category</span>
                 </div>
                 <div className="header-content">
-                  <h3>{skillType.label || 'Unnamed Skill Type'}</h3>
+                  <h3>{skillType.skill_type || 'Unnamed Skill Type'}</h3>
                 </div>
               </div>
-              
+
               <div className="card-content">
                 <div className="skill-type-info">
                   <div className="skill-type-detail">
-                    <span className="detail-label">Code:</span>
-                    <span className="detail-value">{skillType.code || 'N/A'}</span>
-                  </div>
-                  <div className="skill-type-detail">
-                    <span className="detail-label">Label:</span>
-                    <span className="detail-value">{skillType.label || 'N/A'}</span>
+                    <span className="detail-label">Name:</span>
+                    <span className="detail-value">{skillType.skill_type || 'N/A'}</span>
                   </div>
                 </div>
               </div>

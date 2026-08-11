@@ -13,9 +13,8 @@ export const routing_config = new RoutingConfig(
         new Route("GET", "/api/skill-types", (req_objx) => skillTypes.get_many(req_objx), true),
         new Route("GET", "/api/skills", (req_objx) => skills.get_many(req_objx), true),
         new Route("GET", "/api/support-status", (req_objx) => supportStatuses.get_many(req_objx), true),
-        // Chat
+        // Chat (stateless - no history is persisted, so there is nothing to read back)
         new Route("POST", "/api/chat", (req_objx) => chat.send_message(req_objx), true),
-        new Route("GET", "/api/chat/history", (req_objx) => chat.get_chat_history(req_objx), true),
     ],
     [
         // Applications

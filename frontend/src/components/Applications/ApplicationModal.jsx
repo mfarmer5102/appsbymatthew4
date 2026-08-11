@@ -4,8 +4,8 @@ import { APPLICATION_IMAGE_BASE_URL, getApplicationImageUrl } from '../../config
 import './ApplicationModal.css';
 
 const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClose, onDelete }) => {
-  const [repositories, setRepositories] = useState([]);
-  const [associatedSkills, setAssociatedSkills] = useState([]);
+  const [repositoryUrls, setRepositoryUrls] = useState([]);
+  const [skillKeys, setSkillKeys] = useState([]);
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm();
 
   const isEditing = !!application;
@@ -14,48 +14,57 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
     if (application) {
       setValue('title', application.title || '');
       setValue('description', application.description || '');
-      setValue('publish_date', application.publish_date ? new Date(application.publish_date).toISOString().split('T')[0] : '');
+      // The API returns publish_date as a plain 'YYYY-MM-DD' string, which is exactly
+      // what <input type="date"> expects — no Date round-trip, so no timezone shift.
+      setValue('publish_date', application.publish_date || '');
       setValue('is_featured', application.is_featured || false);
-      setValue('deployed_link', application.deployed_link || '');
-      setValue('support_status_code', application.support_status_code || '');
-      setValue('image_url_relative', application.image_url_relative || '');
-      setRepositories(application.repositories || []);
-      setAssociatedSkills(application.associated_skill_codes || []);
+      setValue('deployed_url', application.deployed_url || '');
+      setValue('support_status_key', application.support_status_key ?? '');
+      setValue('image_filename', application.image_filename || '');
+      setRepositoryUrls(application.repository_urls || []);
+      setSkillKeys(application.skill_keys || []);
     } else {
-      setRepositories([]);
-      setAssociatedSkills([]);
+      setRepositoryUrls([]);
+      setSkillKeys([]);
     }
   }, [application, setValue]);
 
   const onSubmit = (data) => {
     const applicationData = {
       ...data,
-      repositories,
-      associated_skill_codes: associatedSkills,
-      publish_date: data.publish_date ? new Date(data.publish_date) : null,
+      // A <select> always yields a string; the API expects the integer key.
+      support_status_key: data.support_status_key === '' ? null : Number(data.support_status_key),
+      repository_urls: repositoryUrls.filter((url) => url.trim() !== ''),
+      skill_keys: skillKeys,
     };
+
+    // Updates are addressed by key, so carry it through on edit.
+    if (isEditing) {
+      applicationData.application_key = application.application_key;
+    }
+
     onSave(applicationData);
   };
 
   const addRepository = () => {
-    setRepositories([...repositories, '']);
+    setRepositoryUrls([...repositoryUrls, '']);
   };
 
   const updateRepository = (index, value) => {
-    const updated = [...repositories];
+    const updated = [...repositoryUrls];
     updated[index] = value;
-    setRepositories(updated);
+    setRepositoryUrls(updated);
   };
 
   const removeRepository = (index) => {
-    setRepositories(repositories.filter((_, i) => i !== index));
+    setRepositoryUrls(repositoryUrls.filter((_, i) => i !== index));
   };
 
-  const toggleSkill = (skillCode) => {
-    if (associatedSkills.includes(skillCode)) {
-      setAssociatedSkills(associatedSkills.filter(code => code !== skillCode));
+  const toggleSkill = (skillKey) => {
+    if (skillKeys.includes(skillKey)) {
+      setSkillKeys(skillKeys.filter(key => key !== skillKey));
     } else {
-      setAssociatedSkills([...associatedSkills, skillCode]);
+      setSkillKeys([...skillKeys, skillKey]);
     }
   };
 
@@ -99,12 +108,12 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
             </div>
 
             <div className="form-group">
-              <label htmlFor="support_status_code">Support Status</label>
-              <select id="support_status_code" {...register('support_status_code')}>
+              <label htmlFor="support_status_key">Support Status</label>
+              <select id="support_status_key" {...register('support_status_key')}>
                 <option value="">Select status</option>
                 {supportStatuses.map((status) => (
-                  <option key={status._id} value={status.code}>
-                    {status.label}
+                  <option key={status.support_status_key} value={status.support_status_key}>
+                    {status.support_status}
                   </option>
                 ))}
               </select>
@@ -112,30 +121,30 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
           </div>
 
           <div className="form-group">
-            <label htmlFor="deployed_link">Deployed Link</label>
+            <label htmlFor="deployed_url">Deployed Link</label>
             <input
               type="url"
-              id="deployed_link"
-              {...register('deployed_link')}
+              id="deployed_url"
+              {...register('deployed_url')}
               placeholder="https://example.com"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="image_url_relative">Image URL</label>
+            <label htmlFor="image_filename">Image URL</label>
             <input
               type="text"
-              id="image_url_relative"
-              {...register('image_url_relative')}
+              id="image_filename"
+              {...register('image_filename')}
               placeholder="app-image.jpg"
             />
             <small className="form-help">
-              Enter just the filename (e.g., "app-image.jpg"). 
+              Enter just the filename (e.g., "app-image.jpg").
               The base URL will be automatically prepended: {APPLICATION_IMAGE_BASE_URL}
             </small>
-            {watch('image_url_relative') && (
+            {watch('image_filename') && (
               <div className="image-preview">
-                <strong>Full URL:</strong> {getApplicationImageUrl(watch('image_url_relative'))}
+                <strong>Full URL:</strong> {getApplicationImageUrl(watch('image_filename'))}
               </div>
             )}
           </div>
@@ -152,7 +161,7 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
 
           <div className="form-group">
             <label>Repositories</label>
-            {repositories.map((repo, index) => (
+            {repositoryUrls.map((repo, index) => (
               <div key={index} className="repository-input">
                 <input
                   type="url"
@@ -174,13 +183,13 @@ const ApplicationModal = ({ application, supportStatuses, skills, onSave, onClos
             <label>Associated Skills</label>
             <div className="skills-checkboxes">
               {skills.map((skill) => (
-                <label key={skill._id} className="skill-checkbox">
+                <label key={skill.skill_key} className="skill-checkbox">
                   <input
                     type="checkbox"
-                    checked={associatedSkills.includes(skill.code)}
-                    onChange={() => toggleSkill(skill.code)}
+                    checked={skillKeys.includes(skill.skill_key)}
+                    onChange={() => toggleSkill(skill.skill_key)}
                   />
-                  {skill.name}
+                  {skill.skill}
                 </label>
               ))}
             </div>

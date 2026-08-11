@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { applicationsAPI, supportStatusAPI } from '../config/api';
+import { applicationsAPI } from '../config/api';
 import { getApplicationImageUrl } from '../config/images';
 import SkeletonGrid from '../components/Common/SkeletonGrid';
 import './Home.css';
 
 const Home = () => {
   const [applications, setApplications] = useState([]);
-  const [supportStatuses, setSupportStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -28,24 +27,17 @@ const Home = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [appsRes, supportRes] = await Promise.all([
-        applicationsAPI.getAll(),
-        supportStatusAPI.getAll()
-      ]);
-      
+      // The applications response now carries its support status name, so there is no
+      // second request to resolve it from a key.
+      const appsRes = await applicationsAPI.getAll();
+
       setApplications(appsRes.data.data || []);
-      setSupportStatuses(supportRes.data.data || []);
     } catch (err) {
       setError('Failed to fetch data');
       console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const getSupportStatusLabel = (code) => {
-    const status = supportStatuses.find(s => s.code === code);
-    return status ? status.label : code || 'N/A';
   };
 
   const nextSlide = () => {
@@ -146,14 +138,14 @@ const Home = () => {
                 else if (index === nextNextIndex) position = 'next-next';
                 
                 return (
-                  <div 
-                    key={app._id} 
+                  <div
+                    key={app.application_key}
                     className={`carousel-item ${position}`}
                   >
                     <div className="app-card">
                       <div className="app-cover">
-                        <img 
-                          src={getApplicationImageUrl(app.image_url_relative)}
+                        <img
+                          src={getApplicationImageUrl(app.image_filename)}
                           alt={app.title || 'Application'}
                           onError={(e) => {
                             e.target.src = 'https://via.placeholder.com/300x300?text=No+Image';
@@ -161,7 +153,7 @@ const Home = () => {
                         />
                         <div className="app-overlay">
                           <div className="app-title">{app.title || 'Untitled Application'}</div>
-                          <div className="app-status">{getSupportStatusLabel(app.support_status_code)}</div>
+                          <div className="app-status">{app.support_status || 'N/A'}</div>
                         </div>
                       </div>
                     </div>

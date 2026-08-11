@@ -4,6 +4,7 @@ import SkillModal from '../components/Skills/SkillModal';
 import DeleteModal from '../components/Common/DeleteModal';
 import SkeletonGrid from '../components/Common/SkeletonGrid';
 import { useAdmin } from '../components/Layout/Layout';
+import { getCategoryColor } from '../config/display';
 import './Skills.css';
 
 const Skills = () => {
@@ -26,16 +27,16 @@ const Skills = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
     proficient: '',
-    skill_type: '',
+    skill_type_key: '',
     visible: ''
   });
-  const [sortBy, setSortBy] = useState('name');
+  const [sortBy, setSortBy] = useState('skill');
   const [sortOrder, setSortOrder] = useState('asc');
   const [filtersVisible, setFiltersVisible] = useState(false);
 
   useEffect(() => {
     fetchData();
-  }, [currentPage, filters, sortBy, sortOrder, pageSize]);
+  }, [currentPage, filters, sortBy, sortOrder, pageSize, isAdminMode]);
 
   // Clear admin-only filters when not in admin mode
   useEffect(() => {
@@ -60,13 +61,19 @@ const Skills = () => {
         sort: sortBy,
         order: sortOrder
       };
-      
+
+      // Hidden skills are excluded from the public listing, so the admin view has to
+      // ask for them explicitly in order to manage them.
+      if (isAdminMode) {
+        queryParams.include_hidden = true;
+      }
+
       // Add filters if they have values
       if (filters.proficient !== '') {
         queryParams.proficient = filters.proficient;
       }
-      if (filters.skill_type !== '') {
-        queryParams.skill_type = filters.skill_type;
+      if (filters.skill_type_key !== '') {
+        queryParams.skill_type_key = filters.skill_type_key;
       }
       if (filters.visible !== '') {
         queryParams.visible = filters.visible;
@@ -124,7 +131,7 @@ const Skills = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await skillsAPI.delete({ code: selectedSkill.code });
+      await skillsAPI.delete({ skill_key: selectedSkill.skill_key });
       setShowDeleteModal(false);
       setShowModal(false);
       setSelectedSkill(null);
@@ -135,11 +142,6 @@ const Skills = () => {
       setError('Failed to delete skill');
       console.error('Error deleting skill:', err);
     }
-  };
-
-  const getSkillTypeLabel = (code) => {
-    const type = skillTypes.find(t => t.code === code);
-    return type ? type.label : code || 'N/A';
   };
 
   const handlePageChange = (newPage) => {
@@ -167,7 +169,7 @@ const Skills = () => {
   const clearFilters = () => {
     setFilters({
       proficient: '',
-      skill_type: '',
+      skill_type_key: '',
       visible: ''
     });
     setCurrentPage(1);
@@ -248,14 +250,14 @@ const Skills = () => {
             <label htmlFor="skill-type-filter">Skill Type:</label>
             <select 
               id="skill-type-filter"
-              value={filters.skill_type}
-              onChange={(e) => handleFilterChange('skill_type', e.target.value)}
+              value={filters.skill_type_key}
+              onChange={(e) => handleFilterChange('skill_type_key', e.target.value)}
               className="filter-select"
             >
               <option value="">All Types</option>
               {skillTypes.map(type => (
-                <option key={type._id} value={type.code}>
-                  {type.label}
+                <option key={type.skill_type_key} value={type.skill_type_key}>
+                  {type.skill_type}
                 </option>
               ))}
             </select>
@@ -290,10 +292,10 @@ const Skills = () => {
               }}
               className="filter-select"
             >
-              <option value="name-asc">Name (A-Z)</option>
-              <option value="name-desc">Name (Z-A)</option>
-              <option value="code-asc">Code (A-Z)</option>
-              <option value="code-desc">Code (Z-A)</option>
+              <option value="skill-asc">Name (A-Z)</option>
+              <option value="skill-desc">Name (Z-A)</option>
+              <option value="skill_type-asc">Type (A-Z)</option>
+              <option value="skill_type-desc">Type (Z-A)</option>
             </select>
           </div>
 
@@ -312,40 +314,22 @@ const Skills = () => {
 
       <div className="skills-grid">
         {skills.map((skill) => {
-          const getCategoryColor = (code) => {
-            switch (code?.toLowerCase()) {
-              case 'frontend': return '#3b82f6';
-              case 'backend': return '#10b981';
-              case 'database': return '#f59e0b';
-              case 'mobile': return '#8b5cf6';
-              case 'devops': return '#ef4444';
-              case 'design': return '#ec4899';
-              case 'testing': return '#06b6d4';
-              case 'tools': return '#6b7280';
-              default: return '#8b5cf6';
-            }
-          };
-
           return (
-            <div key={skill._id} className="skill-card">
+            <div key={skill.skill_key} className="skill-card">
               <div className="card-header">
-                <div className="category-indicator" style={{ backgroundColor: getCategoryColor(skill.skill_type_code) }}>
+                <div className="category-indicator" style={{ backgroundColor: getCategoryColor(skill.skill_type_key) }}>
                   <span className="material-icons">code</span>
                 </div>
                 <div className="header-content">
-                  <h3>{skill.name || 'Unnamed Skill'}</h3>
+                  <h3>{skill.skill || 'Unnamed Skill'}</h3>
                 </div>
               </div>
-              
+
               <div className="card-content">
                 <div className="skill-info">
                   <div className="skill-detail">
-                    <span className="detail-label">Code:</span>
-                    <span className="detail-value">{skill.code || 'N/A'}</span>
-                  </div>
-                  <div className="skill-detail">
                     <span className="detail-label">Type:</span>
-                    <span className="detail-value">{skill.skill_type_code || 'N/A'}</span>
+                    <span className="detail-value">{skill.skill_type || 'N/A'}</span>
                   </div>
                   {isAdminMode && (
                     <>
@@ -359,6 +343,18 @@ const Skills = () => {
                         <span className="detail-label">Visible:</span>
                         <span className={`detail-value ${skill.is_visible_in_app_details ? 'visible' : 'hidden'}`}>
                           {skill.is_visible_in_app_details ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                      <div className="skill-detail">
+                        <span className="detail-label">Hidden:</span>
+                        <span className={`detail-value ${skill.is_hidden ? 'hidden' : 'visible'}`}>
+                          {skill.is_hidden ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                      <div className="skill-detail">
+                        <span className="detail-label">Disclaimer:</span>
+                        <span className="detail-value">
+                          {skill.provide_disclaimer ? 'Yes' : 'No'}
                         </span>
                       </div>
                     </>

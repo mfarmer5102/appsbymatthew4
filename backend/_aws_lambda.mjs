@@ -1,3 +1,8 @@
+// Must come first: secrets.js reads process.env at module scope. In Lambda the values
+// come from Secrets Manager and there is no .env to find, so this is a no-op there —
+// it exists so `npm run lambda_test` works locally.
+import 'dotenv/config';
+
 import secret_config from './src/configuration/secrets.js';
 import {error_config} from './src/configuration/errors.js';
 import {routing_config} from './src/configuration/routing.js';

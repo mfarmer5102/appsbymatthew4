@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a portfolio management application with a Node.js backend and React frontend. The backend is designed to run both as an Express server and as an AWS Lambda function, using a custom routing abstraction layer. It includes an AI-powered chat feature backed by OpenAI and MongoDB vector search.
+This is a portfolio management application with a Node.js backend and React frontend. The backend is designed to run both as an Express server and as an AWS Lambda function, using a custom routing abstraction layer. It includes an AI-powered chat feature backed by OpenAI and pgvector similarity search over Supabase (PostgreSQL).
 
 ## Architecture
 
@@ -15,15 +15,15 @@ The backend uses a **custom routing framework** that abstracts away the web serv
 1. **Request Standardization**: Both `_express.js` and `_aws_lambda.mjs` convert platform-specific requests into `StandardizedRequestObject` instances
 2. **Unified Routing**: All routes are defined once in `src/configuration/routing.js` using `Route` and `RoutingConfig` classes
 3. **Middleware System**: Custom middleware runs in `src/configuration/middleware.js` (not Express middleware)
-4. **Data Layer**: Controllers (`src/controllers/`) delegate to data functions (`src/data/`) which interact with MongoDB
+4. **Data Layer**: Controllers (`src/controllers/`) delegate to data functions (`src/data/`) which issue SQL against Supabase via the shared `pg` pool
 
 **Key classes** (in `src/_library/classes/`):
 - `StandardizedRequestObject` / `StandardizedResponseObject`: Platform-agnostic request/response wrappers
 - `RoutingConfig` / `Route`: Custom routing system with protected/unprotected route separation
 - `MiddlewareConfig`: Custom middleware that runs before route handlers
-- `MongoConfig` / `MongoColl`: MongoDB connection and collection wrappers
+- `PostgresConfig`: `pg` connection pool wrapper exposing `query()` and `transaction()`
 - `OpenAIConfig`: Wrapper for OpenAI API (embeddings + chat completions)
-- `VectorSearchHelper`: Helper for MongoDB vector search over application embeddings
+- `VectorSearchHelper`: Helper for pgvector similarity search over application embeddings
 - `SecretConfig`: Loads secrets from environment or AWS Secrets Manager
 
 ### Frontend Architecture
@@ -38,19 +38,35 @@ Layout structure: `Layout` component (provides `AdminContext` and dark mode stat
 
 **Dark mode** is persisted in localStorage and applied via `data-theme="dark|light"` on the document root. Toggle is in `Header.jsx`.
 
-**Chat panel** (`ChatPanel.jsx`) is triggered by clicking the sprite decoration. It sends messages to `/api/chat` and maintains a `session_id` across messages. Chat history is stored in MongoDB.
+**Chat panel** (`ChatPanel.jsx`) is triggered by clicking the sprite decoration. It sends messages to `/api/chat` and holds a `session_id` in React state. Nothing is persisted server-side, and the panel does not reload history.
 
 ### Data Model
 
-Five MongoDB collections:
+A star schema in the `apps_by_matthew` Postgres schema. Every table is addressed by an
+integer surrogate key (`application_key`, `skill_key`, …) — there are no `code` columns;
+that concept came from the MongoDB era and was dropped in the Supabase migration.
 
-- **Applications**: Portfolio projects with featured flags, support status, associated skills, and a 1536-dim `embedding` vector field for semantic search
-- **Skills**: Individual skills with proficiency levels and visibility flags
-- **Skill Types**: Categories for organizing skills (e.g., "Back End Framework", "Cloud")
-- **Support Status**: Status codes for applications (e.g., "ACTIVE", "EXPERIMENTAL")
-- **Chat History**: Persisted chat messages with `session_id`, `role`, `content`, and optional `metadata` (sources used)
+Dimensions:
+- **dim_application**: Portfolio projects. `title` is UNIQUE. FK to `dim_support_status`.
+- **dim_skill**: Individual skills. FK to `dim_skill_type`. Flags: `is_proficient`,
+  `is_visible_in_app_details`, `is_hidden`, `provide_disclaimer`.
+- **dim_skill_type**: Categories for organizing skills (e.g., "Back End Framework")
+- **dim_support_status**: Status of an application (e.g., "Active", "Experimental")
 
-Items in the first four collections can be soft-deleted (have a `deleted_at` field) and are filtered out in API responses.
+Bridges (these replace what were array fields on the Mongo documents):
+- **bridge_application_skill**: application ↔ skill. No ordinal column.
+- **bridge_application_repository**: application ↔ repository URL. No ordinal column, so
+  repository order is not preserved; queries sort by URL for stable output.
+
+Embeddings:
+- **dim_application_embedding**: keyed `(application_key, model_version)` with a
+  `vector(1536)` column. Reads and writes must filter on `EMBEDDING_MODEL_VERSION` from
+  `src/configuration/database.js`, or a second model's vectors would duplicate results.
+
+All four dimensions soft-delete via `deleted_at` and are filtered out of API responses.
+Deletes are always soft, which is what keeps the foreign keys satisfied.
+
+There is no chat history table — chat is stateless.
 
 ### API Routes
 
@@ -61,7 +77,6 @@ GET  /api/skill-types
 GET  /api/skills
 GET  /api/support-status
 POST /api/chat
-GET  /api/chat/history
 ```
 
 **Protected (require `authorization` header):**
@@ -127,12 +142,15 @@ npm run lint
 ### Backend (.env)
 
 Required variables:
-- `MONGO_INSTANCE_URL`: MongoDB connection string
+- `SUPABASE_DB_URL`: Supabase PostgreSQL connection string. Use the **transaction
+  pooler** (port 6543) — it suits both App Runner and Lambda.
 - `APPSBYMATTHEW_ADMIN_CODE`: Secret used to authorize protected routes
 - `OPENAI_API_KEY`: OpenAI API key (used for chat completions and embeddings)
 - `NODE_ENV`: development or production
 - `PORT`: Server port (default: 2021)
 - `FRONTEND_URL`: Frontend URL for CORS (default: http://localhost:*)
+- `PGSSL_NO_VERIFY`: Optional. Set to `true` only for a self-hosted Postgres behind a
+  private CA; Supabase's own certificate verifies normally.
 
 For AWS deployment, secrets are retrieved from AWS Secrets Manager (`prd-secrets` secret) using `@aws-sdk/client-secrets-manager`. The presence of `AWS_EXECUTION_ENV` signals the Lambda runtime.
 
@@ -147,7 +165,12 @@ For AWS deployment, secrets are retrieved from AWS Secrets Manager (`prd-secrets
 ### Adding a New Route
 
 1. Create controller function in `src/controllers/[resource].js`
-2. Create data layer function in `src/data/[resource].js`
+2. Create data layer function in `src/data/[resource].js`. Query via `db.query()` from
+   `src/configuration/database.js`; use `db.transaction()` whenever a write touches a
+   dimension and its bridge tables together. Optional filters use the
+   `($1::type IS NULL OR col = $1)` pattern so one clause can drive both the page query
+   and the count query. `ORDER BY` can't be parameterized — whitelist sort fields with
+   `parse_sort` from `src/_library/functions/query_params.js`.
 3. Register route in `src/configuration/routing.js`:
    - Add to `unprotected_routes` array for public endpoints
    - Add to `protected_routes` array for admin-only endpoints (requires authorization header)
@@ -168,13 +191,23 @@ Both convert their respective request formats to `StandardizedRequestObject` and
 
 ### Vector Search / AI Chat
 
-Applications have a 1536-dim `embedding` field generated via OpenAI's `text-embedding-ada-002` model. The `/api/chat` endpoint:
+Applications are embedded with OpenAI's `text-embedding-3-small` model (1536 dims) into
+`dim_application_embedding`. The `/api/chat` endpoint:
 1. Embeds the user message
-2. Runs a MongoDB vector search over `applications` to find relevant projects
-3. Passes those projects as context to a GPT chat completion
-4. Persists the exchange to the `chat_history` collection
+2. Runs a pgvector cosine search (`<=>`) over `dim_application_embedding`, joining the
+   dimension and bridge tables so the model sees skill and status *names*
+3. Passes those projects as context to a chat completion
 
-To backfill embeddings for existing applications, run `npm run vectorize-existing-apps` from the `backend/` directory.
+Chat is **stateless** — nothing is persisted, so the model has no memory of earlier turns
+in a session. `session_id` is still echoed back to the client, but it looks nothing up.
+
+Embedding generation always happens *outside* the write transaction, so a slow OpenAI
+call never holds a pooler connection open. A failure there is non-fatal: the application
+saves without an embedding and simply won't appear in chat until re-vectorized.
+
+To backfill embeddings, run `npm run vectorize-existing-apps` from `backend/`.
+To sanity-check the database (connectivity, pgvector, identity sequences, embedding
+coverage), run `npm run check-db`.
 
 ## Deployment Notes
 

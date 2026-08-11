@@ -1,6 +1,6 @@
 # Portfolio Backend API
 
-A Node.js REST API for managing portfolio data with MongoDB integration.
+A Node.js REST API for managing portfolio data, backed by Supabase (PostgreSQL).
 
 ## Features
 
@@ -50,10 +50,14 @@ npm install
 cp env.example .env
 ```
 
-3. Configure your MongoDB connection in `.env`:
+3. Configure your Supabase connection in `.env`:
 ```
-MONGO_INSTANCE_URL=mongodb://localhost:27017/portfolio
+SUPABASE_DB_URL=postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres
+OPENAI_API_KEY=sk-...
+APPSBYMATTHEW_ADMIN_CODE=...
 ```
+Use the **transaction pooler** (port 6543) connection string — it suits both App Runner
+and Lambda, where connections are short-lived.
 
 4. Start the server:
 ```bash
@@ -138,8 +142,9 @@ POST /api/applications
   "publish_date": "2024-01-01T00:00:00.000Z",
   "is_featured": true,
   "description": "A great application",
-  "support_status_code": "ACTIVE",
-  "associated_skill_codes": ["REACT", "NODEJS"]
+  "support_status_key": 1,
+  "skill_keys": [4, 12],
+  "repository_urls": ["https://github.com/user/repo"]
 }
 ```
 
@@ -147,7 +152,9 @@ POST /api/applications
 
 - `NODE_ENV` - Environment (development/production)
 - `PORT` - Server port (default: 5000)
-- `MONGO_INSTANCE_URL` - MongoDB connection string
+- `SUPABASE_DB_URL` - Supabase PostgreSQL connection string (transaction pooler)
+- `OPENAI_API_KEY` - OpenAI key for embeddings and chat completions
+- `PGSSL_NO_VERIFY` - Set to `true` only for a self-hosted instance with a private CA
 - `FRONTEND_URL` - Frontend URL for CORS (default: http://localhost:3000)
 
 ## Health Check
