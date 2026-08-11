@@ -80,11 +80,11 @@ export class OpenAIConfig {
             return `
                 Project ${index + 1}: ${record.title}
                 Description: ${record.description || 'No description available'}
-                Technologies/Skills: ${record.associated_skill_codes ? record.associated_skill_codes.join(', ') : 'N/A'}
-                Support Status: ${record.support_status_code || 'N/A'}
+                Technologies/Skills: ${record.skills && record.skills.length > 0 ? record.skills.join(', ') : 'N/A'}
+                Support Status: ${record.support_status || 'N/A'}
                 Featured: ${record.is_featured ? 'Yes' : 'No'}
-                ${record.live_site_url ? `Live Site: ${record.live_site_url}` : ''}
-                ${record.repo_urls && record.repo_urls.length > 0 ? `Repository: ${record.repo_urls[0].url}` : ''}
+                ${record.deployed_url ? `Live Site: ${record.deployed_url}` : ''}
+                ${record.repository_urls && record.repository_urls.length > 0 ? `Repository: ${record.repository_urls[0]}` : ''}
             `.trim();
         }).join('\n\n---\n\n');
     }

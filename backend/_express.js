@@ -1,3 +1,8 @@
+// Must come first: ESM evaluates imports in source order, and secrets.js reads
+// process.env at module scope via a top-level await. Outside Lambda there is no Secrets
+// Manager, so a local .env is the only source for SUPABASE_DB_URL and friends.
+import 'dotenv/config';
+
 import express from 'express';
 import cors from 'cors';
 import {StandardizedRequestObject} from "./src/_library/classes/requests.js";

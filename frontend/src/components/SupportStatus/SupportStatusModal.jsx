@@ -9,13 +9,13 @@ const SupportStatusModal = ({ supportStatus, onSave, onClose, onDelete }) => {
 
   useEffect(() => {
     if (supportStatus) {
-      setValue('code', supportStatus.code || '');
-      setValue('label', supportStatus.label || '');
+      setValue('support_status', supportStatus.support_status || '');
     }
   }, [supportStatus, setValue]);
 
   const onSubmit = (data) => {
-    onSave(data);
+    // Updates are addressed by key, so carry it through on edit.
+    onSave(isEditing ? { ...data, support_status_key: supportStatus.support_status_key } : data);
   };
 
   return (
@@ -28,22 +28,12 @@ const SupportStatusModal = ({ supportStatus, onSave, onClose, onDelete }) => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
           <div className="form-group">
-            <label htmlFor="code">Code</label>
+            <label htmlFor="support_status">Name</label>
             <input
               type="text"
-              id="code"
-              {...register('code')}
-              placeholder="Unique support status code"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="label">Label</label>
-            <input
-              type="text"
-              id="label"
-              {...register('label')}
-              placeholder="Support status label"
+              id="support_status"
+              {...register('support_status')}
+              placeholder="Support status name"
             />
           </div>
 

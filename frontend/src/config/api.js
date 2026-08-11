@@ -86,9 +86,9 @@ export const supportStatusAPI = {
 };
 
 // Chat API
+// Chat is stateless — nothing is persisted, so there is no history endpoint to read.
 export const chatAPI = {
   sendMessage: (data) => api.post('/chat', data),
-  getChatHistory: (params = {}) => api.get('/chat/history', { params }),
 };
 
 export default api;

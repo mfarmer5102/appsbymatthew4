@@ -18,7 +18,7 @@ const DeleteModal = ({ item, itemType, onConfirm, onClose }) => {
           {item && (
             <div className="item-preview">
               <strong>
-                {item.title || item.name || item.label || item.code || 'Untitled'}
+                {item.title || item.skill || item.skill_type || item.support_status || 'Untitled'}
               </strong>
             </div>
           )}

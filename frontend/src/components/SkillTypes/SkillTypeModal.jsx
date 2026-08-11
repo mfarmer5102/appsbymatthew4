@@ -9,13 +9,13 @@ const SkillTypeModal = ({ skillType, onSave, onClose, onDelete }) => {
 
   useEffect(() => {
     if (skillType) {
-      setValue('code', skillType.code || '');
-      setValue('label', skillType.label || '');
+      setValue('skill_type', skillType.skill_type || '');
     }
   }, [skillType, setValue]);
 
   const onSubmit = (data) => {
-    onSave(data);
+    // Updates are addressed by key, so carry it through on edit.
+    onSave(isEditing ? { ...data, skill_type_key: skillType.skill_type_key } : data);
   };
 
   return (
@@ -28,22 +28,12 @@ const SkillTypeModal = ({ skillType, onSave, onClose, onDelete }) => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
           <div className="form-group">
-            <label htmlFor="code">Code</label>
+            <label htmlFor="skill_type">Name</label>
             <input
               type="text"
-              id="code"
-              {...register('code')}
-              placeholder="Unique skill type code"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="label">Label</label>
-            <input
-              type="text"
-              id="label"
-              {...register('label')}
-              placeholder="Skill type label"
+              id="skill_type"
+              {...register('skill_type')}
+              placeholder="Skill type name"
             />
           </div>
 
