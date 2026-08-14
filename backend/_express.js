@@ -10,6 +10,7 @@ import {routing_config} from "./src/configuration/routing.js";
 import {error_config} from "./src/configuration/errors.js";
 import {middleware_config} from "./src/configuration/middleware.js";
 import secret_config from "./src/configuration/secrets.js";
+import {extract_client_metadata} from "./src/_library/functions/client_metadata.js";
 
 const app = express();
 
@@ -62,7 +63,10 @@ const ingest_expressjs_request = async (http_method, path, request) => {
       headers,
       query_params,
       req_body,
-      {}
+      // Seeded into state so handlers can log the caller without knowing they are on
+      // Express. Reading x-forwarded-for directly rather than request.ip avoids having
+      // to set 'trust proxy', which would change how Express resolves it everywhere.
+      {client: extract_client_metadata(headers, request.socket?.remoteAddress)}
   )
 }
 

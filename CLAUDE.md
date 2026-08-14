@@ -83,7 +83,18 @@ writes both timestamps explicitly on every INSERT and `updated_at = now()` on ev
 UPDATE — but a row inserted outside that layer will have a NULL `created_at` on two of the
 four tables.
 
-There is no chat history table — chat is stateless.
+Conversation log:
+- **fact_chat_message**: one row per chat message, two per request, sharing a
+  `turn_ordinal`. Request-side facts (IP, user agent, embedding model, stage timings)
+  land on the `role='user'` row; response-side facts (chat model, token counts,
+  `latency_ms`, `is_error`) on the `role='assistant'` row. `int8` key, no soft delete —
+  see the header in `backend/migrations/2026-08-13_chat_message_log.sql`.
+- **bridge_chat_message_application**: the applications vector search surfaced for a
+  turn, with `similarity_score`, attached to the assistant row. Cascades on delete so
+  a retention purge of the fact table is a single statement.
+
+Chat is still stateless for the *model* — the log is written but never read back, so it
+has no memory of earlier turns.
 
 ### API Routes
 
@@ -225,8 +236,15 @@ Applications are embedded with OpenAI's `text-embedding-3-small` model (1536 dim
    dimension and bridge tables so the model sees skill and status *names*
 3. Passes those projects as context to a chat completion
 
-Chat is **stateless** — nothing is persisted, so the model has no memory of earlier turns
-in a session. `session_id` is still echoed back to the client, but it looks nothing up.
+Chat is **stateless** for the model: every turn is logged to `fact_chat_message`, but
+the log is never read back, so the model has no memory of earlier turns in a session.
+`session_id` groups a session's log rows and is echoed back to the client, but it looks
+nothing up when answering. It is client-supplied and unvalidated — a grouping hint, not
+an identity.
+
+Logging happens in `src/data/chat_log.js` and never throws: `/api/chat` is public, and a
+failed insert must not turn a good answer into the canned apology. Console output is the
+only signal that logging broke.
 
 Embedding generation always happens *outside* the write transaction, so a slow OpenAI
 call never holds a pooler connection open. A failure there is non-fatal: the application

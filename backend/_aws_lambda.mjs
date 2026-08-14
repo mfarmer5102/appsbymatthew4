@@ -8,6 +8,7 @@ import {error_config} from './src/configuration/errors.js';
 import {routing_config} from './src/configuration/routing.js';
 import {middleware_config} from './src/configuration/middleware.js';
 import {StandardizedRequestObject} from './src/_library/classes/requests.js';
+import {extract_client_metadata} from './src/_library/functions/client_metadata.js';
 
 // const secret_config = require('./src/configuration/secrets.js');
 // const error_config = require('./src/configuration/errors.js').error_config;
@@ -92,6 +93,14 @@ const ingest_lambda_request = (event, context) => {
         event['headers'],
         event['queryStringParameters'] || {},
         req_body,
-        {}
+        // Seeded into state so handlers can log the caller without knowing they are on
+        // Lambda. API Gateway resolves the peer itself in requestContext, which is the
+        // more trustworthy of the two sources when it is present.
+        {
+            client: extract_client_metadata(
+                event['headers'],
+                event['requestContext']?.['identity']?.['sourceIp']
+            ),
+        }
     );
 };

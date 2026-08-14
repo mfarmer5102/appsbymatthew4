@@ -36,9 +36,13 @@ export class OpenAIConfig {
 
     /**
      * Generate chat completion with context from vector search
+     *
+     * Returns an object rather than the bare string so callers can log what the turn
+     * cost. `response.usage` is only available here, on the raw API response.
+     *
      * @param {Array} conversationHistory - Array of {role, content} messages
      * @param {Array} contextRecords - Array of application records from vector search
-     * @returns {Promise<string>} - Assistant's response
+     * @returns {Promise<{content: string, model: string, prompt_tokens: number|null, completion_tokens: number|null}>}
      */
     async generateChatCompletion(conversationHistory, contextRecords) {
         try {
@@ -60,7 +64,16 @@ export class OpenAIConfig {
                 ...this.chat_params,
             });
 
-            return response.choices[0].message.content;
+            return {
+                content: response.choices[0].message.content,
+                // The response names the snapshot actually served, which can be more
+                // specific than the alias in this.chat_model.
+                model: response.model || this.chat_model,
+                prompt_tokens: response.usage?.prompt_tokens ?? null,
+                // For the GPT-5 family this includes the hidden reasoning tokens, so it
+                // can be much larger than the visible answer suggests.
+                completion_tokens: response.usage?.completion_tokens ?? null,
+            };
         } catch (error) {
             console.error('OpenAI chat completion error:', error);
             throw new Error(error_config.select_error('openai_api_error'));
