@@ -1,0 +1,45 @@
+# This Dockerfile builds an image that will allow Pyspark to be ran on Kubernetes
+
+FROM apache/spark:4.2.0-scala2.13-java21-python3-ubuntu
+
+USER root
+
+COPY .. /app
+WORKDIR /app/data
+
+RUN mkdir -p lib \
+    && curl -fsSL -o lib/mongodb-driver-core-5.1.4.jar \
+        https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-core/5.1.4/mongodb-driver-core-5.1.4.jar \
+    && curl -fsSL -o lib/mongodb-driver-sync-5.1.4.jar \
+        https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-sync/5.1.4/mongodb-driver-sync-5.1.4.jar \
+    && curl -fsSL -o lib/bson-5.1.4.jar \
+        https://repo1.maven.org/maven2/org/mongodb/bson/5.1.4/bson-5.1.4.jar \
+    && curl -fsSL -o lib/mongo-spark-connector_2.13-11.1.0.jar \
+        https://repo1.maven.org/maven2/org/mongodb/spark/mongo-spark-connector_2.13/11.1.0/mongo-spark-connector_2.13-11.1.0.jar \
+    && curl -fsSL -o lib/hadoop-aws-3.5.0.jar \
+        https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.5.0/hadoop-aws-3.5.0.jar \
+    && curl -fsSL -o lib/analyticsaccelerator-s3-1.3.1.jar \
+        https://repo1.maven.org/maven2/software/amazon/s3/analyticsaccelerator/analyticsaccelerator-s3/1.3.1/analyticsaccelerator-s3-1.3.1.jar \
+    && curl -fsSL -o lib/bundle-2.35.4.jar \
+        https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.35.4/bundle-2.35.4.jar \
+    && cp lib/*.jar /opt/spark/jars/ \
+    && rm -rf lib
+
+# Required to pull private package dependencies from GitHub packages
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Base image ships an ancient system setuptools (59.6.0, pre-dates PEP 621
+# [project] table support) that shadows the newer one in pip's build
+# isolation, causing git-based deps with dynamic pyproject.toml metadata to
+# install under the name "UNKNOWN". Upgrading pip/setuptools first fixes it.
+RUN pip3 install --no-cache-dir --upgrade pip setuptools
+
+# Base Spark image needs git installed to support this
+RUN --mount=type=secret,id=gh_token \
+    git config --global url."https://x-access-token:$(cat /run/secrets/gh_token)@github.com/".insteadOf "ssh://git@github.com/" \
+    && pip3 install --no-cache-dir -r requirements.txt \
+    && rm -f /root/.gitconfig
+
+USER 0

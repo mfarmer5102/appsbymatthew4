@@ -257,3 +257,4 @@ run-backend.sh
 
 *__pycache__/*
 *.pyc
+/.venv/
