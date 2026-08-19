@@ -5,8 +5,12 @@ from pyspark.sql.types import (
 
 from jobs.globals.s3_paths import app_name
 from jobs.src.chat_reports.queries import ChatMessagesQuery, ChatSourcesQuery
+from jobs.utils.pg import write_to_pg
 from mfarmer5102_utils.pyspark.s3 import write_to_object_storage
 from mfarmer5102_utils.common.slack import publish_slack_message
+
+DAILY_SUMMARY_TABLE = "apps_by_matthew.chat_report_daily_summary"
+TOP_APPLICATION_TABLE = "apps_by_matthew.chat_report_top_application"
 
 
 def job_flow(spark, target_date):
@@ -24,7 +28,23 @@ def job_flow(spark, target_date):
     if top_apps_df.count() > 0:
         write_to_object_storage(top_apps_df, app_name, f"chat_reports/top_applications/date={target_date}")
 
+    write_report_to_pg(summary_df, top_apps_df, target_date)
     send_slack_report(summary_df, top_apps_df, target_date)
+
+
+def write_report_to_pg(summary_df, top_apps_df, target_date):
+    write_to_pg(
+        summary_df,
+        DAILY_SUMMARY_TABLE,
+        delete_sql=f"DELETE FROM {DAILY_SUMMARY_TABLE} WHERE report_date = %(report_date)s",
+        delete_params={"report_date": str(target_date)},
+    )
+    write_to_pg(
+        top_apps_df.select("report_date", "application_key", "times_surfaced", "avg_similarity_score"),
+        TOP_APPLICATION_TABLE,
+        delete_sql=f"DELETE FROM {TOP_APPLICATION_TABLE} WHERE report_date = %(report_date)s",
+        delete_params={"report_date": str(target_date)},
+    )
 
 
 def compute_daily_summary(messages_df, target_date):

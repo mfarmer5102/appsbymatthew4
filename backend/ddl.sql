@@ -313,6 +313,59 @@ ALTER TABLE apps_by_matthew.bridge_chat_message_application OWNER TO postgres;
 GRANT ALL ON TABLE apps_by_matthew.bridge_chat_message_application TO postgres;
 
 
+-- apps_by_matthew.chat_report_daily_summary definition
+
+-- Drop table
+
+-- DROP TABLE apps_by_matthew.chat_report_daily_summary;
+
+CREATE TABLE apps_by_matthew.chat_report_daily_summary (
+	report_date date NOT NULL,
+	total_turns int4 NOT NULL,
+	unique_sessions int4 NOT NULL,
+	error_count int4 NOT NULL,
+	avg_latency_ms float8 NULL,
+	total_latency_ms int8 NULL,
+	avg_prompt_tokens float8 NULL,
+	total_prompt_tokens int8 NULL,
+	avg_completion_tokens float8 NULL,
+	total_completion_tokens int8 NULL,
+	avg_completion_ms float8 NULL,
+	avg_embedding_ms float8 NULL,
+	avg_search_ms float8 NULL,
+	created_at timestamptz DEFAULT now() NOT NULL,
+	CONSTRAINT chat_report_daily_summary_pkey PRIMARY KEY (report_date)
+);
+
+-- Permissions
+
+ALTER TABLE apps_by_matthew.chat_report_daily_summary OWNER TO postgres;
+GRANT ALL ON TABLE apps_by_matthew.chat_report_daily_summary TO postgres;
+
+
+-- apps_by_matthew.chat_report_top_application definition
+
+-- Drop table
+
+-- DROP TABLE apps_by_matthew.chat_report_top_application;
+
+CREATE TABLE apps_by_matthew.chat_report_top_application (
+	report_date date NOT NULL,
+	application_key int4 NOT NULL,
+	times_surfaced int4 NOT NULL,
+	avg_similarity_score float4 NOT NULL,
+	created_at timestamptz DEFAULT now() NOT NULL,
+	CONSTRAINT chat_report_top_application_pkey PRIMARY KEY (report_date, application_key),
+	CONSTRAINT chat_report_top_application_application_key_fkey FOREIGN KEY (application_key) REFERENCES apps_by_matthew.dim_application(application_key)
+);
+CREATE INDEX chat_report_top_application_application_key_idx ON apps_by_matthew.chat_report_top_application USING btree (application_key);
+
+-- Permissions
+
+ALTER TABLE apps_by_matthew.chat_report_top_application OWNER TO postgres;
+GRANT ALL ON TABLE apps_by_matthew.chat_report_top_application TO postgres;
+
+
 
 
 -- Permissions
