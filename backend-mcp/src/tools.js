@@ -1,5 +1,13 @@
-import {query, SCHEMA, EMBEDDING_MODEL_VERSION} from './database.js';
+// The tool catalog: each entry carries its own description, input schema and handler,
+// so adding a tool means adding one object here and nothing in server.js.
+import {z} from 'zod';
+
+import {query} from './database.js';
 import {generate_embedding} from './openai.js';
+import {DATABASE, OPENAI, LIMITS} from './config.js';
+
+// Aliased because it is interpolated into nearly every line of SQL below.
+const {schema: SCHEMA} = DATABASE;
 
 // Skills and repository URLs live in bridge tables with no ordinal column, so their
 // original order is not recoverable; both are aggregated in name order for stable
@@ -32,12 +40,26 @@ const APPLICATION_JOINS = `
 `;
 
 /**
+ * The `limit` input every tool that returns a list shares. The ceiling is enforced here
+ * rather than in the handler so an oversized request is rejected by the SDK before any
+ * query runs; the matching default is applied by the handler.
+ */
+const limit_schema = (tool_name) =>
+    z
+        .number()
+        .int()
+        .positive()
+        .max(LIMITS[tool_name].max)
+        .optional()
+        .describe(`Maximum rows to return (default ${LIMITS[tool_name].default})`);
+
+/**
  * Keyword search over application title/description. Cheap and exact-ish - good for
  * "do I have an app called X". Omitting the query returns the most recent projects,
  * which is how a caller browses rather than searches.
  */
-export async function search_applications({query: search_text, limit = 10}) {
-    const {rows} = await query(
+async function search_applications({query: search_text, limit = LIMITS.search_applications.default}) {
+    return await query(
         `
         SELECT ${APPLICATION_PROJECTION}
         FROM ${SCHEMA}.dim_application a
@@ -51,8 +73,6 @@ export async function search_applications({query: search_text, limit = 10}) {
         `,
         [search_text || null, limit],
     );
-
-    return rows;
 }
 
 /**
@@ -63,10 +83,13 @@ export async function search_applications({query: search_text, limit = 10}) {
  * search degrades to a generic answer, whereas an MCP tool should tell its caller
  * plainly that the search failed rather than silently returning nothing.
  */
-export async function search_applications_semantic({query: search_text, limit = 5}) {
+async function search_applications_semantic({
+    query: search_text,
+    limit = LIMITS.search_applications_semantic.default,
+}) {
     const embedding = await generate_embedding(search_text);
 
-    const {rows} = await query(
+    return await query(
         `
         SELECT ${APPLICATION_PROJECTION},
                1 - (e.embedding <=> $1::vector) AS score
@@ -78,14 +101,12 @@ export async function search_applications_semantic({query: search_text, limit = 
         ORDER BY e.embedding <=> $1::vector
         LIMIT $3
         `,
-        [JSON.stringify(embedding), EMBEDDING_MODEL_VERSION, limit],
+        [JSON.stringify(embedding), OPENAI.embedding_model, limit],
     );
-
-    return rows;
 }
 
-export async function get_skills({skill_type, proficient_only = false, limit = 100}) {
-    const {rows} = await query(
+async function get_skills({skill_type, proficient_only = false, limit = LIMITS.get_skills.default}) {
+    return await query(
         `
         SELECT s.skill, st.skill_type, s.is_proficient
         FROM ${SCHEMA}.dim_skill s
@@ -99,15 +120,13 @@ export async function get_skills({skill_type, proficient_only = false, limit = 1
         `,
         [skill_type || null, proficient_only, limit],
     );
-
-    return rows;
 }
 
 /**
  * The two small lookup dimensions, returned together: neither is much use without the
  * other to a caller trying to learn what values the other tools' filters accept.
  */
-export async function list_lookups() {
+async function list_lookups() {
     const [skill_types, support_statuses] = await Promise.all([
         query(
             `SELECT skill_type FROM ${SCHEMA}.dim_skill_type
@@ -120,7 +139,57 @@ export async function list_lookups() {
     ]);
 
     return {
-        skill_types: skill_types.rows.map((row) => row.skill_type),
-        support_statuses: support_statuses.rows.map((row) => row.support_status),
+        skill_types: skill_types.map((row) => row.skill_type),
+        support_statuses: support_statuses.map((row) => row.support_status),
     };
 }
+
+export const TOOLS = [
+    {
+        name: 'search_applications',
+        title: 'Search applications',
+        description:
+            'Keyword search over portfolio project titles and descriptions. Omit the ' +
+            'query to list the most recent projects.',
+        input_schema: {
+            query: z.string().optional().describe('Text to match against title/description'),
+            limit: limit_schema('search_applications'),
+        },
+        handler: search_applications,
+    },
+    {
+        name: 'search_applications_semantic',
+        title: 'Semantic search applications',
+        description:
+            'Conceptual search over portfolio projects using the same pgvector index the ' +
+            'site\'s AI chat uses. Better than keyword search for questions like "what did ' +
+            'he build involving background jobs".',
+        input_schema: {
+            query: z.string().describe('Natural-language description of what to find'),
+            limit: limit_schema('search_applications_semantic'),
+        },
+        handler: search_applications_semantic,
+    },
+    {
+        name: 'get_skills',
+        title: 'Get skills',
+        description:
+            'List skills, optionally filtered by skill type or to proficient ones only. ' +
+            'Call list_lookups for the valid skill_type values.',
+        input_schema: {
+            skill_type: z.string().optional().describe('Exact skill type, e.g. "Database"'),
+            proficient_only: z.boolean().optional(),
+            limit: limit_schema('get_skills'),
+        },
+        handler: get_skills,
+    },
+    {
+        name: 'list_lookups',
+        title: 'List lookup values',
+        description:
+            'List every skill type and support status used across the portfolio. Useful ' +
+            'for discovering the values the other tools accept as filters.',
+        input_schema: {},
+        handler: list_lookups,
+    },
+];

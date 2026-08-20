@@ -1,20 +1,26 @@
-import {config} from 'dotenv';
+import {config as load_dotenv} from 'dotenv';
 import {fileURLToPath} from 'url';
 
 /**
- * Loads .env, and exists as its own module purely to control *when* that happens.
+ * Loads .env and provides the accessors config.js reads it through. It exists as its
+ * own module purely to control *when* the load happens.
  *
  * ES modules evaluate every static import before the importing file's own top-level
  * code, so calling dotenv at the top of server.js would still run after the whole
  * import graph — including anything that reads process.env at module scope — had
- * already been evaluated. Importing this module first from database.js instead makes
- * the ordering explicit and correct: a module's imports are evaluated in source order.
+ * already been evaluated. Importing this module first from config.js instead makes the
+ * ordering explicit and correct: a module's imports are evaluated in source order.
  *
  * The path is resolved relative to this file rather than process.cwd() because MCP
  * clients (Claude Desktop) spawn the server with an arbitrary working directory.
  */
-config({path: fileURLToPath(new URL('../.env', import.meta.url))});
+load_dotenv({path: fileURLToPath(new URL('../.env', import.meta.url))});
 
+/**
+ * A variable the server cannot start without. Missing means exit rather than throw:
+ * these are all read at import time, so there is no request in flight to fail and a
+ * clear one-line reason in the client's log is more use than a stack trace.
+ */
 export function require_env(name) {
     const value = process.env[name];
 
@@ -29,4 +35,9 @@ export function require_env(name) {
     }
 
     return value;
+}
+
+/** A variable with a working default. Returns undefined when unset. */
+export function optional_env(name) {
+    return process.env[name] || undefined;
 }

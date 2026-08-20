@@ -31,6 +31,11 @@ cp .env.example .env   # then fill in SUPABASE_DB_URL and OPENAI_API_KEY
 npm run smoke-test     # verifies it connects and every tool returns
 ```
 
+Everything configurable lives in `src/config.js` — the two required secrets, the
+optional TLS overrides, the Postgres schema and pool sizing, the embedding model, and
+each tool's default and maximum result count. It is the only module that reads
+`process.env`, so that file plus `.env.example` is the whole configuration surface.
+
 ## Tools
 
 | Tool | Purpose |
@@ -90,4 +95,6 @@ A related subtlety: `src/env.js` exists only to make dotenv run at the right *ti
 modules evaluate all static imports before the importing file's own code, so calling
 `dotenv.config()` at the top of `server.js` would still happen after the entire import
 graph had been evaluated — and after anything that reads `process.env` at module scope
-had already read it as undefined.
+had already read it as undefined. `src/config.js` imports `env.js` first and is itself
+imported by every other module, so the correct ordering now falls out of the module
+graph rather than depending on anyone remembering it.
