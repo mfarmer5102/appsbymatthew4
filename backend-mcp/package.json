@@ -1,0 +1,30 @@
+{
+  "name": "portfolio-mcp-server",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Standalone MCP server exposing the appsbymatthew portfolio as tools",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "inspect": "npx @modelcontextprotocol/inspector node server.js",
+    "smoke-test": "node scripts/smoke_test.js"
+  },
+  "keywords": [
+    "mcp",
+    "portfolio",
+    "postgres",
+    "supabase"
+  ],
+  "author": "Matthew Farmer",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "dotenv": "^16.6.1",
+    "openai": "^6.18.0",
+    "pg": "^8.23.0",
+    "zod": "^4.4.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
