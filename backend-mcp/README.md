@@ -5,8 +5,9 @@ tools, so an MCP client (Claude Desktop, the MCP Inspector) can query it directl
 
 It is a standalone service with its own dependencies. It reads the same Supabase
 database as `backend/`, **read-only**, but shares no code with it — the pieces it needs
-are copied into `src/` rather than imported across directory boundaries, so this
-directory can be deployed or moved on its own.
+are reimplemented under `src/` rather than imported across directory boundaries, so this
+directory can be deployed or moved on its own. The class names and layout deliberately
+echo `backend/src/_library/classes/`, so the two read the same way.
 
 ## How it differs from `backend/`
 
@@ -31,10 +32,43 @@ cp .env.example .env   # then fill in SUPABASE_DB_URL and OPENAI_API_KEY
 npm run smoke-test     # verifies it connects and every tool returns
 ```
 
-Everything configurable lives in `src/config.js` — the two required secrets, the
-optional TLS overrides, the Postgres schema and pool sizing, the embedding model, and
-each tool's default and maximum result count. It is the only module that reads
-`process.env`, so that file plus `.env.example` is the whole configuration surface.
+Everything configurable lives in the `Configuration` class
+(`src/_library/classes/configuration.js`) — the two required secrets, the optional TLS
+overrides, the Postgres schema and pool sizing, the embedding model, and each tool's
+default and maximum result count. Nothing else reads `process.env`, so that class plus
+`.env.example` is the whole configuration surface.
+
+## Layout
+
+Classes, wired together in one place, so a tool can be constructed against a stub rather
+than reaching for a module singleton.
+
+```
+server.js                    picks a transport, starts the server
+src/_library/classes/        the reusable pieces, none of them portfolio-specific
+  environment.js             Environment    - loads .env, reads/validates variables
+  configuration.js           Configuration  - every setting, resolved once
+  postgres.js                PostgresConfig - pool, TLS, type parsers, query()
+  openai.js                  OpenAIConfig   - embeddings (no chat model here)
+  repository.js              Repository     - base for the data layer
+  tool.js                    Tool           - base for a tool: schema, envelope, register
+  tool_catalog.js            ToolCatalog    - the set of tools, rejects duplicate names
+  mcp_server.js              PortfolioMcpServer - registration, signals, shutdown
+src/repositories/            one class per part of the star schema; owns the SQL
+src/tools/                   one class per tool; owns the description and input schema
+src/configuration/
+  container.js               Container - the composition root; builds everything
+  index.js                   the one Container instance the running server uses
+```
+
+`Tool` subclasses take their repositories through the constructor and implement
+`execute()`; the base class handles the MCP content envelope and error reporting, so
+`server.js` never learns what tools exist. Adding a tool is a class under `src/tools/`
+and one entry in `Container#tool_catalog`.
+
+`Container` is the only place wiring lives — nothing below it imports a singleton, and
+its members are built lazily on first use, so a test can construct its own container
+(passing a stub `Environment`) without opening a pool or an OpenAI client.
 
 ## Tools
 
@@ -91,10 +125,11 @@ cert — silently fails there while working fine when run by hand. Everything he
 resolves against `import.meta.url` instead, and `npm run smoke-test` runs the server
 from `/` specifically to keep that honest.
 
-A related subtlety: `src/env.js` exists only to make dotenv run at the right *time*. ES
-modules evaluate all static imports before the importing file's own code, so calling
-`dotenv.config()` at the top of `server.js` would still happen after the entire import
-graph had been evaluated — and after anything that reads `process.env` at module scope
-had already read it as undefined. `src/config.js` imports `env.js` first and is itself
-imported by every other module, so the correct ordering now falls out of the module
-graph rather than depending on anyone remembering it.
+A related subtlety: `Environment` loads dotenv in its constructor, which is what makes it
+run at the right *time*. ES modules evaluate all static imports before the importing
+file's own code, so calling `dotenv.config()` at the top of `server.js` would still
+happen after the entire import graph had been evaluated — and after anything reading
+`process.env` at module scope had already read it as undefined. Nothing here reads
+`process.env` at module scope: every read goes through the `Configuration` that
+`Container` builds immediately after its `Environment`, so the ordering is a matter of
+construction order in one constructor rather than of the module graph.
