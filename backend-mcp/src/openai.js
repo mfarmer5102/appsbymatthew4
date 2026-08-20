@@ -4,13 +4,8 @@ import OpenAI from 'openai';
 
 const client = new OpenAI({apiKey: OPENAI.api_key});
 
-/**
- * Embed a query string for pgvector similarity search.
- *
- * This server only ever embeds; it does not generate completions. The chat completion
- * lives in backend/ behind /api/chat, and here the *client* (Claude Desktop) is the
- * model — it calls these tools and writes the answer itself.
- */
+// This server only embeds, never completes: the client (Claude Desktop) is the model,
+// and writes the answer itself from the rows these tools return.
 export async function generate_embedding(text) {
     const response = await client.embeddings.create({
         model: OPENAI.embedding_model,

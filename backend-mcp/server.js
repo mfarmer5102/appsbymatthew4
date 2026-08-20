@@ -1,12 +1,6 @@
-// Entry point for the portfolio MCP server. Speaks JSON-RPC over stdio, so it is
-// launched by an MCP client (Claude Desktop, the Inspector) rather than run by hand -
-// started directly from a shell it simply waits on stdin forever.
-//
-// Everything specific to a tool - its description, inputs and query - lives in
-// src/tools.js; this file only wires that catalog to a transport.
-//
-// Note there is no dotenv call here: src/config.js imports src/env.js before it reads
-// process.env, which is what makes the ordering correct. See the note in env.js.
+// Entry point. Speaks JSON-RPC over stdio, so an MCP client launches it — run from a
+// shell it just waits on stdin forever, which is not a hang. Everything tool-specific
+// lives in src/tools.js; this file only wires that catalog to a transport.
 import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js';
 
@@ -16,12 +10,8 @@ import {close as close_database} from './src/database.js';
 
 const server = new McpServer(SERVER);
 
-/**
- * Wrap a handler's return value in MCP's content envelope.
- *
- * Errors are reported with isError so the calling model sees what went wrong and can
- * retry or say so, rather than the exception killing the whole stdio connection.
- */
+// Wrap a handler's return value in MCP's content envelope. isError reports the failure
+// to the calling model instead of letting the exception kill the stdio connection.
 function tool_handler(handler) {
     return async (args) => {
         try {
@@ -45,8 +35,7 @@ for (const {name, title, description, input_schema, handler} of TOOLS) {
     );
 }
 
-// Close the pool on shutdown so the client does not leave a connection dangling
-// against Supabase's pooler when it restarts the server.
+// Don't leave a connection dangling against the pooler when the client restarts us.
 for (const signal of ['SIGINT', 'SIGTERM']) {
     process.on(signal, async () => {
         await close_database().catch(() => {});

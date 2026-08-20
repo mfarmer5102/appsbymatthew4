@@ -1,17 +1,16 @@
-// The tool catalog: each entry carries its own description, input schema and handler,
-// so adding a tool means adding one object here and nothing in server.js.
+// Tool catalog: description, schema and handler travel together, so adding a tool means
+// adding one object to TOOLS below and nothing in server.js.
 import {z} from 'zod';
 
 import {query} from './database.js';
 import {generate_embedding} from './openai.js';
 import {DATABASE, OPENAI, LIMITS} from './config.js';
 
-// Aliased because it is interpolated into nearly every line of SQL below.
+// Aliased — it is interpolated into nearly every query below.
 const {schema: SCHEMA} = DATABASE;
 
-// Skills and repository URLs live in bridge tables with no ordinal column, so their
-// original order is not recoverable; both are aggregated in name order for stable
-// output. Shared by both search tools so their results have the same shape.
+// Shared by both search tools so their rows have the same shape. The bridge tables have
+// no ordinal column, so skills and repository URLs are aggregated in name order.
 const APPLICATION_PROJECTION = `
     a.title,
     a.description,
@@ -39,11 +38,7 @@ const APPLICATION_JOINS = `
     ) rp ON TRUE
 `;
 
-/**
- * The `limit` input every tool that returns a list shares. The ceiling is enforced here
- * rather than in the handler so an oversized request is rejected by the SDK before any
- * query runs; the matching default is applied by the handler.
- */
+// The `limit` input shared by every list tool. See LIMITS in config.js.
 const limit_schema = (tool_name) =>
     z
         .number()
@@ -53,11 +48,7 @@ const limit_schema = (tool_name) =>
         .optional()
         .describe(`Maximum rows to return (default ${LIMITS[tool_name].default})`);
 
-/**
- * Keyword search over application title/description. Cheap and exact-ish - good for
- * "do I have an app called X". Omitting the query returns the most recent projects,
- * which is how a caller browses rather than searches.
- */
+// Omitting the query lists the most recent projects, which is how a caller browses.
 async function search_applications({query: search_text, limit = LIMITS.search_applications.default}) {
     return await query(
         `
@@ -75,14 +66,9 @@ async function search_applications({query: search_text, limit = LIMITS.search_ap
     );
 }
 
-/**
- * Vector similarity search over the same pgvector index the site's /api/chat uses.
- *
- * Reports 1 - cosine_distance so `score` reads as a similarity in roughly the 0-1
- * range. Unlike the chat endpoint's version this lets errors propagate: there the
- * search degrades to a generic answer, whereas an MCP tool should tell its caller
- * plainly that the search failed rather than silently returning nothing.
- */
+// Same pgvector index the site's /api/chat uses. Reports 1 - cosine_distance so `score`
+// reads as a 0-1 similarity. Errors propagate: unlike chat, which degrades to a generic
+// answer, a tool should tell its caller the search failed rather than return nothing.
 async function search_applications_semantic({
     query: search_text,
     limit = LIMITS.search_applications_semantic.default,
@@ -122,10 +108,7 @@ async function get_skills({skill_type, proficient_only = false, limit = LIMITS.g
     );
 }
 
-/**
- * The two small lookup dimensions, returned together: neither is much use without the
- * other to a caller trying to learn what values the other tools' filters accept.
- */
+// Returned together: a caller learning what the filters accept wants both.
 async function list_lookups() {
     const [skill_types, support_statuses] = await Promise.all([
         query(

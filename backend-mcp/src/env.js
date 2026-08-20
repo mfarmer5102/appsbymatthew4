@@ -1,32 +1,21 @@
 import {config as load_dotenv} from 'dotenv';
 import {fileURLToPath} from 'url';
 
-/**
- * Loads .env and provides the accessors config.js reads it through. It exists as its
- * own module purely to control *when* the load happens.
- *
- * ES modules evaluate every static import before the importing file's own top-level
- * code, so calling dotenv at the top of server.js would still run after the whole
- * import graph — including anything that reads process.env at module scope — had
- * already been evaluated. Importing this module first from config.js instead makes the
- * ordering explicit and correct: a module's imports are evaluated in source order.
- *
- * The path is resolved relative to this file rather than process.cwd() because MCP
- * clients (Claude Desktop) spawn the server with an arbitrary working directory.
- */
+// Its own module purely to control *when* dotenv runs. ESM evaluates a module's imports
+// before its own top-level code, so calling dotenv in server.js would happen after the
+// whole import graph had already read process.env. config.js imports this first.
+//
+// Path is relative to this file, not process.cwd(): MCP clients spawn the server from
+// an arbitrary working directory.
 load_dotenv({path: fileURLToPath(new URL('../.env', import.meta.url))});
 
-/**
- * A variable the server cannot start without. Missing means exit rather than throw:
- * these are all read at import time, so there is no request in flight to fail and a
- * clear one-line reason in the client's log is more use than a stack trace.
- */
+// Exit rather than throw: these are read at import time, so there is no request to fail
+// and a one-line reason is more use than a stack trace. stderr, not stdout — stdout is
+// the JSON-RPC channel, and clients surface stderr in their logs.
 export function require_env(name) {
     const value = process.env[name];
 
     if (!value) {
-        // stderr, not stdout: stdout is the JSON-RPC channel and any stray write there
-        // corrupts the protocol stream. MCP clients surface stderr in their logs.
         console.error(
             `Missing required environment variable ${name}. Copy .env.example to ` +
             `backend-mcp/.env and fill it in.`,
@@ -37,7 +26,6 @@ export function require_env(name) {
     return value;
 }
 
-/** A variable with a working default. Returns undefined when unset. */
 export function optional_env(name) {
     return process.env[name] || undefined;
 }
