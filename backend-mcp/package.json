@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "inspect": "npx @modelcontextprotocol/inspector node server.js",
-    "smoke-test": "node scripts/smoke_test.js"
+    "smoke-test": "node scripts/smoke_test.js",
+    "lambda-test": "node scripts/lambda_test.js"
   },
   "keywords": [
     "mcp",
@@ -18,6 +19,7 @@
   "author": "Matthew Farmer",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.721.0",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "dotenv": "^16.6.1",
     "openai": "^6.18.0",

@@ -44,21 +44,24 @@ Classes, wired together in one place, so a tool can be constructed against a stu
 than reaching for a module singleton.
 
 ```
-server.js                    picks a transport, starts the server
+server.js                    stdio entry point - picks a transport, starts the server
+_aws_lambda.mjs              Lambda entry point - Streamable HTTP over one request/response
 src/_library/classes/        the reusable pieces, none of them portfolio-specific
-  environment.js             Environment    - loads .env, reads/validates variables
+  environment.js             Environment    - loads .env or resolved secrets, reads/validates
   configuration.js           Configuration  - every setting, resolved once
   postgres.js                PostgresConfig - pool, TLS, type parsers, query()
   openai.js                  OpenAIConfig   - embeddings (no chat model here)
   repository.js              Repository     - base for the data layer
   tool.js                    Tool           - base for a tool: schema, envelope, register
   tool_catalog.js            ToolCatalog    - the set of tools, rejects duplicate names
-  mcp_server.js              PortfolioMcpServer - registration, signals, shutdown
+  mcp_server.js              PortfolioMcpServer - stdio registration, signals, shutdown
+  secrets.js                 SecretConfig   - Secrets Manager, used only in Lambda
 src/repositories/            one class per part of the star schema; owns the SQL
 src/tools/                   one class per tool; owns the description and input schema
 src/configuration/
   container.js               Container - the composition root; builds everything
-  index.js                   the one Container instance the running server uses
+  index.js                    the one Container instance server.js (stdio) uses
+  secrets.js                  resolves SecretConfig once, at module scope, for Lambda
 ```
 
 `Tool` subclasses take their repositories through the constructor and implement
@@ -80,6 +83,10 @@ its members are built lazily on first use, so a test can construct its own conta
 | `list_lookups` | Every skill type and support status — how a caller discovers valid filter values. |
 
 ## Running it
+
+There are two entry points, one per transport — a client picks which one it can reach.
+
+### Locally: stdio
 
 The server speaks JSON-RPC over **stdio**, so it is launched by a client rather than run
 by hand. `node server.js` on its own just waits on stdin forever; that is not a hang.
@@ -108,6 +115,45 @@ reopen the app:
 
 Absolute paths are required — the client does not resolve relative ones, and does not
 run the server from this directory.
+
+### Lambda: Streamable HTTP
+
+`_aws_lambda.mjs` exports `handle_lambda_request`, for a remote MCP client that speaks
+HTTP instead of spawning a process — the MCP Inspector's remote mode, or a hosted client
+that only takes a URL. It's a separate entry point, not a fork of the stdio one: Lambda
+hands it one event per invocation rather than a persistent stdin, and there is no
+guarantee two requests land on the same instance, so there is nowhere to keep an
+in-memory MCP session between them the way a long-lived process would. Every invocation
+therefore builds a fresh `McpServer`, registers the same `Container#tool_catalog` onto
+it, and opens `WebStandardStreamableHTTPServerTransport` in **stateless mode**
+(`sessionIdGenerator: undefined`, `enableJsonResponse: true`) — no session to validate,
+no SSE stream to keep open past the one buffered response Lambda returns. The Postgres
+pool and OpenAI client stay `Container` singletons, so they survive a warm start; only
+the per-request MCP plumbing is rebuilt.
+
+Secrets work differently here too. Locally, `Environment` loads `backend-mcp/.env`.
+Lambda has no `.env`, so `src/configuration/secrets.js` resolves `SUPABASE_DB_URL` and
+`OPENAI_API_KEY` from AWS Secrets Manager's `prd-secrets` secret at module scope (a
+top-level `await`, so it finishes before `Container` is built) and hands the result to
+`Container` as `secrets`; `Environment` checks that object before `process.env`. This
+mirrors `backend/src/configuration/secrets.js` — reimplemented, not imported, for the
+same reason the rest of this directory is: it stays deployable on its own.
+
+```bash
+npm run lambda-test   # invokes handle_lambda_request directly with a fake API Gateway event
+```
+
+Deployed the same way as `backend/`: `dockerfiles/DockerfileLambda` builds a container
+image (`public.ecr.aws/lambda/nodejs:20`, `CMD` set to
+`_aws_lambda.handle_lambda_request`), and
+`.github/workflows/backend-mcp-awsecr.yml` pushes it to ECR and repoints a Lambda
+function at the new image on every push to `main` that touches this directory. That
+Lambda function, its ECR repository, and whatever fronts it with a URL (a Function URL
+or an API Gateway route) need to exist first — this workflow only updates the image.
+
+There is no auth in front of it, same as the rest of this directory — every tool is a
+read-only `SELECT` over public portfolio data, the same data the site's unprotected
+`GET /api/*` routes already serve.
 
 ## Gotchas worth knowing
 

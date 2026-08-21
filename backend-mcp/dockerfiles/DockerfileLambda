@@ -1,0 +1,10 @@
+FROM public.ecr.aws/lambda/nodejs:20
+
+COPY ./backend-mcp ${LAMBDA_TASK_ROOT}
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+RUN npm install --omit=dev
+
+# Set the CMD to your handler (could also be done as a parameter override outside of the
+# Dockerfile, as backend/dockerfiles/DockerfileLambda does).
+CMD [ "_aws_lambda.handle_lambda_request" ]

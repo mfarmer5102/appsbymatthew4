@@ -1,0 +1,63 @@
+# Builds and pushes backend-mcp's Lambda image to ECR, then points the MCP Lambda
+# function at the new image. Mirrors backend-awsecr.yml - see that file for the
+# one-time AWS setup steps (ECR repo, IAM user access key in Actions secrets).
+#
+# Requires a Lambda function already created for the MCP server (function URL or an
+# API Gateway route in front of it) and an ECR repository for its image, both named
+# below.
+
+name: Backend MCP - AWS ECR
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'backend-mcp/**'
+      - '.github/workflows/backend-mcp-awsecr.yml'
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: appsbymatthew4-mcp
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: latest
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f backend-mcp/dockerfiles/DockerfileLambda .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    - name: Update Lambda to use latest image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: latest
+      run: |
+        aws lambda update-function-code \
+        --function-name appsByMatthew4_mcpServer \
+        --image-uri $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG

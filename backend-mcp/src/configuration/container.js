@@ -24,8 +24,10 @@ export class Container {
     #instances = new Map();
 
     // Constructing the Environment loads .env, before the Configuration reads any of it.
-    constructor({dotenv_path = DOTENV_PATH, environment = null} = {}) {
-        this.environment = environment ?? new Environment(dotenv_path);
+    // `secrets` is a resolved SecretConfig, passed by _aws_lambda.mjs - see
+    // src/configuration/secrets.js and Environment.
+    constructor({dotenv_path = DOTENV_PATH, environment = null, secrets = null} = {}) {
+        this.environment = environment ?? new Environment(dotenv_path, secrets);
         this.config = new Configuration(this.environment);
     }
 
