@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="How the backend-mcp server routes a tool call from stdio JSON-RPC through the catalog, tools, and repositories to Supabase.">
+<style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; }
+    img, svg { vertical-align: middle; }
+    table { border-collapse: collapse; }
+</style>
+<title>Portfolio MCP Server</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+
+<style>
+    :root {
+        --ground: #F3F4F6;
+        --panel: #FFFFFF;
+        --ink: #14181D;
+        --ink-soft: #4E5865;
+        --ink-faint: #808B99;
+        --rule: #D3D8DE;
+        --rule-soft: #E4E8EC;
+        --wire: #0E6A70;
+        --wire-soft: #D9EBEB;
+        --outbound: #A2610C;
+        --outbound-soft: #F4E7D2;
+        --shadow: 0 1px 2px rgba(20, 24, 29, .06), 0 8px 24px rgba(20, 24, 29, .05);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+            --ground: #0E1216;
+            --panel: #161B21;
+            --ink: #E7EBEF;
+            --ink-soft: #A6B0BC;
+            --ink-faint: #74808D;
+            --rule: #2C343D;
+            --rule-soft: #222931;
+            --wire: #4FBFC4;
+            --wire-soft: #143133;
+            --outbound: #E0A458;
+            --outbound-soft: #33260F;
+            --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .3);
+        }
+    }
+
+    :root[data-theme="dark"] {
+        --ground: #0E1216;
+        --panel: #161B21;
+        --ink: #E7EBEF;
+        --ink-soft: #A6B0BC;
+        --ink-faint: #74808D;
+        --rule: #2C343D;
+        --rule-soft: #222931;
+        --wire: #4FBFC4;
+        --wire-soft: #143133;
+        --outbound: #E0A458;
+        --outbound-soft: #33260F;
+        --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .3);
+    }
+
+    body {
+        background: var(--ground);
+        color: var(--ink);
+        font-family: "Source Serif 4", Georgia, serif;
+        font-size: 17px;
+        line-height: 1.62;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 64px 24px 96px;
+        display: flex;
+        flex-direction: column;
+        gap: 56px;
+    }
+
+    .prose {
+        max-width: 66ch;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    h1, h2, h3, .eyebrow, .chip, th {
+        font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    h1 {
+        font-size: clamp(2.1rem, 5vw, 3rem);
+        font-weight: 700;
+        letter-spacing: -.025em;
+        line-height: 1.05;
+        text-wrap: balance;
+        margin-bottom: 4px;
+    }
+
+    h2 {
+        font-size: 1.35rem;
+        font-weight: 600;
+        letter-spacing: -.012em;
+        text-wrap: balance;
+    }
+
+    h3 {
+        font-size: .95rem;
+        font-weight: 600;
+        letter-spacing: -.005em;
+    }
+
+    .eyebrow {
+        font-size: .72rem;
+        font-weight: 600;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+        color: var(--wire);
+    }
+
+    .lede {
+        font-size: 1.12rem;
+        color: var(--ink-soft);
+    }
+
+    code, .mono {
+        font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+        font-size: .86em;
+    }
+
+    code {
+        background: var(--rule-soft);
+        border-radius: 3px;
+        padding: .1em .34em;
+    }
+
+    section {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+    }
+
+    hr {
+        border: 0;
+        border-top: 1px solid var(--rule);
+        margin: 0;
+    }
+
+    figure {
+        margin: 0;
+        background: var(--panel);
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        box-shadow: var(--shadow);
+        padding: 26px 26px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow-x: auto;
+    }
+
+    figure svg {
+        display: block;
+        width: 100%;
+        min-width: 560px;
+        height: auto;
+        color: var(--ink);
+    }
+
+    figcaption {
+        font-size: .88rem;
+        color: var(--ink-soft);
+        border-top: 1px solid var(--rule-soft);
+        padding-top: 14px;
+        max-width: 76ch;
+    }
+
+    .box-fill { fill: var(--panel); }
+    .box-line { stroke: var(--rule); }
+    .zone { fill: none; stroke: var(--rule); stroke-dasharray: 3 4; }
+    .zone-label { fill: var(--ink-faint); }
+    .flow { stroke: currentColor; fill: none; }
+    .flow-out { stroke: var(--outbound); fill: none; }
+    .t { fill: currentColor; font-family: Archivo, Arial, sans-serif; }
+    .m { fill: var(--ink-soft); font-family: "JetBrains Mono", monospace; }
+    .accent { fill: var(--wire); }
+    .accent-line { stroke: var(--wire); fill: none; }
+    .out { fill: var(--outbound); }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: .92rem;
+    }
+
+    th {
+        text-align: left;
+        font-size: .7rem;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        font-weight: 600;
+        padding: 0 14px 8px 0;
+        border-bottom: 1px solid var(--rule);
+    }
+
+    td {
+        padding: 13px 14px 13px 0;
+        border-bottom: 1px solid var(--rule-soft);
+        vertical-align: top;
+        color: var(--ink-soft);
+    }
+
+    td:first-child {
+        color: var(--ink);
+        white-space: nowrap;
+    }
+
+    td.num {
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    .notes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1px;
+        background: var(--rule);
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .notes > div {
+        background: var(--panel);
+        padding: 18px 20px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .notes p {
+        font-size: .9rem;
+        color: var(--ink-soft);
+        margin: 0;
+    }
+
+    footer {
+        font-size: .82rem;
+        color: var(--ink-faint);
+    }
+</style>
+
+</head>
+<body>
+
+<div class="page">
+
+    <header class="prose">
+        <div class="eyebrow">backend-mcp</div>
+        <h1>Portfolio MCP Server</h1>
+        <p class="lede">A standalone Node process that hands an MCP client four read-only
+            tools over the portfolio's Postgres star schema. It speaks JSON-RPC on stdin
+            and stdout, so the client launches it — there is no port and no HTTP.</p>
+    </header>
+
+    <hr>
+
+    <section>
+        <div class="prose">
+            <h2>What happens when a model calls a tool</h2>
+            <p>Every call lands on the same five-stage path. The only branch is the
+                semantic tool, which buys a vector from OpenAI before it can query.</p>
+        </div>
+
+        <figure>
+            <svg viewBox="0 0 1000 400" role="img" aria-label="A tool call travels from the MCP client over stdio JSON-RPC into the server, through the tool catalog to one tool, into a repository, and out to Supabase Postgres; the semantic tool first calls OpenAI to embed the query.">
+                <defs>
+                    <marker id="a1" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto">
+                        <polygon points="0,0 10,4 0,8" fill="currentColor"></polygon>
+                    </marker>
+                    <marker id="a2" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto">
+                        <polygon points="0,0 10,4 0,8" fill="#A2610C"></polygon>
+                    </marker>
+                </defs>
+
+                <!-- process boundary -->
+                <rect class="zone" x="238" y="34" width="612" height="252" rx="4"></rect>
+                <text class="t zone-label" x="248" y="54" font-size="11" letter-spacing="1.4">NODE PROCESS · spawned by the client</text>
+
+                <!-- client -->
+                <rect class="box-fill box-line" x="24" y="118" width="156" height="76" rx="3"></rect>
+                <text class="t" x="102" y="150" font-size="14" font-weight="600" text-anchor="middle">MCP client</text>
+                <text class="m" x="102" y="170" font-size="11" text-anchor="middle">Claude Desktop</text>
+
+                <!-- stdio -->
+                <line class="flow" x1="180" y1="144" x2="256" y2="144" stroke-width="1.5" marker-end="url(#a1)"></line>
+                <text class="m" x="218" y="134" font-size="10.5" text-anchor="middle">stdin</text>
+                <line class="flow" x1="256" y1="172" x2="184" y2="172" stroke-width="1.5" marker-end="url(#a1)"></line>
+                <text class="m" x="218" y="192" font-size="10.5" text-anchor="middle">stdout</text>
+                <text class="m accent" x="218" y="104" font-size="10.5" text-anchor="middle">JSON-RPC</text>
+
+                <!-- server -->
+                <rect class="box-fill box-line" x="266" y="106" width="150" height="100" rx="3"></rect>
+                <text class="t" x="341" y="136" font-size="13.5" font-weight="600" text-anchor="middle">McpServer</text>
+                <text class="m" x="341" y="156" font-size="10.5" text-anchor="middle">+ StdioTransport</text>
+                <line x1="286" y1="168" x2="396" y2="168" class="box-line"></line>
+                <text class="m" x="341" y="188" font-size="10.5" text-anchor="middle">ToolCatalog</text>
+
+                <!-- catalog to tool -->
+                <line class="flow" x1="416" y1="156" x2="490" y2="156" stroke-width="1.5" marker-end="url(#a1)"></line>
+                <text class="m" x="453" y="146" font-size="10.5" text-anchor="middle">dispatch</text>
+
+                <!-- tool -->
+                <rect class="box-fill box-line" x="500" y="94" width="164" height="124" rx="3"></rect>
+                <text class="t" x="582" y="122" font-size="13.5" font-weight="600" text-anchor="middle">Tool.call()</text>
+                <text class="m" x="582" y="143" font-size="10.5" text-anchor="middle">zod validates args</text>
+                <text class="m" x="582" y="161" font-size="10.5" text-anchor="middle">limit capped at max</text>
+                <text class="m" x="582" y="179" font-size="10.5" text-anchor="middle">execute()</text>
+                <text class="m" x="582" y="199" font-size="10.5" text-anchor="middle">wraps JSON in text</text>
+
+                <!-- tool to repo -->
+                <line class="flow" x1="664" y1="156" x2="738" y2="156" stroke-width="1.5" marker-end="url(#a1)"></line>
+                <text class="m" x="701" y="146" font-size="10.5" text-anchor="middle">args</text>
+
+                <!-- repository -->
+                <rect class="box-fill box-line" x="748" y="118" width="86" height="76" rx="3"></rect>
+                <text class="t" x="791" y="150" font-size="13" font-weight="600" text-anchor="middle">Repo</text>
+                <text class="m" x="791" y="170" font-size="10.5" text-anchor="middle">SQL</text>
+
+                <!-- repo to db -->
+                <line class="flow" x1="834" y1="156" x2="898" y2="156" stroke-width="1.5" marker-end="url(#a1)"></line>
+
+                <!-- database -->
+                <rect class="box-fill box-line" x="908" y="106" width="80" height="100" rx="3"></rect>
+                <text class="t" x="948" y="134" font-size="12.5" font-weight="600" text-anchor="middle">Supabase</text>
+                <text class="m" x="948" y="152" font-size="10.5" text-anchor="middle">pooler</text>
+                <text class="m" x="948" y="176" font-size="10" text-anchor="middle">pool max 3</text>
+                <text class="m" x="948" y="192" font-size="10" text-anchor="middle">TLS · own CA</text>
+
+                <!-- OpenAI branch -->
+                <path class="flow-out" d="M 582 218 L 582 296 L 738 296" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a2)"></path>
+                <text class="m out" x="600" y="288" font-size="10.5">semantic tool only</text>
+                <rect class="box-fill" x="748" y="270" width="150" height="52" rx="3" stroke="#A2610C"></rect>
+                <text class="t out" x="823" y="292" font-size="12.5" font-weight="600" text-anchor="middle">OpenAI embeddings</text>
+                <text class="m out" x="823" y="310" font-size="10" text-anchor="middle">text-embedding-3-small</text>
+                <path class="flow-out" d="M 823 322 L 823 348 L 948 348 L 948 212" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a2)"></path>
+                <text class="m out" x="884" y="366" font-size="10.5" text-anchor="middle">1536-dim vector → pgvector &lt;=&gt; search</text>
+
+                <!-- return path -->
+                <path class="flow accent-line" d="M 948 106 L 948 72 L 341 72 L 341 106" stroke-width="1.5" marker-end="url(#a1)" opacity=".85"></path>
+                <text class="m accent" x="644" y="64" font-size="10.5" text-anchor="middle">rows → JSON text content, or isError: true</text>
+            </svg>
+            <figcaption>The stdio pipe is the whole API surface. Nothing inside the process
+                listens on a socket, and a thrown error is caught in <code>Tool.call()</code>
+                and returned as an <code>isError</code> envelope — an uncaught throw would
+                take down the transport and the client's connection with it.</figcaption>
+        </figure>
+    </section>
+
+    <section>
+        <div class="prose">
+            <h2>How the objects get built</h2>
+            <p>One composition root wires everything. No class below it imports a
+                singleton, so a test constructs its own <code>Container</code> and gets its
+                own pool.</p>
+        </div>
+
+        <figure>
+            <svg viewBox="0 0 1000 372" role="img" aria-label="The Container builds Environment and Configuration eagerly, then lazily builds Postgres and OpenAI clients, three repositories, four tools, and the tool catalog handed to the server.">
+                <defs>
+                    <marker id="a3" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="6" orient="auto">
+                        <polygon points="0,0 10,4 0,8" fill="currentColor" opacity=".65"></polygon>
+                    </marker>
+                </defs>
+
+                <text class="t zone-label" x="16" y="26" font-size="11" letter-spacing="1.4">EAGER · in the constructor</text>
+                <text class="t zone-label" x="16" y="150" font-size="11" letter-spacing="1.4">LAZY · built on first access, then memoized</text>
+
+                <!-- eager row -->
+                <rect class="box-fill box-line" x="16" y="40" width="176" height="62" rx="3"></rect>
+                <text class="t" x="104" y="66" font-size="13" font-weight="600" text-anchor="middle">Environment</text>
+                <text class="m" x="104" y="86" font-size="10.5" text-anchor="middle">loads .env</text>
+
+                <line class="flow" x1="192" y1="71" x2="242" y2="71" stroke-width="1.4" marker-end="url(#a3)" opacity=".65"></line>
+
+                <rect class="box-fill box-line" x="252" y="40" width="196" height="62" rx="3"></rect>
+                <text class="t" x="350" y="66" font-size="13" font-weight="600" text-anchor="middle">Configuration</text>
+                <text class="m" x="350" y="86" font-size="10.5" text-anchor="middle">the only reader of process.env</text>
+
+                <path class="flow" d="M 350 102 L 350 122 L 104 122 L 104 168" stroke-width="1.4" marker-end="url(#a3)" opacity=".65"></path>
+                <path class="flow" d="M 350 102 L 350 122 L 300 122 L 300 168" stroke-width="1.4" marker-end="url(#a3)" opacity=".65"></path>
+                <path class="flow" d="M 350 102 L 350 122 L 596 122 L 596 216" stroke-width="1.4" marker-end="url(#a3)" opacity=".65"></path>
+                <text class="m" x="640" y="140" font-size="10.5">per-tool limits: default + hard max</text>
+
+                <!-- clients -->
+                <rect class="box-fill box-line" x="16" y="168" width="176" height="58" rx="3"></rect>
+                <text class="t" x="104" y="192" font-size="12.5" font-weight="600" text-anchor="middle">PostgresConfig</text>
+                <text class="m" x="104" y="211" font-size="10.5" text-anchor="middle">pool · schema · TLS</text>
+
+                <rect class="box-fill" x="212" y="168" width="176" height="58" rx="3" stroke="#A2610C"></rect>
+                <text class="t out" x="300" y="192" font-size="12.5" font-weight="600" text-anchor="middle">OpenAIConfig</text>
+                <text class="m out" x="300" y="211" font-size="10.5" text-anchor="middle">embeddings only</text>
+
+                <!-- repositories -->
+                <path class="flow" d="M 104 226 L 104 262" stroke-width="1.4" marker-end="url(#a3)" opacity=".65"></path>
+                <rect class="box-fill box-line" x="16" y="262" width="176" height="86" rx="3"></rect>
+                <text class="t" x="104" y="286" font-size="12.5" font-weight="600" text-anchor="middle">Repositories</text>
+                <text class="m" x="104" y="306" font-size="10.5" text-anchor="middle">application</text>
+                <text class="m" x="104" y="322" font-size="10.5" text-anchor="middle">skill</text>
+                <text class="m" x="104" y="338" font-size="10.5" text-anchor="middle">lookup</text>
+
+                <line class="flow" x1="192" y1="305" x2="242" y2="305" stroke-width="1.4" marker-end="url(#a3)" opacity=".65"></line>
+                <path class="flow-out" d="M 300 226 L 300 268 L 386 268" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#a3)" opacity=".8"></path>
+                <text class="m out" x="312" y="260" font-size="10">only the semantic tool</text>
+
+                <!-- tools -->
+                <rect class="box-fill box-line" x="252" y="262" width="196" height="86" rx="3"></rect>
+                <text class="t" x="350" y="286" font-size="12.5" font-weight="600" text-anchor="middle">4 Tool subclasses</text>
+                <text class="m" x="350" y="306" font-size="10.5" text-anchor="middle">name · description</text>
+                <text class="m" x="350" y="322" font-size="10.5" text-anchor="middle">zod input_schema</text>
+                <text class="m" x="350" y="338" font-size="10.5" text-anchor="middle">execute()</text>
+
+                <line class="flow" x1="448" y1="305" x2="506" y2="305" stroke-width="1.4" marker-end="url(#a3)" opacity=".65"></line>
+
+                <!-- catalog -->
+                <rect class="box-fill box-line" x="516" y="262" width="160" height="86" rx="3"></rect>
+                <text class="t" x="596" y="292" font-size="12.5" font-weight="600" text-anchor="middle">ToolCatalog</text>
+                <text class="m" x="596" y="312" font-size="10.5" text-anchor="middle">rejects duplicate</text>
+                <text class="m" x="596" y="328" font-size="10.5" text-anchor="middle">tool names</text>
+
+                <line class="flow accent-line" x1="676" y1="305" x2="736" y2="305" stroke-width="1.5" marker-end="url(#a3)"></line>
+                <text class="m accent" x="706" y="295" font-size="10.5" text-anchor="middle">register_all</text>
+
+                <rect class="box-fill" x="746" y="262" width="238" height="86" rx="3" stroke="#0E6A70"></rect>
+                <text class="t accent" x="865" y="292" font-size="13" font-weight="600" text-anchor="middle">PortfolioMcpServer</text>
+                <text class="m" x="865" y="312" font-size="10.5" text-anchor="middle">start(transport)</text>
+                <text class="m" x="865" y="328" font-size="10.5" text-anchor="middle">SIGINT / SIGTERM → close pool</text>
+
+                <path class="flow" d="M 865 262 L 865 194 L 200 194" stroke-width="1.4" stroke-dasharray="3 4" marker-end="url(#a3)" opacity=".55"></path>
+                <text class="m" x="540" y="186" font-size="10.5" text-anchor="middle">shutdown closes every closable — the pool is the only one</text>
+            </svg>
+            <figcaption><code>server.js</code> touches three things: the container, the
+                server class, and the transport. It never learns which tools exist, so
+                adding one is a class under <code>src/tools/</code> and a single entry in
+                the container.</figcaption>
+        </figure>
+    </section>
+
+    <section>
+        <div class="prose">
+            <h2>The four tools</h2>
+            <p>Limits are enforced twice: the zod schema rejects an oversized
+                <code>limit</code> before any query runs, and an omitted one falls back to
+                the default.</p>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tool</th>
+                        <th>Reads</th>
+                        <th>Filters</th>
+                        <th class="num">Default</th>
+                        <th class="num">Max</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="mono">search_applications</td>
+                        <td>dim_application + skill and repository bridges</td>
+                        <td>ILIKE on title or description; omit to browse newest</td>
+                        <td class="num">10</td>
+                        <td class="num">50</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">search_applications_semantic</td>
+                        <td>dim_application_embedding, joined to the same projection</td>
+                        <td>cosine distance, scored 1 − distance</td>
+                        <td class="num">5</td>
+                        <td class="num">20</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">get_skills</td>
+                        <td>dim_skill joined to dim_skill_type</td>
+                        <td>skill type, proficient only</td>
+                        <td class="num">100</td>
+                        <td class="num">200</td>
+                    </tr>
+                    <tr>
+                        <td class="mono">list_lookups</td>
+                        <td>dim_skill_type and dim_support_status, in parallel</td>
+                        <td>none — this is how a caller discovers the filter values</td>
+                        <td class="num">—</td>
+                        <td class="num">—</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section>
+        <div class="prose">
+            <h2>Constraints worth knowing</h2>
+        </div>
+
+        <div class="notes">
+            <div>
+                <h3>stdout is reserved</h3>
+                <p>It carries JSON-RPC frames. Every log, warning, and startup failure
+                    goes to stderr, or the client sees corrupt protocol traffic.</p>
+            </div>
+            <div>
+                <h3>Read-only by design</h3>
+                <p>Unlike the sibling pool in <code>backend/</code>, there is no
+                    transaction helper here. Three connections, a 15s statement timeout,
+                    and nothing that writes.</p>
+            </div>
+            <div>
+                <h3>Queries qualify the schema</h3>
+                <p>The schema name travels on the connection object, so repositories
+                    write <code>apps_by_matthew.dim_…</code> rather than leaning on
+                    search_path.</p>
+            </div>
+            <div>
+                <h3>The CA ships with the code</h3>
+                <p>Supabase's pooler is rooted in a CA that Node does not trust. The
+                    bundled cert under <code>certs/</code> must stay in any deploy
+                    package.</p>
+            </div>
+            <div>
+                <h3>Named statements are off</h3>
+                <p>The transaction-mode pooler does not support them, so no query passes
+                    a <code>name</code>.</p>
+            </div>
+            <div>
+                <h3>Model version is a filter</h3>
+                <p>Embedding reads filter on <code>model_version</code>. Without it, a
+                    second model's vectors would duplicate every row.</p>
+            </div>
+        </div>
+    </section>
+
+    <hr>
+
+    <footer class="prose">
+        <p>Drawn from <span class="mono">backend-mcp/</span> on branch
+            <span class="mono">implement-mcp</span>.</p>
+    </footer>
+
+</div>
+
+</body>
+</html>
