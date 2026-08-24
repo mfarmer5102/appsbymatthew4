@@ -1,19 +1,18 @@
-// Lambda entry point for the MCP server, alongside server.js's stdio entry point.
-// stdio only makes sense for a client that spawns the process itself (Claude Desktop,
-// the Inspector); Lambda instead receives one HTTP request per invocation, so this
-// speaks MCP's Streamable HTTP transport over a Web Standard Request/Response,
-// converted to and from whatever shape API Gateway or a Lambda Function URL hands us.
+// Lambda entry point for the MCP server - the only entry point. Lambda receives one
+// HTTP request per invocation, so this speaks MCP's Streamable HTTP transport over a
+// Web Standard Request/Response, converted to and from whatever shape API Gateway or a
+// Lambda Function URL hands us.
 //
 // Must come first: secrets.js reads process.env at module scope (via SecretConfig's
 // constructor). In Lambda the values come from Secrets Manager and there is no .env to
-// find, so this is a no-op there - it exists so `npm run lambda-test` works locally.
+// find, so this is a no-op there - it exists so `npm run smoke-test` works locally.
 import 'dotenv/config';
 
 import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {WebStandardStreamableHTTPServerTransport} from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 
 import secret_config from './src/configuration/secrets.js';
-import {Container} from './src/configuration/index.js';
+import {Container} from './src/configuration/container.js';
 
 // Built once per cold start, then reused across warm invocations - the database pool
 // and OpenAI client are container singletons, so a warm Lambda keeps its connections.

@@ -1,7 +1,8 @@
 # backend-mcp
 
 An [MCP](https://modelcontextprotocol.io) server that exposes the portfolio database as
-tools, so an MCP client (Claude Desktop, the MCP Inspector) can query it directly.
+tools, so an MCP client that speaks Streamable HTTP (the MCP Inspector's remote mode, a
+hosted client) can query it directly.
 
 It is a standalone service with its own dependencies. It reads the same Supabase
 database as `backend/`, **read-only**, but shares no code with it — the pieces it needs
@@ -20,8 +21,8 @@ That is why the only OpenAI call in this directory is `embeddings.create`, and w
 there is no chat model configured.
 
 Being read-only also means there is no transaction helper, no admin code, and no auth:
-every tool is a `SELECT`. Access control is the client's — anyone who can launch this
-process can read the portfolio data.
+every tool is a `SELECT`. Access control is the client's — anyone who can reach the
+Lambda URL can read the portfolio data.
 
 ## Setup
 
@@ -30,6 +31,7 @@ cd backend-mcp
 npm install
 cp .env.example .env   # then fill in SUPABASE_DB_URL and OPENAI_API_KEY
 npm run smoke-test     # verifies it connects and every tool returns
+npm run dev            # or: a real HTTP server at localhost:2022/mcp for a real client
 ```
 
 Everything configurable lives in the `Configuration` class
@@ -44,8 +46,8 @@ Classes, wired together in one place, so a tool can be constructed against a stu
 than reaching for a module singleton.
 
 ```
-server.js                    stdio entry point - picks a transport, starts the server
-_aws_lambda.mjs              Lambda entry point - Streamable HTTP over one request/response
+_aws_lambda.mjs              Lambda entry point - the only deployed entry point
+_local.mjs                   dev-only: runs handle_lambda_request behind a real HTTP server
 src/_library/classes/        the reusable pieces, none of them portfolio-specific
   environment.js             Environment    - loads .env or resolved secrets, reads/validates
   configuration.js           Configuration  - every setting, resolved once
@@ -54,20 +56,18 @@ src/_library/classes/        the reusable pieces, none of them portfolio-specifi
   repository.js              Repository     - base for the data layer
   tool.js                    Tool           - base for a tool: schema, envelope, register
   tool_catalog.js            ToolCatalog    - the set of tools, rejects duplicate names
-  mcp_server.js              PortfolioMcpServer - stdio registration, signals, shutdown
   secrets.js                 SecretConfig   - Secrets Manager, used only in Lambda
 src/repositories/            one class per part of the star schema; owns the SQL
 src/tools/                   one class per tool; owns the description and input schema
 src/configuration/
   container.js               Container - the composition root; builds everything
-  index.js                    the one Container instance server.js (stdio) uses
   secrets.js                  resolves SecretConfig once, at module scope, for Lambda
 ```
 
 `Tool` subclasses take their repositories through the constructor and implement
 `execute()`; the base class handles the MCP content envelope and error reporting, so
-`server.js` never learns what tools exist. Adding a tool is a class under `src/tools/`
-and one entry in `Container#tool_catalog`.
+`_aws_lambda.mjs` never learns what tools exist. Adding a tool is a class under
+`src/tools/` and one entry in `Container#tool_catalog`.
 
 `Container` is the only place wiring lives — nothing below it imports a singleton, and
 its members are built lazily on first use, so a test can construct its own container
@@ -84,64 +84,51 @@ its members are built lazily on first use, so a test can construct its own conta
 
 ## Running it
 
-There are two entry points, one per transport — a client picks which one it can reach.
+`_aws_lambda.mjs` exports `handle_lambda_request`, the sole deployed entry point,
+speaking MCP's **Streamable HTTP** transport over a Web Standard Request/Response
+converted to and from whatever shape API Gateway or a Lambda Function URL hands it. A
+client always reaches this over HTTP — there is no stdio transport.
 
-### Locally: stdio
-
-The server speaks JSON-RPC over **stdio**, so it is launched by a client rather than run
-by hand. `node server.js` on its own just waits on stdin forever; that is not a hang.
-
-**MCP Inspector** — a browser UI for calling tools and watching the raw protocol
-traffic, and the best way to poke at it while developing:
-
-```bash
-npm run inspect
-```
-
-**Claude Desktop** — add to
-`~/Library/Application Support/Claude/claude_desktop_config.json`, then fully quit and
-reopen the app:
-
-```json
-{
-  "mcpServers": {
-    "appsbymatthew-portfolio": {
-      "command": "node",
-      "args": ["/Users/Matthew/Repositories/appsbymatthew4/backend-mcp/server.js"]
-    }
-  }
-}
-```
-
-Absolute paths are required — the client does not resolve relative ones, and does not
-run the server from this directory.
-
-### Lambda: Streamable HTTP
-
-`_aws_lambda.mjs` exports `handle_lambda_request`, for a remote MCP client that speaks
-HTTP instead of spawning a process — the MCP Inspector's remote mode, or a hosted client
-that only takes a URL. It's a separate entry point, not a fork of the stdio one: Lambda
-hands it one event per invocation rather than a persistent stdin, and there is no
-guarantee two requests land on the same instance, so there is nowhere to keep an
-in-memory MCP session between them the way a long-lived process would. Every invocation
-therefore builds a fresh `McpServer`, registers the same `Container#tool_catalog` onto
-it, and opens `WebStandardStreamableHTTPServerTransport` in **stateless mode**
+Lambda hands it one event per invocation, and there is no guarantee two requests land on
+the same instance, so there is nowhere to keep an in-memory MCP session between them the
+way a long-lived process would. Every invocation therefore builds a fresh `McpServer`,
+registers the same `Container#tool_catalog` onto it, and opens
+`WebStandardStreamableHTTPServerTransport` in **stateless mode**
 (`sessionIdGenerator: undefined`, `enableJsonResponse: true`) — no session to validate,
 no SSE stream to keep open past the one buffered response Lambda returns. The Postgres
 pool and OpenAI client stay `Container` singletons, so they survive a warm start; only
 the per-request MCP plumbing is rebuilt.
 
-Secrets work differently here too. Locally, `Environment` loads `backend-mcp/.env`.
-Lambda has no `.env`, so `src/configuration/secrets.js` resolves `SUPABASE_DB_URL` and
-`OPENAI_API_KEY` from AWS Secrets Manager's `prd-secrets` secret at module scope (a
-top-level `await`, so it finishes before `Container` is built) and hands the result to
-`Container` as `secrets`; `Environment` checks that object before `process.env`. This
-mirrors `backend/src/configuration/secrets.js` — reimplemented, not imported, for the
-same reason the rest of this directory is: it stays deployable on its own.
+Secrets: locally, `Environment` loads `backend-mcp/.env`. Lambda has no `.env`, so
+`src/configuration/secrets.js` resolves `SUPABASE_DB_URL` and `OPENAI_API_KEY` from AWS
+Secrets Manager's `prd-secrets` secret at module scope (a top-level `await`, so it
+finishes before `Container` is built) and hands the result to `Container` as `secrets`;
+`Environment` checks that object before `process.env`. This mirrors
+`backend/src/configuration/secrets.js` — reimplemented, not imported, for the same
+reason the rest of this directory is: it stays deployable on its own.
 
 ```bash
-npm run lambda-test   # invokes handle_lambda_request directly with a fake API Gateway event
+npm run smoke-test   # invokes handle_lambda_request directly - initialize, list, call every tool
 ```
+
+### Running it locally against a real client
+
+`npm run smoke-test` calls `handle_lambda_request` in-process — no socket, so nothing an
+external client can point at. `_local.mjs` is a thin dev-only wrapper: a plain Node
+`http` server that converts each incoming request into the same event shape API Gateway
+would send, hands it to `handle_lambda_request` unchanged, and writes the response back.
+It isn't part of the deployment (`DockerfileLambda` never references it), and it isn't a
+second real transport — `_aws_lambda.mjs` is still the only code that speaks MCP.
+
+```bash
+npm run dev       # serves http://localhost:2022/mcp (PORT env var to change it)
+npm run inspect   # both of the above: starts the dev server, then the Inspector pointed at it
+```
+
+`npm run inspect` (`scripts/inspect.js`) is the easiest way to poke at it while
+developing: it starts `_local.mjs`, waits for its "listening" log line, then launches
+the MCP Inspector's web UI pre-connected to `http://localhost:2022/mcp` (`--transport
+http --server-url ...`) and opens it in a browser. Ctrl+C stops both.
 
 Deployed the same way as `backend/`: `dockerfiles/DockerfileLambda` builds a container
 image (`public.ecr.aws/lambda/nodejs:20`, `CMD` set to
@@ -154,28 +141,3 @@ or an API Gateway route) need to exist first — this workflow only updates the 
 There is no auth in front of it, same as the rest of this directory — every tool is a
 read-only `SELECT` over public portfolio data, the same data the site's unprotected
 `GET /api/*` routes already serve.
-
-## Gotchas worth knowing
-
-These are the two things that actually bit during development, both worth understanding
-before writing another MCP server:
-
-**Never write to stdout.** stdout *is* the protocol channel. A stray `console.log`
-injects garbage into the JSON-RPC stream and the client drops the connection. Use
-`console.error`; clients capture stderr in their logs
-(`~/Library/Logs/Claude/mcp-server-*.log` on macOS).
-
-**The working directory is not this one.** Claude Desktop spawns the server from an
-arbitrary cwd, so anything resolved relative to `process.cwd()` — `.env`, the bundled CA
-cert — silently fails there while working fine when run by hand. Everything here
-resolves against `import.meta.url` instead, and `npm run smoke-test` runs the server
-from `/` specifically to keep that honest.
-
-A related subtlety: `Environment` loads dotenv in its constructor, which is what makes it
-run at the right *time*. ES modules evaluate all static imports before the importing
-file's own code, so calling `dotenv.config()` at the top of `server.js` would still
-happen after the entire import graph had been evaluated — and after anything reading
-`process.env` at module scope had already read it as undefined. Nothing here reads
-`process.env` at module scope: every read goes through the `Configuration` that
-`Container` builds immediately after its `Environment`, so the ordering is a matter of
-construction order in one constructor rather than of the module graph.

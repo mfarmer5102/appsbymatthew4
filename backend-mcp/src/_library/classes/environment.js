@@ -1,9 +1,9 @@
 import {config as load_dotenv} from 'dotenv';
 
 // Controls *when* dotenv runs: ESM evaluates imports before the importing file's own
-// code, so loading .env in server.js would already be too late.
+// code, so loading .env at the top of _aws_lambda.mjs would already be too late.
 export class Environment {
-    // Absolute - MCP clients spawn this server from an arbitrary cwd.
+    // Absolute, not resolved against process.cwd() - Lambda has no .env to find anyway.
     //
     // `secrets` is an already-resolved SecretConfig (see
     // src/configuration/secrets.js): present in Lambda, where there is no .env and
@@ -16,8 +16,8 @@ export class Environment {
         this.secrets = secrets;
     }
 
-    // Exits rather than throws: there is no request to fail yet. stderr, not stdout -
-    // stdout is the JSON-RPC channel.
+    // Exits rather than throws: there is no request to fail yet, so there is nothing
+    // for a thrown error to propagate back to.
     require(name) {
         const value = this.optional(name);
 

@@ -1,7 +1,7 @@
 import {z} from 'zod';
 
 // A subclass supplies its getters and implements execute(); this class handles
-// registration and the MCP envelope, so server.js never learns what tools exist.
+// registration and the MCP envelope, so the entry point never learns what tools exist.
 export class Tool {
     constructor({limits = null} = {}) {
         this.limits = limits;
@@ -46,7 +46,7 @@ export class Tool {
     }
 
     // isError reports the failure to the model instead of letting the exception kill
-    // the stdio connection.
+    // the request.
     async call(args) {
         try {
             const result = await this.execute(args);

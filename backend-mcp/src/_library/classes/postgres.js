@@ -78,8 +78,4 @@ export class PostgresConfig {
 
         return rows;
     }
-
-    async close() {
-        await this.pool.end();
-    }
 }

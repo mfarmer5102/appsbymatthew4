@@ -1,15 +1,40 @@
-// Exercises the server the way a real MCP client does: spawn it, speak JSON-RPC over
-// stdio, list the tools and call each one. Run with `npm run smoke-test`.
-//
-// cwd is deliberately set to the filesystem root, reproducing the one bug this setup
-// is most prone to - Claude Desktop launches the server from an arbitrary working
-// directory, so anything resolved relative to process.cwd() (.env, the CA cert) breaks
-// there while working fine when run by hand from this directory.
-import {Client} from '@modelcontextprotocol/sdk/client/index.js';
-import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
-import {fileURLToPath} from 'url';
+// Exercises the server the way a real MCP client does, over HTTP: initialize, list
+// tools, then call each one. Invokes handle_lambda_request directly - no deploy, no
+// running process. Run with `npm run smoke-test`.
+import {handle_lambda_request} from '../_aws_lambda.mjs';
 
-const SERVER_PATH = fileURLToPath(new URL('../server.js', import.meta.url));
+const rpc_event = (body) => ({
+    httpMethod: 'POST',
+    path: '/mcp',
+    headers: {
+        'content-type': 'application/json',
+        'accept': 'application/json, text/event-stream',
+    },
+    queryStringParameters: {},
+    body: JSON.stringify(body),
+    isBase64Encoded: false,
+});
+
+let next_id = 1;
+
+const rpc = async (method, params) => {
+    const response = await handle_lambda_request(rpc_event({
+        jsonrpc: '2.0',
+        id: next_id++,
+        method,
+        params,
+    }), {});
+    const parsed = JSON.parse(response.body);
+
+    if (response.statusCode !== 200 || parsed.error) {
+        throw new Error(`${method} failed: ${response.statusCode} ${response.body}`);
+    }
+
+    return parsed.result;
+};
+
+const preview = (text, length = 240) =>
+    text.length > length ? `${text.slice(0, length)}...` : text;
 
 const CALLS = [
     ['list_lookups', {}],
@@ -18,26 +43,20 @@ const CALLS = [
     ['search_applications_semantic', {query: 'AI chatbot with vector search', limit: 2}],
 ];
 
-const preview = (text, length = 240) =>
-    text.length > length ? `${text.slice(0, length)}...` : text;
-
-const transport = new StdioClientTransport({
-    command: process.execPath,
-    args: [SERVER_PATH],
-    cwd: '/',
+await rpc('initialize', {
+    protocolVersion: '2025-06-18',
+    capabilities: {},
+    clientInfo: {name: 'smoke-test', version: '1.0.0'},
 });
 
-const client = new Client({name: 'smoke-test', version: '1.0.0'});
-await client.connect(transport);
-
-const {tools} = await client.listTools();
+const {tools} = await rpc('tools/list', {});
 console.log(`Connected. ${tools.length} tools registered:`);
 for (const tool of tools) console.log(`  - ${tool.name}`);
 
 let failures = 0;
 
 for (const [name, args] of CALLS) {
-    const result = await client.callTool({name, arguments: args});
+    const result = await rpc('tools/call', {name, arguments: args});
     const text = result.content.map((part) => part.text).join('\n');
 
     if (result.isError) {
@@ -48,6 +67,5 @@ for (const [name, args] of CALLS) {
     }
 }
 
-await client.close();
 console.log(failures === 0 ? '\nAll tool calls succeeded.' : `\n${failures} tool call(s) failed.`);
 process.exit(failures === 0 ? 0 : 1);

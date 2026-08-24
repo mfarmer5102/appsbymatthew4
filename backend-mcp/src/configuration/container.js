@@ -79,8 +79,4 @@ export class Container {
             new ListLookupsTool({lookups: this.lookups}),
         ]));
     }
-
-    get closables() {
-        return [this.database];
-    }
 }
