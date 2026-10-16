@@ -29,7 +29,9 @@ const SKILL_JOINS = `
 `;
 
 // $5 carries include_hidden: hidden skills stay out of the public listing unless a
-// caller explicitly asks for them, which is what the admin UI does.
+// caller explicitly asks for them, which is what the admin UI does. $6 filters by the
+// skill type's name rather than its key - how a caller that only knows names (the MCP
+// get_skills tool) narrows the list.
 const SKILL_FILTERS = `
     WHERE s.deleted_at IS NULL
       AND ($1::text    IS NULL OR s.skill = $1)
@@ -37,6 +39,7 @@ const SKILL_FILTERS = `
       AND ($3::boolean IS NULL OR s.is_visible_in_app_details = $3)
       AND ($4::boolean IS NULL OR s.is_proficient = $4)
       AND ($5::boolean IS TRUE  OR s.is_hidden = false)
+      AND ($6::text    IS NULL OR st.skill_type = $6)
 `;
 
 // ORDER BY cannot be parameterized, so the sort column is matched against this list
@@ -45,9 +48,9 @@ const SORTABLE_FIELDS = ['skill', 'skill_type', 'is_proficient', 'created_at', '
 
 const sort_expression = (field) => (field === 'skill_type' ? 'st.skill_type' : `s.${field}`);
 
-function read_skill_body(req_objx) {
-    const skill = parse_optional_text(req_objx.get_req_body('skill'));
-    const skill_type_key = parse_optional_int(req_objx.get_req_body('skill_type_key'));
+function read_skill_body(body = {}) {
+    const skill = parse_optional_text(body.skill);
+    const skill_type_key = parse_optional_int(body.skill_type_key);
 
     if (!skill || skill_type_key === null) {
         throw new Error(error_config.select_error('missing_required_field'));
@@ -58,10 +61,10 @@ function read_skill_body(req_objx) {
         skill_type_key,
         // All four flags are NOT NULL in the schema, so an omitted value has to become a
         // concrete boolean rather than null.
-        is_proficient: parse_bool(req_objx.get_req_body('is_proficient'), false),
-        is_visible_in_app_details: parse_bool(req_objx.get_req_body('is_visible_in_app_details'), true),
-        is_hidden: parse_bool(req_objx.get_req_body('is_hidden'), false),
-        provide_disclaimer: parse_bool(req_objx.get_req_body('provide_disclaimer'), false),
+        is_proficient: parse_bool(body.is_proficient, false),
+        is_visible_in_app_details: parse_bool(body.is_visible_in_app_details, true),
+        is_hidden: parse_bool(body.is_hidden, false),
+        provide_disclaimer: parse_bool(body.provide_disclaimer, false),
     };
 }
 
@@ -72,25 +75,26 @@ function translate_write_error(error) {
     return error;
 }
 
-export const do_get_many = async (req_objx) => {
-    const skill = parse_optional_text(req_objx.get_query_string_param('skill'));
-    const skill_type_key = parse_optional_int(req_objx.get_query_string_param('skill_type_key'));
-    const is_visible_in_app_details = parse_optional_bool(req_objx.get_query_string_param('visible'));
-    const is_proficient = parse_optional_bool(req_objx.get_query_string_param('proficient'));
-    const include_hidden = parse_bool(req_objx.get_query_string_param('include_hidden'), false);
+export const do_get_many = async ({query = {}} = {}) => {
+    const skill = parse_optional_text(query.skill);
+    const skill_type_key = parse_optional_int(query.skill_type_key);
+    const is_visible_in_app_details = parse_optional_bool(query.visible);
+    const is_proficient = parse_optional_bool(query.proficient);
+    const include_hidden = parse_bool(query.include_hidden, false);
+    const skill_type = parse_optional_text(query.skill_type);
 
     const {limit, offset} = parse_pagination(
-        req_objx.get_query_string_param('limit'),
-        req_objx.get_query_string_param('offset'),
+        query.limit,
+        query.offset,
     );
     const {field, direction} = parse_sort(
-        req_objx.get_query_string_param('sort'),
-        req_objx.get_query_string_param('order'),
+        query.sort,
+        query.order,
         SORTABLE_FIELDS,
         'skill',
     );
 
-    const filter_params = [skill, skill_type_key, is_visible_in_app_details, is_proficient, include_hidden];
+    const filter_params = [skill, skill_type_key, is_visible_in_app_details, is_proficient, include_hidden, skill_type];
 
     const {rows} = await db.query(
         `
@@ -98,7 +102,7 @@ export const do_get_many = async (req_objx) => {
         ${SKILL_JOINS}
         ${SKILL_FILTERS}
         ORDER BY ${sort_expression(field)} ${direction}, s.skill_key ASC
-        LIMIT $6 OFFSET $7
+        LIMIT $7 OFFSET $8
         `,
         [...filter_params, limit, offset],
     );
@@ -114,8 +118,8 @@ export const do_get_many = async (req_objx) => {
     };
 };
 
-export const do_create = async (req_objx) => {
-    const body = read_skill_body(req_objx);
+export const do_create = async ({body: request_body = {}} = {}) => {
+    const body = read_skill_body(request_body);
 
     try {
         const {rows} = await db.query(
@@ -142,13 +146,13 @@ export const do_create = async (req_objx) => {
     }
 };
 
-export const do_update = async (req_objx) => {
-    const skill_key = parse_optional_int(req_objx.get_req_body('skill_key'));
+export const do_update = async ({body: request_body = {}} = {}) => {
+    const skill_key = parse_optional_int(request_body.skill_key);
     if (skill_key === null) {
         throw new Error(error_config.select_error('missing_required_field'));
     }
 
-    const body = read_skill_body(req_objx);
+    const body = read_skill_body(request_body);
 
     try {
         const {rowCount} = await db.query(
@@ -185,8 +189,8 @@ export const do_update = async (req_objx) => {
     }
 };
 
-export const do_delete = async (req_objx) => {
-    const skill_key = parse_optional_int(req_objx.get_req_body('skill_key'));
+export const do_delete = async ({body = {}} = {}) => {
+    const skill_key = parse_optional_int(body.skill_key);
     if (skill_key === null) {
         throw new Error(error_config.select_error('missing_required_field'));
     }

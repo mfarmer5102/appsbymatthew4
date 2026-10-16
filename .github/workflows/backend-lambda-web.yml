@@ -1,0 +1,105 @@
+# Deploys backend/ - the site's REST API and the MCP endpoint, one Express app - as a
+# new revision of a Lambda Web Function on every push to main that touches it.
+#
+# One-time AWS setup, before the first run (see backend/README.md, "Deploying"):
+#   1. An S3 bucket with versioning enabled, for the deployment packages.
+#   2. An execution role the function assumes, allowed secretsmanager:GetSecretValue
+#      on the prd-secrets secret.
+#   3. The Web Function itself (named FUNCTION_NAME below), and an endpoint whose
+#      auto-deployment mode is LatestRevision, so each new Active revision takes the
+#      traffic without a separate step.
+#   4. Repository variables BACKEND_DEPLOY_BUCKET and BACKEND_EXECUTION_ROLE_ARN, and
+#      the existing AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY secrets, whose IAM user
+#      needs s3:PutObject on the bucket and lambda-web create/get revision access.
+#
+# Every dependency is pure JavaScript, so a package built on this x86_64 runner runs
+# unchanged on the function's Arm64 environments.
+
+name: Backend - Lambda Web Function
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-lambda-web.yml'
+
+env:
+  AWS_REGION: us-east-1
+  FUNCTION_NAME: appsByMatthew4_api
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+
+    - name: Set up Node
+      uses: actions/setup-node@v7
+      with:
+        node-version: 24
+        cache: npm
+        cache-dependency-path: backend/package-lock.json
+
+    # Everything the server reads at runtime: index.js loads app.js, which loads src/,
+    # and the Postgres client trusts the Supabase CA under certs/.
+    - name: Package
+      run: |
+        npm ci --omit=dev
+        zip -qr function.zip index.js app.js package.json package-lock.json src certs node_modules
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v6
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    # The lambda-web commands are newer than the CLI preinstalled on the runner.
+    - name: Update the AWS CLI
+      working-directory: ${{ runner.temp }}
+      run: |
+        curl -sSo awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        unzip -q awscliv2.zip
+        sudo ./aws/install --update
+
+    # Keyed by commit, so every revision points at the exact package it was built from.
+    - name: Upload the package
+      run: aws s3 cp function.zip "s3://${{ vars.BACKEND_DEPLOY_BUCKET }}/backend/${{ github.sha }}.zip"
+
+    # Revisions are immutable and copy nothing from the previous one, so every setting
+    # is restated here. maxConcurrencyPerEnvironment matches the Postgres pool size in
+    # src/configuration/database.js; raise the two together.
+    - name: Create a revision
+      run: |
+        REVISION_ID=$(aws lambda-web create-web-function-revision \
+          --function-name "$FUNCTION_NAME" \
+          --description "${{ github.sha }}" \
+          --build-config '{
+            "codeConfig": {"s3Object": {"bucket": "${{ vars.BACKEND_DEPLOY_BUCKET }}", "key": "backend/${{ github.sha }}.zip"}},
+            "runtimeConfig": {"runtime": "nodejs24.x"}
+          }' \
+          --service-config '{
+            "executionRoleArn": "${{ vars.BACKEND_EXECUTION_ROLE_ARN }}",
+            "timeoutSeconds": 30,
+            "maxConcurrencyPerEnvironment": 10
+          }' \
+          --query revisionId --output text)
+        echo "REVISION_ID=$REVISION_ID" >> "$GITHUB_ENV"
+
+    # Fail the job here, not silently later, if the revision never becomes Active.
+    - name: Wait for the revision
+      run: |
+        aws lambda-web wait web-function-revision-active \
+          --function-name "$FUNCTION_NAME" \
+          --revision-id "$REVISION_ID"

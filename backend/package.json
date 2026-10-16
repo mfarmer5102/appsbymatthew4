@@ -1,20 +1,21 @@
 {
   "name": "portfolio-backend",
   "type": "module",
-  "version": "1.0.0",
-  "description": "Node.js API for portfolio data management",
-  "main": "_express.js",
+  "version": "2.0.0",
+  "description": "Portfolio API and MCP server: Express on an AWS Lambda Web Function, backed by Supabase",
+  "main": "index.js",
   "scripts": {
-    "start": "node _express.js",
-    "dev": "nodemon _express.js",
-    "lambda_test": "node test_aws_lambda.js",
-    "test": "jest",
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "node --test",
+    "inspect": "npx @modelcontextprotocol/inspector --transport http --server-url http://localhost:2021/api/mcp",
     "vectorize-existing-apps": "node scripts/vectorize_existing_applications.js",
     "check-db": "node scripts/check_database.js"
   },
   "keywords": [
     "portfolio",
     "api",
+    "mcp",
     "postgres",
     "supabase",
     "express"
@@ -22,22 +23,22 @@
   "author": "Matthew Farmer",
   "license": "MIT",
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.721.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "express-rate-limit": "^7.1.5",
-    "express-validator": "^7.0.1",
-    "helmet": "^7.1.0",
-    "openai": "^6.18.0",
-    "pg": "^8.23.0"
-  },
-  "devDependencies": {
-    "jest": "^29.7.0",
-    "nodemon": "^3.0.2",
-    "supertest": "^6.3.3"
+    "@aws-sdk/client-secrets-manager": "^3.1152.0",
+    "@modelcontextprotocol/node": "^2.1.1",
+    "@modelcontextprotocol/server": "^2.3.1",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
+    "openai": "^7.34.0",
+    "pg": "^8.23.1",
+    "zod": "^4.6.7"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=24.0.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.3.1"
   }
 }

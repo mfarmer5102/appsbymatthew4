@@ -1,39 +1,39 @@
-import {RoutingConfig, Route} from '../_library/classes/routing.js';
+import {Router} from 'express';
 
-import {error_config} from './errors.js';
-import * as applications from "../controllers/applications.js";
-import * as skillTypes from "../controllers/skill_types.js";
-import * as skills from "../controllers/skills.js";
-import * as supportStatuses from "../controllers/support_statuses.js";
-import * as chat from "../controllers/chat.js";
+import {require_admin_code, chat_rate_limit} from './middleware.js';
+import * as applications from '../controllers/applications.js';
+import * as skill_types from '../controllers/skill_types.js';
+import * as skills from '../controllers/skills.js';
+import * as support_statuses from '../controllers/support_statuses.js';
+import * as chat from '../controllers/chat.js';
 
-export const routing_config = new RoutingConfig(
-    [
-        new Route("GET", "/api/applications", (req_objx) => applications.get_many(req_objx), true),
-        new Route("GET", "/api/skill-types", (req_objx) => skillTypes.get_many(req_objx), true),
-        new Route("GET", "/api/skills", (req_objx) => skills.get_many(req_objx), true),
-        new Route("GET", "/api/support-status", (req_objx) => supportStatuses.get_many(req_objx), true),
-        // Chat (stateless - no history is persisted, so there is nothing to read back)
-        new Route("POST", "/api/chat", (req_objx) => chat.send_message(req_objx), true),
-    ],
-    [
-        // Applications
-        new Route("POST", "/api/applications", (req_objx) => applications.create(req_objx), true),
-        new Route("POST", "/api/applications/vectorize", (req_objx) => applications.vectorize(req_objx), true),
-        new Route("PUT", "/api/applications", (req_objx) => applications.update(req_objx), true),
-        new Route("DELETE", "/api/applications", (req_objx) => applications.delete_one(req_objx), true),
-        // Skill Types
-        new Route("POST", "/api/skill-types", (req_objx) => skillTypes.create(req_objx), true),
-        new Route("PUT", "/api/skill-types", (req_objx) => skillTypes.update(req_objx), true),
-        new Route("DELETE", "/api/skill-types", (req_objx) => skillTypes.delete_one(req_objx), true),
-        // Skills
-        new Route("POST", "/api/skills", (req_objx) => skills.create(req_objx), true),
-        new Route("PUT", "/api/skills", (req_objx) => skills.update(req_objx), true),
-        new Route("DELETE", "/api/skills", (req_objx) => skills.delete_one(req_objx), true),
-        // Support Statuses
-        new Route("POST", "/api/support-status", (req_objx) => supportStatuses.create(req_objx), true),
-        new Route("PUT", "/api/support-status", (req_objx) => supportStatuses.update(req_objx), true),
-        new Route("DELETE", "/api/support-status", (req_objx) => supportStatuses.delete_one(req_objx), true),
-    ],
-    error_config,
-);
+// Mounted at /api by app.js. /api/mcp is mounted separately, ahead of the body parser,
+// because the MCP handler reads the raw request itself.
+export const api_router = Router();
+
+// Public reads
+api_router.get('/applications', applications.get_many);
+api_router.get('/skill-types', skill_types.get_many);
+api_router.get('/skills', skills.get_many);
+api_router.get('/support-status', support_statuses.get_many);
+
+// Chat (stateless for the model - turns are logged but never read back)
+api_router.post('/chat', chat_rate_limit, chat.send_message);
+
+// Admin writes: every one requires the admin code in the Authorization header.
+api_router.post('/applications', require_admin_code, applications.create);
+api_router.post('/applications/vectorize', require_admin_code, applications.vectorize);
+api_router.put('/applications', require_admin_code, applications.update);
+api_router.delete('/applications', require_admin_code, applications.delete_one);
+
+api_router.post('/skill-types', require_admin_code, skill_types.create);
+api_router.put('/skill-types', require_admin_code, skill_types.update);
+api_router.delete('/skill-types', require_admin_code, skill_types.delete_one);
+
+api_router.post('/skills', require_admin_code, skills.create);
+api_router.put('/skills', require_admin_code, skills.update);
+api_router.delete('/skills', require_admin_code, skills.delete_one);
+
+api_router.post('/support-status', require_admin_code, support_statuses.create);
+api_router.put('/support-status', require_admin_code, support_statuses.update);
+api_router.delete('/support-status', require_admin_code, support_statuses.delete_one);

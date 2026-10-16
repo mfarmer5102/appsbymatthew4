@@ -1,13 +1,9 @@
 import {z} from 'zod';
 
-import {Tool} from '../_library/classes/tool.js';
+import {Tool} from '../../_library/classes/tool.js';
+import {do_get_many} from '../../data/skills.js';
 
 export class GetSkillsTool extends Tool {
-    constructor({skills, limits}) {
-        super({limits});
-        this.skills = skills;
-    }
-
     get name() {
         return 'get_skills';
     }
@@ -31,11 +27,20 @@ export class GetSkillsTool extends Tool {
         };
     }
 
+    // Hidden skills stay out, as they do on the public GET /api/skills.
     async execute({skill_type, proficient_only = false, limit}) {
-        return await this.skills.list({
-            skill_type,
-            proficient_only,
-            limit: this.resolve_limit(limit),
+        const {data} = await do_get_many({
+            query: {
+                skill_type,
+                proficient: proficient_only ? true : undefined,
+                limit: this.resolve_limit(limit),
+            },
         });
+
+        return data.map(({skill, skill_type: type, is_proficient}) => ({
+            skill,
+            skill_type: type,
+            is_proficient,
+        }));
     }
 }

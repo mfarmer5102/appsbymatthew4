@@ -24,11 +24,11 @@ const SUPPORT_STATUS_FILTERS = `
       AND ($1::text IS NULL OR ss.support_status = $1)
 `;
 
-export const do_get_many = async (req_objx) => {
-    const support_status = parse_optional_text(req_objx.get_query_string_param('support_status'));
+export const do_get_many = async ({query = {}} = {}) => {
+    const support_status = parse_optional_text(query.support_status);
     const {limit, offset} = parse_pagination(
-        req_objx.get_query_string_param('limit'),
-        req_objx.get_query_string_param('offset'),
+        query.limit,
+        query.offset,
     );
 
     const filter_params = [support_status];
@@ -54,8 +54,8 @@ export const do_get_many = async (req_objx) => {
     };
 };
 
-export const do_create = async (req_objx) => {
-    const support_status = parse_optional_text(req_objx.get_req_body('support_status'));
+export const do_create = async ({body = {}} = {}) => {
+    const support_status = parse_optional_text(body.support_status);
     if (!support_status) {
         throw new Error(error_config.select_error('missing_required_field'));
     }
@@ -72,9 +72,9 @@ export const do_create = async (req_objx) => {
     return rows[0];
 };
 
-export const do_update = async (req_objx) => {
-    const support_status_key = parse_optional_int(req_objx.get_req_body('support_status_key'));
-    const support_status = parse_optional_text(req_objx.get_req_body('support_status'));
+export const do_update = async ({body = {}} = {}) => {
+    const support_status_key = parse_optional_int(body.support_status_key);
+    const support_status = parse_optional_text(body.support_status);
 
     if (support_status_key === null || !support_status) {
         throw new Error(error_config.select_error('missing_required_field'));
@@ -98,8 +98,8 @@ export const do_update = async (req_objx) => {
     return rows[0];
 };
 
-export const do_delete = async (req_objx) => {
-    const support_status_key = parse_optional_int(req_objx.get_req_body('support_status_key'));
+export const do_delete = async ({body = {}} = {}) => {
+    const support_status_key = parse_optional_int(body.support_status_key);
     if (support_status_key === null) {
         throw new Error(error_config.select_error('missing_required_field'));
     }

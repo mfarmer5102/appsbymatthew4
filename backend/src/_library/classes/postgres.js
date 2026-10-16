@@ -11,8 +11,8 @@ const {Pool, types} = pg;
  * supplied explicitly.
  *
  * That CA therefore ships with the source, in backend/certs, and is trusted by default.
- * Bundling it rather than reading it from configuration is what keeps Lambda and App
- * Runner working without per-environment TLS settings — neither one has a .env file,
+ * Bundling it rather than reading it from configuration is what keeps Lambda working
+ * without per-environment TLS settings — it has no .env file,
  * and secrets there arrive through Secrets Manager rather than process.env, so anything
  * this function needs from the environment would silently be missing in deployment.
  *
@@ -81,9 +81,8 @@ export class PostgresConfig {
         this.pool = new Pool({
             connectionString: connection_string,
             // Supabase's transaction-mode pooler hands each statement to whichever
-            // backend is free, so the pool here should stay small. Lambda holds this
-            // module across warm invocations, and every concurrent container keeps its
-            // own pool against the same pooler.
+            // backend is free, so the pool here should stay small. Every Lambda
+            // environment keeps its own pool against the same pooler.
             max: options.max ?? 5,
             idleTimeoutMillis: options.idle_timeout_ms ?? 30000,
             connectionTimeoutMillis: options.connection_timeout_ms ?? 10000,

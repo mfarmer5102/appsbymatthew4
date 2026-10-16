@@ -1,7 +1,6 @@
 import {db, SCHEMA, EMBEDDING_MODEL_VERSION} from '../configuration/database.js';
 import {error_config} from '../configuration/errors.js';
-import secret_config from '../configuration/secrets.js';
-import {OpenAIConfig} from '../_library/classes/openai.js';
+import {openai_config} from '../configuration/openai.js';
 import {
     parse_optional_text,
     parse_optional_bool,
@@ -9,8 +8,6 @@ import {
     parse_pagination,
     build_pagination,
 } from '../_library/functions/query_params.js';
-
-const openai_config = new OpenAIConfig(secret_config['OPENAI_API_KEY']);
 
 // bridge_application_repository is keyed on (application_key, repository_url) with no
 // ordinal column, so the source array's order is not recoverable. Sorting by URL at
@@ -52,12 +49,17 @@ const APPLICATION_JOINS = `
 `;
 
 // Bound with a fixed placeholder count so the identical clause can drive both the page
-// query and the count query. An absent filter arrives as null and drops out.
+// query and the count query. An absent filter arrives as null and drops out. $1 is an
+// exact title match; $4 is a case-insensitive substring of the title or description,
+// which is how the MCP search tool browses.
 const APPLICATION_FILTERS = `
     WHERE a.deleted_at IS NULL
       AND ($1::text    IS NULL OR a.title = $1)
       AND ($2::boolean IS NULL OR a.is_featured = $2)
       AND ($3::int     IS NULL OR a.support_status_key = $3)
+      AND ($4::text    IS NULL
+           OR a.title ILIKE '%' || $4 || '%'
+           OR a.description ILIKE '%' || $4 || '%')
 `;
 
 /**
@@ -225,10 +227,10 @@ function translate_write_error(error) {
     return error;
 }
 
-function read_application_body(req_objx) {
-    const title = parse_optional_text(req_objx.get_req_body('title'));
-    const publish_date = parse_optional_text(req_objx.get_req_body('publish_date'));
-    const support_status_key = parse_optional_int(req_objx.get_req_body('support_status_key'));
+function read_application_body(body = {}) {
+    const title = parse_optional_text(body.title);
+    const publish_date = parse_optional_text(body.publish_date);
+    const support_status_key = parse_optional_int(body.support_status_key);
 
     // publish_date and support_status_key are NOT NULL in the schema, and title is the
     // application's natural identity. Validating here yields a 400 instead of letting
@@ -241,25 +243,26 @@ function read_application_body(req_objx) {
         title,
         publish_date,
         support_status_key,
-        description: parse_optional_text(req_objx.get_req_body('description')),
-        image_filename: parse_optional_text(req_objx.get_req_body('image_filename')),
-        deployed_url: parse_optional_text(req_objx.get_req_body('deployed_url')),
-        is_featured: parse_optional_bool(req_objx.get_req_body('is_featured')) ?? false,
-        skill_keys: normalize_skill_keys(req_objx.get_req_body('skill_keys')),
-        repository_urls: normalize_repository_urls(req_objx.get_req_body('repository_urls')),
+        description: parse_optional_text(body.description),
+        image_filename: parse_optional_text(body.image_filename),
+        deployed_url: parse_optional_text(body.deployed_url),
+        is_featured: parse_optional_bool(body.is_featured) ?? false,
+        skill_keys: normalize_skill_keys(body.skill_keys),
+        repository_urls: normalize_repository_urls(body.repository_urls),
     };
 }
 
-export const do_get_many = async (req_objx) => {
-    const title = parse_optional_text(req_objx.get_query_string_param('title'));
-    const is_featured = parse_optional_bool(req_objx.get_query_string_param('featured'));
-    const support_status_key = parse_optional_int(req_objx.get_query_string_param('support_status_key'));
+export const do_get_many = async ({query = {}} = {}) => {
+    const title = parse_optional_text(query.title);
+    const is_featured = parse_optional_bool(query.featured);
+    const support_status_key = parse_optional_int(query.support_status_key);
+    const search = parse_optional_text(query.search);
     const {limit, offset} = parse_pagination(
-        req_objx.get_query_string_param('limit'),
-        req_objx.get_query_string_param('offset'),
+        query.limit,
+        query.offset,
     );
 
-    const filter_params = [title, is_featured, support_status_key];
+    const filter_params = [title, is_featured, support_status_key, search];
 
     const {rows} = await db.query(
         `
@@ -267,7 +270,7 @@ export const do_get_many = async (req_objx) => {
         ${APPLICATION_JOINS}
         ${APPLICATION_FILTERS}
         ORDER BY a.publish_date DESC, a.application_key DESC
-        LIMIT $4 OFFSET $5
+        LIMIT $5 OFFSET $6
         `,
         [...filter_params, limit, offset],
     );
@@ -285,8 +288,8 @@ export const do_get_many = async (req_objx) => {
     };
 };
 
-export const do_create = async (req_objx) => {
-    const body = read_application_body(req_objx);
+export const do_create = async ({body: request_body = {}} = {}) => {
+    const body = read_application_body(request_body);
 
     const terms = await resolve_embedding_terms(body.support_status_key, body.skill_keys);
     const embedding = await generate_embedding_or_null({
@@ -330,13 +333,13 @@ export const do_create = async (req_objx) => {
     }
 };
 
-export const do_update = async (req_objx) => {
-    const application_key = parse_optional_int(req_objx.get_req_body('application_key'));
+export const do_update = async ({body: request_body = {}} = {}) => {
+    const application_key = parse_optional_int(request_body.application_key);
     if (application_key === null) {
         throw new Error(error_config.select_error('missing_required_field'));
     }
 
-    const body = read_application_body(req_objx);
+    const body = read_application_body(request_body);
 
     const terms = await resolve_embedding_terms(body.support_status_key, body.skill_keys);
     const embedding = await generate_embedding_or_null({
@@ -429,8 +432,8 @@ export const do_vectorize = async () => {
     return {total: rows.length, processed, failed};
 };
 
-export const do_delete = async (req_objx) => {
-    const application_key = parse_optional_int(req_objx.get_req_body('application_key'));
+export const do_delete = async ({body = {}} = {}) => {
+    const application_key = parse_optional_int(body.application_key);
     if (application_key === null) {
         throw new Error(error_config.select_error('missing_required_field'));
     }

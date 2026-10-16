@@ -1,16 +1,13 @@
 import {z} from 'zod';
 
-import {Tool} from '../_library/classes/tool.js';
+import {Tool} from '../../_library/classes/tool.js';
+import {openai_config} from '../../configuration/openai.js';
+import {vector_search_helper} from '../../configuration/vector_search.js';
+import {to_model_application} from '../projections.js';
 
-// Errors propagate: unlike the site's chat, a tool should tell its caller the search
-// failed rather than return nothing.
+// Errors propagate: unlike the site's chat, which degrades to a generic answer, a tool
+// should tell its caller the search failed rather than return nothing.
 export class SearchApplicationsSemanticTool extends Tool {
-    constructor({applications, openai, limits}) {
-        super({limits});
-        this.applications = applications;
-        this.openai = openai;
-    }
-
     get name() {
         return 'search_applications_semantic';
     }
@@ -34,13 +31,13 @@ export class SearchApplicationsSemanticTool extends Tool {
         };
     }
 
-    async execute({query: search_text, limit}) {
-        const embedding = await this.openai.generate_embedding(search_text);
-
-        return await this.applications.search_by_embedding({
+    async execute({query, limit}) {
+        const embedding = await openai_config.generateEmbedding(query);
+        const rows = await vector_search_helper.searchApplicationsOrThrow(
             embedding,
-            model_version: this.openai.embedding_model,
-            limit: this.resolve_limit(limit),
-        });
+            this.resolve_limit(limit),
+        );
+
+        return rows.map((row) => ({...to_model_application(row), score: row.score}));
     }
 }

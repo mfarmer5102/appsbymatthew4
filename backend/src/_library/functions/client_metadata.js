@@ -1,13 +1,14 @@
 /**
- * Caller IP and user agent, for request logging.
+ * Caller IP and user agent, for request logging and rate limiting.
  *
- * StandardizedRequestObject carries headers but no connection info, and behind App
- * Runner or API Gateway the socket address is the proxy's anyway. Both runtimes do see
- * `x-forwarded-for`, so that is the primary source, with the platform's own view of the
- * peer as a fallback for local development where nothing sets the header.
+ * Behind Lambda's endpoint (or a CDN in front of it) the socket address is a proxy's,
+ * so `x-forwarded-for` is the primary source, with the socket's view of the peer as a
+ * fallback for local development, where nothing sets the header. It is read directly
+ * rather than through Express's 'trust proxy', which would change how req.ip resolves
+ * everywhere.
  *
- * The result goes into the request's `state` bag rather than a new constructor
- * argument, so the two entry points stay the only places that know about the runtime.
+ * attach_client (src/configuration/middleware.js) runs this once per request and
+ * stores the result in res.locals.client.
  */
 
 const IPV4_PATTERN = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
@@ -17,7 +18,7 @@ const IPV6_PATTERN = /^[0-9a-f:.]+$/i;
 const MAX_USER_AGENT_LENGTH = 512;
 
 /**
- * Express lowercases header names; API Gateway passes through whatever the client sent.
+ * Node lowercases header names, but a caller passing its own headers object may not.
  */
 const get_header = (headers, name) => {
     if (!headers) return null;

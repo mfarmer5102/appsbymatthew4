@@ -1,10 +1,6 @@
-import { do_send_message } from '../data/chat.js';
-import { StandardizedResponseObject } from '../_library/classes/responses.js';
+import {do_send_message} from '../data/chat.js';
 
-export const send_message = async (req_objx) => {
-    return new StandardizedResponseObject(
-        200,
-        await do_send_message(req_objx),
-        null
-    )
-}
+// The caller's IP and user agent come from attach_client, for the chat log.
+export const send_message = async (req, res) => {
+    res.status(200).json(await do_send_message({body: req.body, client: res.locals.client}));
+};

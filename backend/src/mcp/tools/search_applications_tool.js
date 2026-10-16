@@ -1,13 +1,10 @@
 import {z} from 'zod';
 
-import {Tool} from '../_library/classes/tool.js';
+import {Tool} from '../../_library/classes/tool.js';
+import {do_get_many} from '../../data/applications.js';
+import {to_model_application} from '../projections.js';
 
 export class SearchApplicationsTool extends Tool {
-    constructor({applications, limits}) {
-        super({limits});
-        this.applications = applications;
-    }
-
     get name() {
         return 'search_applications';
     }
@@ -30,10 +27,12 @@ export class SearchApplicationsTool extends Tool {
         };
     }
 
-    async execute({query: search_text, limit}) {
-        return await this.applications.search({
-            search_text,
-            limit: this.resolve_limit(limit),
+    // The same query GET /api/applications runs, through its `search` filter.
+    async execute({query: search, limit}) {
+        const {data} = await do_get_many({
+            query: {search, limit: this.resolve_limit(limit)},
         });
+
+        return data.map(to_model_application);
     }
 }
