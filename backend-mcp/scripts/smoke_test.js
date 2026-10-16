@@ -1,40 +1,38 @@
-// Exercises the server the way a real MCP client does, over HTTP: initialize, list
-// tools, then call each one. Invokes handle_lambda_request directly - no deploy, no
-// running process. Run with `npm run smoke-test`.
+// Drives handle_lambda_request with the SDK's own client, once per protocol era: a
+// 2026-07-28 client (pinned, so it cannot quietly fall back) and a default 2025-era
+// client, which is still what most hosts send. Each lists the tools and calls every
+// one. No deploy and no socket: the client's fetch is pointed at the Lambda handler,
+// with each request converted to the event a Function URL would send. Run with
+// `npm run smoke-test`.
+import {Client, StreamableHTTPClientTransport} from '@modelcontextprotocol/client';
+
 import {handle_lambda_request} from '../_aws_lambda.mjs';
+import {close_container} from '../src/configuration/index.js';
 
-const rpc_event = (body) => ({
-    httpMethod: 'POST',
-    path: '/mcp',
-    headers: {
-        'content-type': 'application/json',
-        'accept': 'application/json, text/event-stream',
-    },
-    queryStringParameters: {},
-    body: JSON.stringify(body),
-    isBase64Encoded: false,
-});
+const ENDPOINT = new URL('https://lambda.internal/mcp');
 
-let next_id = 1;
+// A Function URL (payload v2) event, the shape a real deploy receives.
+const lambda_fetch = async (input, init) => {
+    const request = new Request(input, init);
+    const url = new URL(request.url);
 
-const rpc = async (method, params) => {
-    const response = await handle_lambda_request(rpc_event({
-        jsonrpc: '2.0',
-        id: next_id++,
-        method,
-        params,
-    }), {});
-    const parsed = JSON.parse(response.body);
+    const result = await handle_lambda_request({
+        rawPath: url.pathname,
+        rawQueryString: url.search.slice(1),
+        headers: Object.fromEntries(request.headers),
+        requestContext: {http: {method: request.method}},
+        body: request.method === 'GET' ? null : (await request.text()) || null,
+        isBase64Encoded: false,
+    }, {});
 
-    if (response.statusCode !== 200 || parsed.error) {
-        throw new Error(`${method} failed: ${response.statusCode} ${response.body}`);
-    }
-
-    return parsed.result;
+    // A 202 or 204 must not carry a body, even an empty string.
+    return new Response(result.body || null, {status: result.statusCode, headers: result.headers});
 };
 
-const preview = (text, length = 240) =>
-    text.length > length ? `${text.slice(0, length)}...` : text;
+const ERAS = [
+    ['2026-07-28', {versionNegotiation: {mode: {pin: '2026-07-28'}}}],
+    ['2025 (default client)', {}],
+];
 
 const CALLS = [
     ['list_lookups', {}],
@@ -43,29 +41,63 @@ const CALLS = [
     ['search_applications_semantic', {query: 'AI chatbot with vector search', limit: 2}],
 ];
 
-await rpc('initialize', {
-    protocolVersion: '2025-06-18',
-    capabilities: {},
-    clientInfo: {name: 'smoke-test', version: '1.0.0'},
-});
-
-const {tools} = await rpc('tools/list', {});
-console.log(`Connected. ${tools.length} tools registered:`);
-for (const tool of tools) console.log(`  - ${tool.name}`);
+const preview = (text, length = 160) =>
+    text.length > length ? `${text.slice(0, length)}...` : text;
 
 let failures = 0;
 
-for (const [name, args] of CALLS) {
-    const result = await rpc('tools/call', {name, arguments: args});
-    const text = result.content.map((part) => part.text).join('\n');
+for (const [label, options] of ERAS) {
+    const client = new Client({name: 'smoke-test', version: '1.0.0'}, options);
+    await client.connect(new StreamableHTTPClientTransport(ENDPOINT, {fetch: lambda_fetch}));
 
-    if (result.isError) {
-        failures++;
-        console.log(`\nFAIL ${name}\n  ${preview(text)}`);
-    } else {
-        console.log(`\nOK   ${name}(${JSON.stringify(args)})\n  ${preview(text)}`);
+    const {tools} = await client.listTools();
+    console.log(`\n=== ${label}: connected as ${client.getProtocolEra()}, ${tools.length} tools`);
+
+    for (const tool of tools) {
+        if (!tool.annotations?.readOnlyHint) {
+            failures++;
+            console.log(`FAIL ${tool.name} is not annotated read-only`);
+        }
     }
+
+    for (const [name, args] of CALLS) {
+        const result = await client.callTool({name, arguments: args});
+        const text = result.content.map((part) => part.text).join('\n');
+
+        if (result.isError) {
+            failures++;
+            console.log(`FAIL ${name}\n  ${preview(text)}`);
+        } else {
+            console.log(`OK   ${name}(${JSON.stringify(args)})  ${preview(text.replace(/\s+/g, ' '))}`);
+        }
+    }
+
+    await client.close();
 }
 
-console.log(failures === 0 ? '\nAll tool calls succeeded.' : `\n${failures} tool call(s) failed.`);
+// The site's own origin is reflected, and a 2026 client's per-request headers are
+// allowed - otherwise a browser-based client never gets past the preflight.
+const preflight = await lambda_fetch(ENDPOINT, {
+    method: 'OPTIONS',
+    headers: {
+        'origin': 'https://www.appsbymatthew.com',
+        'access-control-request-headers': 'content-type, mcp-method, mcp-name, mcp-protocol-version',
+    },
+});
+const allowed = preflight.headers.get('access-control-allow-headers') ?? '';
+
+if (
+    preflight.status !== 204 ||
+    preflight.headers.get('access-control-allow-origin') !== 'https://www.appsbymatthew.com' ||
+    !allowed.includes('mcp-method')
+) {
+    failures++;
+    console.log(`\nFAIL CORS preflight: ${preflight.status} ${JSON.stringify(Object.fromEntries(preflight.headers))}`);
+} else {
+    console.log('\nOK   CORS preflight');
+}
+
+await close_container();
+
+console.log(failures === 0 ? '\nAll checks passed.' : `\n${failures} check(s) failed.`);
 process.exit(failures === 0 ? 0 : 1);

@@ -4,7 +4,8 @@
 #
 # Requires a Lambda function already created for the MCP server (function URL or an
 # API Gateway route in front of it) and an ECR repository for its image, both named
-# below.
+# below. This deploys the Event Function; backend-mcp/README.md covers the Web
+# Function alternative, which is deployed from source rather than an image.
 
 name: Backend MCP - AWS ECR
 
@@ -30,10 +31,10 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v6
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -41,7 +42,7 @@ jobs:
 
     - name: Login to Amazon ECR
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+      uses: aws-actions/amazon-ecr-login@v2
 
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
@@ -61,3 +62,5 @@ jobs:
         aws lambda update-function-code \
         --function-name appsByMatthew4_mcpServer \
         --image-uri $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        # Fail the job here, not silently later, if the new image never goes live.
+        aws lambda wait function-updated-v2 --function-name appsByMatthew4_mcpServer

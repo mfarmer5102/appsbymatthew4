@@ -1,12 +1,14 @@
-// Resolved once at module scope via top-level await, mirroring
-// backend/src/configuration/secrets.js, so it is ready before Container is constructed.
-// A no-op outside Lambda - SecretConfig falls back to process.env there.
+// Resolved on demand rather than by a top-level await, so neither entry point blocks
+// on Secrets Manager while it loads - a Web Function must be listening within 10
+// seconds of starting. See src/configuration/index.js for when this runs.
 import {SecretConfig} from '../_library/classes/secrets.js';
 
-const secret_config = new SecretConfig('us-east-1', [
-    {key: 'SUPABASE_DB_URL', parent: 'prd-secrets'},
-    {key: 'OPENAI_API_KEY', parent: 'prd-secrets'},
-]);
-await secret_config.apply_list_of_secrets();
+export const resolve_secrets = async () => {
+    const secret_config = new SecretConfig('us-east-1', [
+        {key: 'SUPABASE_DB_URL', parent: 'prd-secrets'},
+        {key: 'OPENAI_API_KEY', parent: 'prd-secrets'},
+    ]);
+    await secret_config.apply_list_of_secrets();
 
-export default secret_config;
+    return secret_config;
+};

@@ -388,8 +388,10 @@
         <h1>Portfolio MCP Server</h1>
         <p class="lede">A standalone Node service that hands an MCP client four read-only
             tools over the portfolio's Postgres star schema. It speaks MCP's Streamable
-            HTTP transport, deployed behind AWS Lambda; the identical handler runs
-            locally behind a plain Node HTTP server for development.</p>
+            HTTP transport in both protocol eras — the stateless 2026-07-28 revision and
+            the 2025 revisions most clients still send — from one endpoint, deployed on
+            AWS Lambda as an Event Function or a Web Function, and run locally the same
+            way.</p>
     </header>
 
     <hr>
@@ -397,15 +399,16 @@
     <section>
         <div class="prose">
             <h2>What happens when a model calls a tool</h2>
-            <p>Every call lands on the same five-stage path once it reaches
-                <code>McpServer</code>, whether it arrived at a real Lambda invocation or
-                at <code>_local.mjs</code>'s dev server — both call the same
-                <code>handle_lambda_request</code>. The only real branch is the semantic
-                tool, which buys a vector from OpenAI before it can query.</p>
+            <p>Every call lands on the same path once it reaches
+                <code>McpEndpoint</code>, whichever entry point received it — a Lambda
+                Event Function invocation through <code>_aws_lambda.mjs</code>, or an HTTP
+                request to <code>index.js</code> on a Web Function or a laptop. The only
+                real branch is the semantic tool, which buys a vector from OpenAI before it
+                can query.</p>
         </div>
 
         <figure>
-            <svg viewBox="0 0 1180 430" role="img" aria-label="A tool call arrives over Streamable HTTP - through a Lambda invocation in production, or the same handler behind a local Node server for development - into McpServer and ToolCatalog, then travels through Tool.call() into a repository and out to Supabase Postgres, with the semantic tool first calling OpenAI to embed the query.">
+            <svg viewBox="0 0 1180 430" role="img" aria-label="A tool call arrives over Streamable HTTP - through a Lambda Event Function invocation or the index.js HTTP server - into McpEndpoint, which builds a fresh McpServer with the ToolCatalog, then travels through Tool.call() into a repository and out to Supabase Postgres, with the semantic tool first calling OpenAI to embed the query.">
                 <defs>
                     <marker id="a1" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto">
                         <polygon points="0,0 10,4 0,8" fill="currentColor"></polygon>
@@ -417,7 +420,7 @@
 
                 <!-- process boundary -->
                 <rect class="zone" x="196" y="44" width="970" height="366" rx="4"></rect>
-                <text class="t zone-label" x="206" y="62" font-size="11" letter-spacing="1.4">NODE PROCESS · fresh McpServer built per call, stateless</text>
+                <text class="t zone-label" x="206" y="62" font-size="11" letter-spacing="1.4">NODE PROCESS · fresh McpServer built per request, stateless</text>
 
                 <!-- entry lane -->
                 <rect class="box-fill box-line" x="16" y="147" width="150" height="70" rx="3"></rect>
@@ -430,11 +433,11 @@
                 <text class="m" x="196" y="212" font-size="10" text-anchor="middle">JSON / SSE</text>
 
                 <rect class="box-fill box-line" x="226" y="137" width="180" height="90" rx="3"></rect>
-                <text class="t" x="316" y="161" font-size="13.5" font-weight="600" text-anchor="middle">_aws_lambda.mjs</text>
-                <text class="m" x="316" y="179" font-size="9" text-anchor="middle">Streamable HTTP transport</text>
+                <text class="t" x="316" y="161" font-size="13.5" font-weight="600" text-anchor="middle">McpEndpoint</text>
+                <text class="m" x="316" y="179" font-size="9" text-anchor="middle">createMcpHandler · both eras</text>
                 <line x1="246" y1="189" x2="386" y2="189" class="box-line"></line>
-                <text class="m" x="316" y="201" font-size="9" text-anchor="middle">stateless · one event per call</text>
-                <text class="m" x="316" y="215" font-size="9" text-anchor="middle">Lambda, or _local.mjs for dev</text>
+                <text class="m" x="316" y="201" font-size="9" text-anchor="middle">via _aws_lambda.mjs (Event Fn)</text>
+                <text class="m" x="316" y="215" font-size="9" text-anchor="middle">or index.js (Web Fn · local)</text>
 
                 <!-- converge -->
                 <line class="flow" x1="406" y1="182" x2="486" y2="182" stroke-width="1.5" marker-end="url(#a1)"></line>
@@ -445,7 +448,7 @@
                 <text class="m" x="561" y="180" font-size="10.5" text-anchor="middle">ToolCatalog</text>
                 <line x1="506" y1="190" x2="616" y2="190" class="box-line"></line>
                 <text class="m" x="561" y="206" font-size="9.5" text-anchor="middle">dispatch by tool name</text>
-                <text class="m" x="561" y="219" font-size="8.5" text-anchor="middle">same catalog either way</text>
+                <text class="m" x="561" y="219" font-size="8.5" text-anchor="middle">same catalog, either era</text>
 
                 <!-- catalog to tool -->
                 <line class="flow" x1="636" y1="182" x2="696" y2="182" stroke-width="1.5" marker-end="url(#a1)"></line>
@@ -457,7 +460,7 @@
                 <text class="m" x="781" y="168" font-size="10.5" text-anchor="middle">zod validates args</text>
                 <text class="m" x="781" y="186" font-size="10.5" text-anchor="middle">limit capped at max</text>
                 <text class="m" x="781" y="204" font-size="10.5" text-anchor="middle">execute()</text>
-                <text class="m" x="781" y="222" font-size="10.5" text-anchor="middle">wraps JSON in text</text>
+                <text class="m" x="781" y="222" font-size="10.5" text-anchor="middle">read-only annotated</text>
 
                 <!-- tool to repo -->
                 <line class="flow" x1="866" y1="182" x2="926" y2="182" stroke-width="1.5" marker-end="url(#a1)"></line>
@@ -475,7 +478,7 @@
                 <rect class="box-fill box-line" x="1076" y="130" width="90" height="100" rx="3"></rect>
                 <text class="t" x="1121" y="158" font-size="12.5" font-weight="600" text-anchor="middle">Supabase</text>
                 <text class="m" x="1121" y="176" font-size="10.5" text-anchor="middle">pooler</text>
-                <text class="m" x="1121" y="200" font-size="10" text-anchor="middle">pool max 3</text>
+                <text class="m" x="1121" y="200" font-size="10" text-anchor="middle">pool 3 · 10</text>
                 <text class="m" x="1121" y="216" font-size="10" text-anchor="middle">TLS · own CA</text>
 
                 <!-- OpenAI branch -->
@@ -491,10 +494,11 @@
                 <path class="flow accent-line" d="M 1121 130 L 1121 90 L 561 90 L 561 134" stroke-width="1.5" marker-end="url(#a1)" opacity=".85"></path>
                 <text class="m accent" x="841" y="82" font-size="10.5" text-anchor="middle">rows → JSON text content, or isError: true</text>
             </svg>
-            <figcaption>One path in, in production and in development alike —
-                <code>_local.mjs</code> calls the exact same <code>handle_lambda_request</code>
-                a real Lambda invocation would, just behind a plain Node HTTP server
-                instead of API Gateway. A thrown error is caught in
+            <figcaption>One path in, in production and in development alike — both entry
+                points only translate a request into a web-standard <code>Request</code>
+                for the same <code>McpEndpoint</code>. Its pool is three connections on an
+                Event Function and ten on a Web Function, which serves concurrent requests
+                from one process. A thrown error is caught in
                 <code>Tool.call()</code> and returned as an <code>isError</code> envelope,
                 so an uncaught throw never takes the connection down with it.</figcaption>
         </figure>
@@ -509,7 +513,7 @@
         </div>
 
         <figure>
-            <svg viewBox="0 0 1000 442" role="img" aria-label="In Lambda, SecretConfig resolves secrets from AWS Secrets Manager before the Container is built. The Container builds Environment and Configuration eagerly, then lazily builds Postgres and OpenAI clients, three repositories, four tools, and the tool catalog, which a fresh McpServer registers on every invocation.">
+            <svg viewBox="0 0 1000 442" role="img" aria-label="In AWS, SecretConfig resolves secrets from AWS Secrets Manager on the first request, before the Container is built. The Container builds Environment and Configuration eagerly, then lazily builds Postgres and OpenAI clients, three repositories, four tools, the tool catalog, and the McpEndpoint, whose factory registers the catalog on a fresh McpServer for every request.">
                 <defs>
                     <marker id="a3" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="6" orient="auto">
                         <polygon points="0,0 10,4 0,8" fill="currentColor" opacity=".65"></polygon>
@@ -519,7 +523,7 @@
                     </marker>
                 </defs>
 
-                <text class="m out" x="16" y="20" font-size="10" letter-spacing="1">LAMBDA COLD START ONLY</text>
+                <text class="m out" x="16" y="20" font-size="10" letter-spacing="1">IN AWS · FIRST REQUEST ONLY</text>
                 <rect class="box-fill" x="16" y="30" width="210" height="52" rx="3" stroke="#A2610C"></rect>
                 <text class="t out" x="121" y="52" font-size="12.5" font-weight="600" text-anchor="middle">SecretConfig</text>
                 <text class="m out" x="121" y="70" font-size="9" text-anchor="middle">AWS Secrets Manager · prd-secrets</text>
@@ -586,17 +590,18 @@
 
                 <rect class="box-fill" x="746" y="332" width="238" height="86" rx="3" stroke="#0E6A70"></rect>
                 <text class="t accent" x="865" y="362" font-size="13" font-weight="600" text-anchor="middle">McpServer</text>
-                <text class="m" x="865" y="382" font-size="10.5" text-anchor="middle">built fresh per invocation</text>
-                <text class="m" x="865" y="398" font-size="10.5" text-anchor="middle">Lambda, or locally via _local.mjs</text>
+                <text class="m" x="865" y="382" font-size="10.5" text-anchor="middle">built fresh per request</text>
+                <text class="m" x="865" y="398" font-size="10.5" text-anchor="middle">by McpEndpoint's factory</text>
             </svg>
-            <figcaption><code>_aws_lambda.mjs</code> resolves secrets first (in Lambda;
-                locally <code>Environment</code> just reads <code>.env</code>), builds
-                <code>Container</code>, then builds a fresh <code>McpServer</code> per
-                invocation and registers <code>Container#tool_catalog</code> onto it — the
-                pool and OpenAI client survive a warm start as <code>Container</code>
-                singletons; only the per-request MCP plumbing is rebuilt.
-                <code>_local.mjs</code> calls that identical path behind a plain HTTP
-                server, so this diagram describes both. Nothing here learns which tools
+            <figcaption><code>get_container()</code> in
+                <code>src/configuration/index.js</code> builds all of this once, on the
+                first request rather than at import: it resolves secrets (in AWS; locally
+                <code>Environment</code> just reads <code>.env</code>), then builds the
+                <code>Container</code>. From then on <code>McpEndpoint</code>'s factory
+                builds a fresh <code>McpServer</code> per request and registers
+                <code>Container#tool_catalog</code> onto it — the pool and OpenAI client
+                survive as <code>Container</code> singletons; only the per-request MCP
+                plumbing is rebuilt. Both entry points share this. Nothing here learns which tools
                 exist ahead of time, so adding one is a class under <code>src/tools/</code>
                 and a single entry in the container.</figcaption>
         </figure>
@@ -662,17 +667,25 @@
 
         <div class="notes">
             <div>
-                <h3>Local dev calls the same handler</h3>
-                <p><code>_local.mjs</code> and <code>scripts/inspect.js</code> just invoke
-                    <code>handle_lambda_request</code> behind a plain Node
-                    <code>http</code> server — no second, divergent code path for local
-                    development to drift from what Lambda actually runs.</p>
+                <h3>One endpoint, two entry points</h3>
+                <p><code>_aws_lambda.mjs</code> and <code>index.js</code> only convert a
+                    request into a web-standard <code>Request</code> and hand it to
+                    <code>McpEndpoint</code>. <code>npm run dev</code> runs the very file a
+                    Web Function runs, and the smoke test drives the Event Function
+                    handler, so neither path is untested.</p>
+            </div>
+            <div>
+                <h3>Two protocol eras, one URL</h3>
+                <p><code>createMcpHandler</code> serves 2026-07-28 requests natively and
+                    answers 2025-era <code>initialize</code> traffic statelessly from the
+                    same factory, so older clients keep working with no session store.</p>
             </div>
             <div>
                 <h3>Read-only by design</h3>
                 <p>Unlike the sibling pool in <code>backend/</code>, there is no
-                    transaction helper here. Three connections, a 15s statement timeout,
-                    and nothing that writes.</p>
+                    transaction helper here. Three connections (ten on a Web Function), a
+                    15s statement timeout, and nothing that writes — every tool is
+                    annotated <code>readOnlyHint</code> so a client can say so too.</p>
             </div>
             <div>
                 <h3>Queries qualify the schema</h3>
@@ -697,19 +710,21 @@
                     second model's vectors would duplicate every row.</p>
             </div>
             <div>
-                <h3>Stateless per call</h3>
-                <p>Lambda gives no guarantee two requests land on the same instance, so
-                    <code>_aws_lambda.mjs</code> builds a fresh <code>McpServer</code> and
-                    opens the Streamable HTTP transport in stateless mode on every
-                    invocation. Only the Postgres pool and OpenAI client persist, as
+                <h3>Stateless per request</h3>
+                <p>Lambda gives no guarantee two requests land on the same instance, and
+                    the 2026-07-28 revision has no sessions anyway, so
+                    <code>createMcpHandler</code> builds a fresh <code>McpServer</code> for
+                    every request. Only the Postgres pool and OpenAI client persist, as
                     <code>Container</code> singletons across a warm start.</p>
             </div>
             <div>
                 <h3>Secrets differ by runtime</h3>
-                <p>Locally, <code>Environment</code> loads <code>.env</code>. In Lambda,
-                    <code>SecretConfig</code> resolves both secrets from Secrets
-                    Manager's <code>prd-secrets</code> at module scope, before
-                    <code>Container</code> is built.</p>
+                <p>Locally, <code>Environment</code> loads <code>.env</code>. In AWS —
+                    detected by <code>AWS_EXECUTION_ENV</code> or, on a Web Function,
+                    <code>AWS_LAMBDA_HTTP_ENDPOINT</code> — <code>SecretConfig</code>
+                    resolves both secrets from Secrets Manager's <code>prd-secrets</code>
+                    on the first request. Not at import: a Web Function must be listening
+                    within 10 seconds.</p>
             </div>
         </div>
     </section>

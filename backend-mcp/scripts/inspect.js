@@ -1,11 +1,11 @@
-// Launches the local dev server (_local.mjs) and the MCP Inspector's web UI together,
+// Launches the local dev server (index.js) and the MCP Inspector's web UI together,
 // pre-pointed at it - dev convenience only, not part of the deployed server. Run with
 // `npm run inspect`. Ctrl+C stops both.
 import {spawn} from 'child_process';
 import {fileURLToPath} from 'url';
 
 const PORT = process.env.PORT || 2022;
-const LOCAL_SERVER_PATH = fileURLToPath(new URL('../_local.mjs', import.meta.url));
+const LOCAL_SERVER_PATH = fileURLToPath(new URL('../index.js', import.meta.url));
 
 const server = spawn(process.execPath, [LOCAL_SERVER_PATH], {
     env: {...process.env, PORT},

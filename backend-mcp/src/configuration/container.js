@@ -7,6 +7,7 @@ import {Configuration} from '../_library/classes/configuration.js';
 import {PostgresConfig} from '../_library/classes/postgres.js';
 import {OpenAIConfig} from '../_library/classes/openai.js';
 import {ToolCatalog} from '../_library/classes/tool_catalog.js';
+import {McpEndpoint} from '../_library/classes/mcp_endpoint.js';
 
 import {ApplicationRepository} from '../repositories/application_repository.js';
 import {SkillRepository} from '../repositories/skill_repository.js';
@@ -24,7 +25,7 @@ export class Container {
     #instances = new Map();
 
     // Constructing the Environment loads .env, before the Configuration reads any of it.
-    // `secrets` is a resolved SecretConfig, passed by _aws_lambda.mjs - see
+    // `secrets` is a resolved SecretConfig, passed by src/configuration/index.js - see
     // src/configuration/secrets.js and Environment.
     constructor({dotenv_path = DOTENV_PATH, environment = null, secrets = null} = {}) {
         this.environment = environment ?? new Environment(dotenv_path, secrets);
@@ -58,6 +59,27 @@ export class Container {
 
     get lookups() {
         return this.#singleton('lookups', () => new LookupRepository(this.database));
+    }
+
+    // What both entry points serve. Holds no state of its own between requests.
+    get mcp_endpoint() {
+        return this.#singleton('mcp_endpoint', () => new McpEndpoint({
+            info: this.config.server,
+            catalog: this.tool_catalog,
+            ...this.config.mcp,
+        }));
+    }
+
+    // Closes only what was actually built - a getter here would build it just to close
+    // it. Best-effort: one failure should not strand the rest.
+    async close() {
+        for (const key of ['mcp_endpoint', 'database']) {
+            try {
+                await this.#instances.get(key)?.close();
+            } catch (error) {
+                console.error(`Error closing ${key}:`, error.message);
+            }
+        }
     }
 
     // Adding a tool means a class under src/tools/ and one entry here.

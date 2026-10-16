@@ -78,4 +78,9 @@ export class PostgresConfig {
 
         return rows;
     }
+
+    // Or a connection dangles against the pooler after the environment shuts down.
+    async close() {
+        await this.pool.end();
+    }
 }

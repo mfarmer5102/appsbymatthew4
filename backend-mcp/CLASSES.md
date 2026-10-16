@@ -5,25 +5,25 @@ Every class in this directory and its public methods, one line each. See
 
 ## Entry points (no classes)
 
-- **_aws_lambda.mjs** — the sole deployed entry point; speaks MCP's Streamable HTTP transport.
-  - `handle_lambda_request(event, context)` — CORS/OPTIONS handling, converts the Lambda event to a Response.
-  - `handle_mcp_request(event, method)` — builds a fresh `McpServer` + stateless HTTP transport per invocation.
-  - `to_web_request(event, method)` — converts a Lambda event into a Web Standard `Request`.
-- **_local.mjs** — dev-only, never deployed; a plain Node `http` server wrapping `handle_lambda_request` so a real client can connect at `localhost:2022/mcp`.
-- **scripts/inspect.js** — dev-only; spawns `_local.mjs` and the MCP Inspector web UI together, pre-connected. Run via `npm run inspect`.
+- **_aws_lambda.mjs** — Event Function entry point (the container image's `CMD`); knows nothing about MCP.
+  - `handle_lambda_request(event, context)` — converts the event to a `Request`, passes it to `McpEndpoint.fetch()`, converts the `Response` back; 500 if the Container cannot be built.
+  - `to_web_request(event)` — converts an API Gateway REST (v1) or Function URL / HTTP API (v2) event into a web-standard `Request`.
+- **index.js** — HTTP server entry point: a Web Function's entry file in AWS, and `npm run dev` locally. Adapts `McpEndpoint.fetch()` to Node's `http` server with `toNodeHandler`; binds `AWS_LAMBDA_HTTP_ENDPOINT` in a Web Function, or loopback behind localhost Host/Origin guards locally. Warms the Container after listening and closes it on `SIGTERM`.
+- **scripts/smoke_test.js** — dev-only; drives `handle_lambda_request` with the SDK's client in both protocol eras and checks the CORS preflight. Run via `npm run smoke-test`.
+- **scripts/inspect.js** — dev-only; spawns `index.js` and the MCP Inspector web UI together, pre-connected. Run via `npm run inspect`.
 
 ## `src/_library/classes/` — reusable, portfolio-agnostic
 
 ### `Environment` (environment.js)
 Loads `.env` (or takes resolved secrets) and reads values off it.
 - `constructor(dotenv_path, secrets)` — loads dotenv; stores a resolved `SecretConfig` if given.
-- `require(name)` — returns a var or exits the process if missing.
+- `require(name)` — returns a var or throws if missing.
 - `optional(name)` — returns a var (secrets first, then `process.env`) or `undefined`.
 - `flag(name)` — reads a var as a boolean (`=== 'true'`).
 
 ### `Configuration` (configuration.js)
 Every setting, resolved once from `Environment`.
-- `constructor(environment)` — builds `server`, `database`, `openai`, and `limits` config blocks.
+- `constructor(environment)` — builds `server`, `mcp`, `database`, `openai`, and `limits` config blocks, and `is_web_function` (which sizes the pool).
 - `limits_for(tool_name)` — returns `{default, max}` for a tool, throws if unconfigured.
 
 ### `PostgresConfig` (postgres.js)
@@ -32,6 +32,7 @@ Read-only Postgres pool wrapper.
 - `constructor({connection_string, schema, pool, ssl})` — opens the pg `Pool`.
 - `#build_ssl_options()` *(private)* — resolves CA cert / no-verify / bundled cert fallback.
 - `query(text, params)` — runs a query, returns rows.
+- `close()` — ends the pool.
 
 ### `OpenAIConfig` (openai.js)
 Embeddings only — no chat model in this service.
@@ -48,12 +49,13 @@ Base class for the data layer.
 Base class for an MCP tool: schema, envelope, registration.
 - `constructor({limits})` — stores row-count limits.
 - `get name()` / `get title()` / `get description()` *(abstract)* — subclass must define.
-- `get input_schema()` — zod shape; empty object by default.
+- `get input_schema()` — zod shape; empty object by default. `register()` wraps it in `z.object()`.
+- `get annotations()` — client behavior hints; read-only by default.
 - `execute(args)` *(abstract)* — subclass's actual logic.
 - `limit_input()` — builds the shared zod `limit` field, capped at `this.limits.max`.
 - `resolve_limit(limit)` — falls back to `this.limits.default` when omitted.
 - `call(args)` — runs `execute()`, wraps the result (or error) in the MCP content envelope.
-- `register(server)` — registers this tool on an `McpServer` instance.
+- `register(server)` — registers this tool, with its title, description, schema and annotations, on an `McpServer` instance.
 
 ### `ToolCatalog` (tool_catalog.js)
 The set of tools; rejects duplicate names.
@@ -64,10 +66,18 @@ The set of tools; rejects duplicate names.
 - `register_all(server)` — calls `register()` on every tool.
 - `[Symbol.iterator]()` — iterates the tools.
 
+### `McpEndpoint` (mcp_endpoint.js)
+The whole MCP surface, as a web-standard handler both entry points wrap.
+- `constructor({info, catalog, max_tool_input_elements, cache_ttl_ms, allowed_origin})` — builds the `createMcpHandler` handler, which serves both protocol eras.
+- `#build_server()` *(private)* — the per-request factory: a fresh `McpServer` with the catalog registered.
+- `fetch(request, options)` — answers CORS preflights, otherwise delegates to the handler and adds CORS headers.
+- `#cors_headers(request)` *(private)* — reflects the site's origins (else `*`) and the requested headers.
+- `close()` — aborts in-flight exchanges.
+
 ### `SecretConfig` (secrets.js)
-Loads secrets from AWS Secrets Manager (Lambda) or `process.env` (local).
-- `constructor(aws_region_name, list_of_secrets)` — records region and which keys/secret bundles to fetch.
-- `apply_list_of_secrets()` — populates `this[key]` for each configured secret.
+Loads secrets from AWS Secrets Manager in AWS; a no-op locally.
+- `constructor(aws_region_name, list_of_secrets)` — records region and which keys/secret bundles to fetch; detects AWS by `AWS_EXECUTION_ENV` or `AWS_LAMBDA_HTTP_ENDPOINT`.
+- `apply_list_of_secrets()` — populates `this[key]` for each configured secret (in AWS only).
 
 ## `src/repositories/` — one per part of the star schema
 
@@ -112,7 +122,11 @@ Builds and wires everything; the only place with singleton state.
 - `get database()` — the `PostgresConfig` singleton.
 - `get openai()` — the `OpenAIConfig` singleton.
 - `get applications()` / `get skills()` / `get lookups()` — repository singletons.
+- `get mcp_endpoint()` — the `McpEndpoint` singleton both entry points serve.
+- `close()` — closes the endpoint and pool, if they were built.
 - `get tool_catalog()` — builds and returns the `ToolCatalog` with all four tools wired in.
 
-`secrets.js` resolves a module-scope `SecretConfig` for Lambda's `_aws_lambda.mjs`, which
-builds its own `Container` directly rather than sharing a singleton.
+`index.js` exports `get_container()`, which resolves secrets (`secrets.js`'s
+`resolve_secrets()`) and builds the running `Container` on first use, sharing one build
+across concurrent first requests and retrying after a failure; and `close_container()`
+for shutdown. Tests construct their own `Container`.

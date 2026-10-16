@@ -1,10 +1,10 @@
 {
   "name": "portfolio-mcp-server",
   "type": "module",
-  "version": "1.0.0",
-  "description": "Standalone MCP server exposing the appsbymatthew portfolio as tools",
+  "version": "2.0.0",
+  "description": "Standalone MCP server exposing the appsbymatthew portfolio as tools, over Streamable HTTP on AWS Lambda",
   "scripts": {
-    "dev": "node _local.mjs",
+    "dev": "node index.js",
     "inspect": "node scripts/inspect.js",
     "smoke-test": "node scripts/smoke_test.js"
   },
@@ -17,14 +17,18 @@
   "author": "Matthew Farmer",
   "license": "MIT",
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.721.0",
-    "@modelcontextprotocol/sdk": "^1.30.0",
-    "dotenv": "^16.6.1",
-    "openai": "^6.18.0",
-    "pg": "^8.23.0",
-    "zod": "^4.4.3"
+    "@aws-sdk/client-secrets-manager": "^3.1152.0",
+    "@modelcontextprotocol/node": "^2.1.1",
+    "@modelcontextprotocol/server": "^2.3.1",
+    "dotenv": "^18.0.8",
+    "openai": "^7.34.0",
+    "pg": "^8.23.1",
+    "zod": "^4.6.7"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=24.0.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.3.1"
   }
 }

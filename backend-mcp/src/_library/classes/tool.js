@@ -21,8 +21,22 @@ export class Tool {
         throw new Error(`${this.constructor.name} must define a description.`);
     }
 
+    // A zod shape ({field: z.string()}); register() wraps it in z.object(), which the
+    // v2 SDK requires.
     get input_schema() {
         return {};
+    }
+
+    // Behavior hints a client uses to decide what needs the user's approval. Every tool
+    // in this service is a read-only SELECT, so that is the default; a tool that writes
+    // must override it.
+    get annotations() {
+        return {
+            readOnlyHint: true,
+            destructiveHint: false,
+            idempotentHint: true,
+            openWorldHint: false,
+        };
     }
 
     // Returns anything JSON-serializable. Throwing is fine - see call().
@@ -68,7 +82,8 @@ export class Tool {
             {
                 title: this.title,
                 description: this.description,
-                inputSchema: this.input_schema,
+                inputSchema: z.object(this.input_schema),
+                annotations: this.annotations,
             },
             (args) => this.call(args),
         );

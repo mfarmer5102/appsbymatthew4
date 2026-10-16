@@ -8,7 +8,24 @@ export class Configuration {
 
         this.server = {
             name: 'appsbymatthew-portfolio',
-            version: '1.0.0',
+            version: '2.0.0',
+        };
+
+        // A Web Function sets AWS_LAMBDA_HTTP_ENDPOINT and serves many requests at once
+        // from one process; an Event Function serves one at a time.
+        this.is_web_function = Boolean(environment.optional('AWS_LAMBDA_HTTP_ENDPOINT'));
+
+        this.mcp = {
+            // Every tool takes at most three scalar arguments, so this only turns away
+            // a pathological payload before any schema runs.
+            max_tool_input_elements: 100,
+
+            // How long a client may cache tools/list and server/discover. Both change
+            // only with a deploy.
+            cache_ttl_ms: 60 * 60 * 1000,
+
+            // Origins CORS reflects; everything else gets '*'.
+            allowed_origin: /^https:\/\/(www\.)?appsbymatthew\.com$/,
         };
 
         this.database = {
@@ -17,9 +34,10 @@ export class Configuration {
             // Not public, so queries qualify it rather than relying on search_path.
             schema: 'apps_by_matthew',
 
-            // Read-only and single-client, so the pool stays small.
+            // Read-only, so the pool stays small - but a Web Function environment
+            // serves concurrent requests, which would queue behind three connections.
             pool: {
-                max: 3,
+                max: this.is_web_function ? 10 : 3,
                 idle_timeout_ms: 30000,
                 connection_timeout_ms: 10000,
                 statement_timeout_ms: 15000,

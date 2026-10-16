@@ -1,9 +1,12 @@
-FROM public.ecr.aws/lambda/nodejs:20
+# Node 24: the nodejs:20 base image stopped receiving security patches when Lambda
+# deprecated it on April 30, 2026, and container images get no deprecation warnings.
+FROM public.ecr.aws/lambda/nodejs:24
 
 COPY ./backend-mcp ${LAMBDA_TASK_ROOT}
 WORKDIR ${LAMBDA_TASK_ROOT}
 
-RUN npm install --omit=dev
+# ci, not install: builds exactly what package-lock.json pins.
+RUN npm ci --omit=dev
 
 # Set the CMD to your handler (could also be done as a parameter override outside of the
 # Dockerfile, as backend/dockerfiles/DockerfileLambda does).
