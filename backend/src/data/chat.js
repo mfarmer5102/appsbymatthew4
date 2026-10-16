@@ -1,12 +1,7 @@
-import {postgres_config} from '../configuration/database.js';
-import secret_config from '../configuration/secrets.js';
-import {OpenAIConfig} from '../_library/classes/openai.js';
-import {VectorSearchHelper} from '../_library/classes/vector_search.js';
+import {openai_config} from '../configuration/openai.js';
+import {vector_search_helper} from '../configuration/vector_search.js';
 import {log_chat_turn} from './chat_log.js';
 import {randomBytes} from 'crypto';
-
-const openai_config = new OpenAIConfig(secret_config['OPENAI_API_KEY']);
-const vector_search_helper = new VectorSearchHelper(postgres_config);
 
 const FALLBACK_MESSAGE = "I'm having trouble right now. Please try again later.";
 
@@ -68,11 +63,11 @@ function format_sources(search_results) {
 /**
  * Main chat handler - send message and get response
  */
-export const do_send_message = async (req_objx) => {
+export const do_send_message = async ({body = {}, client = {}} = {}) => {
     const started_at = Date.now();
 
     // Extract and sanitize input
-    const raw_message = req_objx.get_req_body('message');
+    const raw_message = body.message;
     const user_message = sanitize_input(raw_message);
 
     // Validate input. Nothing was asked and nothing was generated, so there is no turn
@@ -87,8 +82,8 @@ export const do_send_message = async (req_objx) => {
 
     // Resolved once, outside the try, so the error path reports the same session the
     // successful path would have.
-    const session_id = req_objx.get_req_body('session_id') || generate_session_id();
-    const client_metadata = req_objx.get_state('client') ?? {};
+    const session_id = body.session_id || generate_session_id();
+    const client_metadata = client ?? {};
 
     // Each stage is timed separately: a slow turn is almost always one of the three,
     // and the totals alone do not say which.

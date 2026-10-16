@@ -1,5 +1,0 @@
-# Read only for builds using DockerfileLambda (BuildKit looks for <Dockerfile>.dockerignore
-# beside the Dockerfile). The build context is the repository root, so without this a
-# local build would bake backend-mcp/.env - real credentials - into the image.
-backend-mcp/.env
-backend-mcp/node_modules

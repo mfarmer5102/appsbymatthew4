@@ -45,12 +45,26 @@ export class ErrorConfig {
         return err_key;
     }
 
+    /**
+     * Maps a thrown error to [status_code, message] for the response.
+     *
+     * Only errors this config defines, and client errors Express raised itself (a
+     * malformed JSON body, an oversized payload), keep their message. Anything else is
+     * an unexpected failure whose message could expose internals - a SQL error, a
+     * connection string - so the caller gets a generic 500 and the details go to the log.
+     */
     prepare_error_notice(e) {
         for (const err of this.all_errors) {
-            if (err.key === e['message']) {
+            if (err.key === e?.message) {
                 return [err.status_code, err.message];
             }
         }
-        return [500, e.toString()];
+
+        const status = e?.status ?? e?.statusCode;
+        if (e?.expose && status >= 400 && status < 500) {
+            return [status, e.message];
+        }
+
+        return [500, 'Internal server error.'];
     }
 }

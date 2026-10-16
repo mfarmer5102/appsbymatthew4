@@ -9,9 +9,9 @@ store, so `pg` cannot verify the connection without it — the failure looks lik
 Error: self-signed certificate in certificate chain   (SELF_SIGNED_CERT_IN_CHAIN)
 ```
 
-`src/_library/classes/postgres.js` reads this file by default, which is what lets Lambda
-and App Runner connect with certificate verification on and no TLS configuration of
-their own. Keep it in the deployment package.
+`src/_library/classes/postgres.js` reads this file by default, which is what lets the
+Lambda Web Function connect with certificate verification on and no TLS configuration
+of its own. Keep it in the deployment package (the deploy workflow zips `certs/`).
 
 | | |
 |---|---|

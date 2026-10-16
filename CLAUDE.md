@@ -4,27 +4,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a portfolio management application with a Node.js backend and React frontend. The backend is designed to run both as an Express server and as an AWS Lambda function, using a custom routing abstraction layer. It includes an AI-powered chat feature backed by OpenAI and pgvector similarity search over Supabase (PostgreSQL).
+This is a portfolio management application with a Node.js backend and React frontend. The backend is a single Express app, deployed as an AWS Lambda Web Function, that serves both the site's REST API (`/api`) and an MCP endpoint (`/api/mcp`) for AI clients from one shared data layer. It includes an AI-powered chat feature backed by OpenAI and pgvector similarity search over Supabase (PostgreSQL).
 
 ## Architecture
 
 ### Backend Architecture
 
-The backend uses a **custom routing framework** that abstracts away the web server implementation, allowing the same code to run on Express.js or AWS Lambda:
+A plain **Express 5** app, with no runtime abstraction layer — Lambda Web Functions run an ordinary HTTP server:
 
-1. **Request Standardization**: Both `_express.js` and `_aws_lambda.mjs` convert platform-specific requests into `StandardizedRequestObject` instances
-2. **Unified Routing**: All routes are defined once in `src/configuration/routing.js` using `Route` and `RoutingConfig` classes
-3. **Middleware System**: Custom middleware runs in `src/configuration/middleware.js` (not Express middleware)
-4. **Data Layer**: Controllers (`src/controllers/`) delegate to data functions (`src/data/`) which issue SQL against Supabase via the shared `pg` pool
+1. **Entry point**: `index.js` starts listening, then dynamically imports `app.js` (which resolves secrets at module scope). The same file is the Web Function's entry and the local dev server.
+2. **App**: `app.js` wires helmet, client metadata, `/api/mcp`, CORS, rate limits, the JSON body parser, the `/api` router, a 404, and the error handler — in that order.
+3. **Routing**: every REST route is an Express route in `src/configuration/routing.js`; write routes carry the `require_admin_code` middleware from `src/configuration/middleware.js`.
+4. **Controllers** (`src/controllers/`) are Express handlers that pass `{query: req.query}` or `{body: req.body}` to **data functions** (`src/data/`), which hold all SQL and know nothing about HTTP.
+5. **MCP**: `src/configuration/mcp.js` builds an `McpEndpoint` whose tools (`src/mcp/tools/`) call the same `src/data` functions. `app.js` mounts it at `/api/mcp` with `toNodeHandler`, before `cors()` and `express.json()` — it applies its own CORS policy and reads the raw body.
+
+Errors: data functions throw `new Error(error_config.select_error('key'))`; Express 5 forwards rejected promises to the error handler, which maps the key to a status via `ErrorConfig.prepare_error_notice`. Unknown errors become a generic 500 (details logged, never returned). Error bodies are a JSON string, e.g. `"Not found."`.
 
 **Key classes** (in `src/_library/classes/`):
-- `StandardizedRequestObject` / `StandardizedResponseObject`: Platform-agnostic request/response wrappers
-- `RoutingConfig` / `Route`: Custom routing system with protected/unprotected route separation
-- `MiddlewareConfig`: Custom middleware that runs before route handlers
 - `PostgresConfig`: `pg` connection pool wrapper exposing `query()` and `transaction()`
-- `OpenAIConfig`: Wrapper for OpenAI API (embeddings + chat completions)
-- `VectorSearchHelper`: Helper for pgvector similarity search over application embeddings
-- `SecretConfig`: Loads secrets from environment or AWS Secrets Manager
+- `OpenAIConfig`: Wrapper for OpenAI API (embeddings + chat completions); one shared instance in `src/configuration/openai.js`
+- `VectorSearchHelper`: pgvector similarity search — `searchApplications()` degrades to `[]` (chat), `searchApplicationsOrThrow()` reports failures (MCP)
+- `SecretConfig`: Loads secrets from AWS Secrets Manager in AWS, `process.env` locally
+- `McpEndpoint`: wraps the MCP SDK's `createMcpHandler` as a web-standard `fetch(Request)`, with its own CORS
+- `Tool` / `ToolCatalog`: base class for an MCP tool (schema, read-only annotations, result envelope) and the set of tools
+- `ErrorConfig`: error keys → status codes and messages
 
 ### Frontend Architecture
 
@@ -116,6 +119,18 @@ POST/PUT/DELETE  /api/skills
 POST/PUT/DELETE  /api/support-status
 ```
 
+**MCP (public, read-only):**
+```
+POST /api/mcp    Streamable HTTP; tools search_applications, search_applications_semantic,
+                 get_skills, list_lookups
+```
+
+The MCP endpoint serves both protocol eras: the stateless 2026-07-28 revision and the
+2025 revisions (which open with `initialize`), statelessly, from one factory. Tools
+project rows for a model — names, not surrogate keys — via `src/mcp/projections.js`.
+
+See `backend/README.md` for every route's filters and body fields.
+
 ## Development Commands
 
 ### Backend
@@ -126,23 +141,29 @@ cd backend
 # Install dependencies
 npm install
 
-# Development (with auto-reload)
+# Development (node --watch, restarts on change)
 npm run dev
 
 # Production
 npm start
 
-# Test Lambda handler locally
-npm run lambda_test
-
-# Run tests
+# Integration tests (node:test) against the real database; they never write
 npm test
+
+# MCP Inspector, pre-connected to the local /api/mcp (run alongside npm run dev)
+npm run inspect
 
 # Backfill vector embeddings for existing applications
 npm run vectorize-existing-apps
+
+# Sanity-check the database (read-only)
+npm run check-db
 ```
 
-**Backend runs on port 2021** by default (configurable via `PORT` env var)
+**Backend runs on port 2021** by default (configurable via `PORT` env var). Requires Node 24.
+
+Tests must never write to the database — it is the real one. Exercise write routes only
+on paths rejected before any SQL runs (bad admin code, missing required field).
 
 ### Frontend
 
@@ -169,14 +190,14 @@ npm run lint
 
 ### Backend (.env)
 
-Required variables:
+See `backend/.env.example`. Required variables:
 - `SUPABASE_DB_URL`: Supabase PostgreSQL connection string. Use the **transaction
-  pooler** (port 6543) — it suits both App Runner and Lambda.
+  pooler** (port 6543) — it suits Lambda's short-lived environments.
 - `APPSBYMATTHEW_ADMIN_CODE`: Secret used to authorize protected routes
 - `OPENAI_API_KEY`: OpenAI API key (used for chat completions and embeddings)
-- `NODE_ENV`: development or production
-- `PORT`: Server port (default: 2021)
-- `FRONTEND_URL`: Frontend URL for CORS (default: http://localhost:*)
+- `PORT`: Optional. Local server port (default: 2021). Never set
+  `AWS_LAMBDA_HTTP_ENDPOINT` locally — it is how the code recognizes a Web Function.
+- `FRONTEND_URL`: Optional. One more origin CORS allows, beyond the site's own and (locally) any localhost port
 - `PGSSL_ROOT_CERT`: Optional. Path to a CA file for the database connection. Overrides
   the CA bundled at `backend/certs/supabase-prod-ca-2021.crt`.
 - `PGSSL_NO_VERIFY`: Optional. Set to `true` to encrypt without verifying the server
@@ -187,10 +208,10 @@ which is not in Node's trust store. Verifying against the system trust store the
 fails with `SELF_SIGNED_CERT_IN_CHAIN`. That CA is committed at
 `backend/certs/supabase-prod-ca-2021.crt` and trusted by default in
 `src/_library/classes/postgres.js`. It must stay in the deployment package — nothing
-about TLS is configurable per environment, because Lambda and App Runner have no `.env`
-and their secrets arrive via Secrets Manager rather than `process.env`.
+about TLS is configurable per environment, because Lambda has no `.env` and its secrets
+arrive via Secrets Manager rather than `process.env`.
 
-For AWS deployment, secrets are retrieved from AWS Secrets Manager (`prd-secrets` secret) using `@aws-sdk/client-secrets-manager`. The presence of `AWS_EXECUTION_ENV` signals the Lambda runtime. Note that only the keys listed in `src/configuration/secrets.js` are read from there; anything read straight off `process.env` (such as the `PGSSL_*` variables) is simply unset in AWS.
+For AWS deployment, secrets are retrieved from AWS Secrets Manager (`prd-secrets` secret) using `@aws-sdk/client-secrets-manager`. AWS is detected by `AWS_EXECUTION_ENV` or `AWS_LAMBDA_HTTP_ENDPOINT` (Web Functions don't reliably set the former). Note that only the keys listed in `src/configuration/secrets.js` are read from there; anything read straight off `process.env` (such as the `PGSSL_*` variables) is unset in AWS unless set on the revision. Never log a secret — console output lands in CloudWatch.
 
 ### Frontend
 
@@ -202,30 +223,43 @@ For AWS deployment, secrets are retrieved from AWS Secrets Manager (`prd-secrets
 
 ### Adding a New Route
 
-1. Create controller function in `src/controllers/[resource].js`
-2. Create data layer function in `src/data/[resource].js`. Query via `db.query()` from
+1. Create data layer function in `src/data/[resource].js`, taking `{query}` or `{body}`
+   rather than a request. Query via `db.query()` from
    `src/configuration/database.js`; use `db.transaction()` whenever a write touches a
    dimension and its bridge tables together. Optional filters use the
    `($1::type IS NULL OR col = $1)` pattern so one clause can drive both the page query
    and the count query. `ORDER BY` can't be parameterized — whitelist sort fields with
    `parse_sort` from `src/_library/functions/query_params.js`.
-3. Register route in `src/configuration/routing.js`:
-   - Add to `unprotected_routes` array for public endpoints
-   - Add to `protected_routes` array for admin-only endpoints (requires authorization header)
+2. Create an Express handler in `src/controllers/[resource].js` that passes `req.query`
+   or `req.body` through and sends the result with `res.status(...).json(...)`. No
+   try/catch — Express 5 forwards rejections to the error handler.
+3. Register it in `src/configuration/routing.js`; add `require_admin_code` before the
+   handler for an admin-only route.
+
+### Adding an MCP Tool
+
+Add a `Tool` subclass under `src/mcp/tools/` that calls `src/data` functions (never its
+own SQL), and add it to the catalog in `src/configuration/mcp.js`. The base class makes it
+read-only by default (override `annotations` for a tool that writes) and caps `limit` at
+the configured max.
 
 ### Authorization
 
-Write operations (POST, PUT, DELETE) are protected routes requiring an `authorization` header matching the `APPSBYMATTHEW_ADMIN_CODE` secret. The middleware in `src/configuration/middleware.js` validates this before allowing access.
+Write operations (POST, PUT, DELETE) require an `authorization` header matching the `APPSBYMATTHEW_ADMIN_CODE` secret. `require_admin_code` in `src/configuration/middleware.js` checks it (case-insensitive header name, constant-time comparison) before the handler runs.
+
+Rate limits (`express-rate-limit`, per client IP per minute, in memory per execution environment): 300 across `/api`, 10 for `/api/chat`, 60 for `/api/mcp`.
 
 Frontend admin functionality is toggled via a localStorage key (see `Header.jsx`). The Axios instance in `src/config/api.js` automatically injects the stored key as the `Authorization` header on every request when present.
 
-### Dual Runtime Support
+### Runtime
 
-When modifying backend code, ensure it works in both environments:
-- **Express**: Uses `_express.js` as entry point
-- **AWS Lambda**: Uses `_aws_lambda.mjs` as handler (exported as `handle_lambda_request`)
-
-Both convert their respective request formats to `StandardizedRequestObject` and share the same routing configuration.
+One runtime: a Lambda Web Function runs `index.js` as a normal HTTP server, and so does
+`npm run dev`. One environment serves up to 10 requests at once
+(`maxConcurrencyPerEnvironment`, matching the Postgres pool in
+`src/configuration/database.js` — change them together), so never keep per-request state
+in module-level variables; use `res.locals`. A Web Function gets 1 second after SIGTERM,
+and must be listening within 10 seconds of starting, which is why `index.js` listens
+before it imports `app.js`.
 
 ### Vector Search / AI Chat
 
@@ -248,7 +282,7 @@ only signal that logging broke.
 
 Embedding generation always happens *outside* the write transaction, so a slow OpenAI
 call never holds a pooler connection open. A failure there is non-fatal: the application
-saves without an embedding and simply won't appear in chat until re-vectorized.
+saves without an embedding and simply won't appear in chat or MCP semantic search until re-vectorized.
 
 To backfill embeddings, run `npm run vectorize-existing-apps` from `backend/`.
 To sanity-check the database (connectivity, pgvector, identity sequences, embedding
@@ -257,5 +291,5 @@ coverage), run `npm run check-db`.
 ## Deployment Notes
 
 - **Frontend**: Deployed to AWS S3 via GitHub Actions; served at `https://www.appsbymatthew.com`
-- **Backend**: Deployed to AWS App Runner at `https://r2ccrdqgnu.us-east-1.awsapprunner.com/api`; also packaged as an AWS Lambda function
-- SAM build artifacts are in `backend/.aws-sam/build/`
+- **Backend**: Deployed as the Lambda Web Function `appsByMatthew4_api` (`nodejs24.x`, Arm64) by `.github/workflows/backend-lambda-web.yml`: zip → S3 → new revision → wait for Active. The endpoint's `LatestRevision` mode moves traffic. One-time AWS setup is in `backend/README.md`.
+- **Data jobs** (`data/`): built by `.github/workflows/data-ghcr.yml`, separately.
